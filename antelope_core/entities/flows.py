@@ -58,63 +58,6 @@ class LcFlow(LcEntity, Flow):
             if k not in self._d:
                 self._d[k] = ''
 
-    '''
-    def unit(self):
-        return super(LcFlow, self).unit()  # totally useless
-
-    def set_local_unit(self, local_unit):
-        """
-        Controls the display of numeric data regarding the flow.
-
-        This functionality is NOT YET SUPPORTED.
-
-        Exchange values and CFs are all stored with respect to the reference quantity's reference unit, so the local
-        unit setting does not affect any computations: only display.
-
-        use self.mag(amount) to report the magnitudes of flows in the local unit
-        use self.imag(amount) to report the magnitudes of measures for which the flow appears in the denominator
-
-        Examples:
-        flow's reference entity is volume [m3]
-        flow's local unit is 'l'
-
-        For an exchange value of 0.001 m3 per reference flow: self.mag(0.001) = 1
-        For a characterization factor of 0.75 kg/m3, self.imag(0.75) = 7.5e-4
-
-        This functionality does not allow users to report indicators in different units (e.g. water depletion potential
-        in liters instead of m3).
-
-        :param local_unit: should be a string which is a valid argument to the reference quantity's "convert" function.
-        :return:
-        """
-        local_conv = self.reference_entity.convert(to=local_unit)
-        if local_conv is not None:
-            self._local_unit = local_unit
-
-    def mag(self, amount):
-        """
-        Report magnitudes of the flow in the local unit (or magnitudes where the flow is in the numerator)
-        :param amount:
-        :return:
-        """
-        if self._local_unit is None:
-            return amount
-        return amount * self.reference_entity.convert(to=self._local_unit)
-
-    def imag(self, amount):
-        """
-        Report magnitudes where the flow is in the denominator, converted in terms of the flow's local unit
-        :param amount:
-        :return:
-        """
-        if self._local_unit is None:
-            return amount
-        return amount * self.reference_entity.convert(fr=self._local_unit)
-
-    def unset_local_unit(self):
-        self._local_unit = None
-    '''
-
     def __str__(self):
         cas = self.get('CasNumber')
         if cas is None:

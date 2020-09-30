@@ -13,7 +13,7 @@ from lxml.etree import XMLSyntaxError
 from ...characterizations import QRResult
 from ...entities import LcQuantity, LcFlow, LcProcess
 from ...exchanges import ExchangeValue, DirectionlessExchangeError
-from ...lcia_results import LciaResult, LciaResults
+from ...lcia_results import LciaResult
 from ..ecospold import tail
 from ..file_store import FileStore
 from ...archives import LcArchive, uuid_regex

@@ -35,118 +35,6 @@ class ReferenceSettingFailed(Exception):
     pass
 
 
-# a shorthand for storing operable reference exchanges in a process ref. maybe this will need to be a class, we'll see.
-# on second thought, why not just use exchanges? The main reason is that the process ref....
-# RxRef = namedtuple('RxRef', ['flow', 'direction', 'value'])
-class RxRef(object):
-    """
-    A placeholder object to store reference exchange info for process_refs.  It can be modified to interoperate in
-    places where exchanges are expected, e.g by having equivalent equality tests, hashes, etc., as needed.
-    NO QUANTITATIVE DATA (i.e. exchange values)- these require an inventory interface.
-    """
-    entity_type = 'exchange'
-
-    def __init__(self, process_ref, flow, direction, comment=None):
-        self._process_ref = None
-        self._flow_ref = flow
-        self._direction = direction
-        # self._hash_tuple = (process.uuid, flow.external_ref, direction, None)
-        self._hash = hash((process_ref, flow.external_ref, direction, None))
-        self._comment = comment
-        # self._is_alloc = process.is_allocated(self)
-        self._cached_value = None  # this is currently unused and should be unsupported
-
-    @property
-    def process(self):
-        return self._process_ref
-
-    @process.setter
-    def process(self, value):
-        if self._process_ref is None:
-            self._process_ref = value
-        else:
-            raise AttributeError('Process ref already set!')
-
-    @property
-    def flow(self):
-        return self._flow_ref
-
-    @property
-    def direction(self):
-        return self._direction
-
-    @property
-    def unit(self):
-        return self._flow_ref.unit
-
-    @property
-    def comment(self):
-        if self._comment is None:
-            return ''
-        return self._comment
-
-    @property
-    def value(self):
-        '''
-        # print('ACCESSING RxRef VALUE')  # need to be cautious about when / why this is used
-        if self._cached_value is None:
-            try:
-                self._cached_value = self.process.reference_value(self.flow.external_ref)
-            except InventoryRequired:
-                return None
-        return self._cached_value
-        '''
-        raise ExchangeRequired("Let's go back to being cautious about this")
-
-    @property
-    def termination(self):
-        return None
-
-    @property
-    def is_reference(self):
-        return True
-
-    @property
-    def _value_string(self):
-        if self._cached_value is not None:
-            return '%.3g' % self._cached_value
-        return ' --- '
-
-    '''
-    @property
-    def is_alloc(self):
-        return self._is_alloc
-    '''
-
-    @property
-    def key(self):
-        return self._hash
-
-    @property
-    def lkey(self):
-        return self.flow.external_ref, self._direction, None
-
-    @property
-    def link(self):
-        return '%s/reference/%s' % (self.process.link, self._flow_ref.external_ref)
-
-    def __hash__(self):
-        return self._hash
-
-    def __eq__(self, other):
-        if other is None:
-            return False
-        if not hasattr(other, 'entity_type'):
-            return False
-        if other.entity_type != 'exchange':
-            return False
-        return self.lkey == other.lkey
-
-    def __str__(self):
-        ref = '(*)'
-        return '%6.6s: %s [%s %s] %s' % (self.direction, ref, self._value_string, self.flow.unit, self.flow)
-
-
 class LcProcess(LcEntity):
 
     _ref_field = 'referenceExchange'
@@ -425,6 +313,8 @@ class LcProcess(LcEntity):
 
         old = self._exchanges.pop(ex.key)
         new = old.reterminate(None)
+        if new.key in self._exchanges:
+            raise KeyError('Unterminated exchange already exists!')
         self._exchanges[new.key] = new
         self._exch_map[new.flow.external_ref].remove(old)
         self._exch_map[new.flow.external_ref].add(new)
@@ -647,26 +537,6 @@ class LcProcess(LcEntity):
             self._exchanges[e.key] = e
             self._exch_map[e.flow.external_ref].add(e)
             return e
-
-    '''
-    def lcias(self, quantities, **kwargs):
-        results = LciaResults(entity=self)
-        for q in quantities:
-            results[q.get_uuid()] = self.lcia(q, **kwargs)
-        return results
-
-    def lcia(self, quantity, ref_flow=None):
-        if not quantity.is_entity:
-            # only works for quantity refs-- in other words, always works
-            return quantity.do_lcia(self.inventory(ref_flow=ref_flow), locale=self['SpatialScope'])
-        else:
-            result = LciaResult(quantity)
-            result.add_component(self.get_uuid(), entity=self)
-            for ex in self.inventory(ref_flow):
-                factor = ex.flow.factor(quantity)
-                result.add_score(self.get_uuid(), ex, factor, self['SpatialScope'])
-            return result
-    '''
 
     def merge(self, other):
         raise NotImplemented('This should be done via fragment construction + aggregation')

@@ -101,7 +101,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             self._debug('Returning cached iface')
             yield self._iface_cache[itype]
         for i in self._catalog.gen_interfaces(self._origin, itype, strict=strict):
-            if itype == 'background':
+            if itype == 'background':  # all our background implementations must provide setup_bm(query)
                 self._debug('Setting up background interface')
                 try:
                     i.setup_bm(self)

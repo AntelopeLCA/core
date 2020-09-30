@@ -344,6 +344,21 @@ class StaticCatalog(object):
             self._queries[origin] = CatalogQuery(origin, catalog=self, **kwargs)
         return self._queries[origin]
 
+    def lookup(self, catalog_ref, keep_properties=False):
+        """
+        Attempts to return a valid grounded reference matching the one supplied.
+        :param catalog_ref:
+        :param keep_properties: [False] if True, apply incoming ref's properties to grounded ref, probably with a
+        prefix or something.
+        :return:
+        """
+        ref = self.query(catalog_ref.origin).get(catalog_ref.external_ref)
+        if keep_properties:
+            for k in catalog_ref.properties():
+                ref[k] = catalog_ref[k]
+        return ref
+
+    '''
     def lookup(self, origin, external_ref=None):
         """
         Attempts to secure an entity
@@ -366,6 +381,7 @@ class StaticCatalog(object):
             origin, external_ref = origin.split('/', maxsplit=1)
         org = self.lookup(origin, external_ref)
         return self.query(org).get(external_ref)
+    '''
 
     def catalog_ref(self, origin, external_ref, entity_type=None, **kwargs):
         """

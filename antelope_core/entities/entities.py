@@ -3,7 +3,7 @@ from __future__ import print_function, unicode_literals
 import uuid
 from itertools import chain
 from numbers import Number
-from antelope import CatalogRef, EntityInterface, PropertyExists
+from antelope import CatalogRef, BaseEntity, PropertyExists
 
 from synonym_dict import LowerDict
 
@@ -29,7 +29,7 @@ class EntityMergeError(Exception):
     pass
 
 
-class LcEntity(EntityInterface):
+class LcEntity(BaseEntity):
     """
     All LC entities behave like dicts, but they all have some common properties, defined here.
     """
@@ -75,11 +75,6 @@ class LcEntity(EntityInterface):
     @property
     def reference_entity(self):
         return self._reference_entity
-
-    def _make_ref_ref(self, query):
-        if self.reference_entity is not None:
-            return self.reference_entity.make_ref(query)
-        return None
 
     def make_ref(self, query):
         if self._query_ref is None:

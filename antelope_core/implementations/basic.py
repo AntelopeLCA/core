@@ -90,10 +90,12 @@ class BasicImplementation(object):
         except NotImplementedError:
             return None
 
+    '''
     def lookup(self, external_ref, **kwargs):
         if self._fetch(external_ref, **kwargs) is not None:
             return True
         return False
+    '''
 
     def get(self, external_ref, **kwargs):
         """
