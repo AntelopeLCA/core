@@ -1,0 +1,1146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet version="1.0" href="../../stylesheets/process2html.xsl" type="text/xsl"?>
+<processDataSet xmlns="http://lca.jrc.it/ILCD/Process" xmlns:common="http://lca.jrc.it/ILCD/Common" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://lca.jrc.it/ILCD/Process ../../schemas/ILCD_ProcessDataSet.xsd" locations="../ILCDLocations.xml" version="1.1">
+  <processInformation>
+    <dataSetInformation>
+      <common:UUID>80c0f36b-9089-4058-9940-3fa073e8bfc5</common:UUID>
+      <name>
+        <baseName xml:lang="en">Acetic acid</baseName>
+        <treatmentStandardsRoutes xml:lang="en">from methanol</treatmentStandardsRoutes>
+        <mixAndLocationTypes xml:lang="en">production mix, at plant</mixAndLocationTypes>
+      </name>
+      <classificationInformation>
+        <common:classification name="GaBiCategories" classes="../GaBiCategories.xml">
+          <common:class level="0" classId="61d01af3-23cc-49cc-849f-63a9801953ff">Processes</common:class>
+          <common:class level="1" classId="d9e81c75-315c-4c0f-b5d3-e1f5f03d1263">Production</common:class>
+          <common:class level="2" classId="455ffb41-4777-4723-954a-492e09d7e56a">Material production</common:class>
+          <common:class level="3" classId="6ef1c82c-6e31-48b6-9723-115804f34d34">Intermediate products production</common:class>
+          <common:class level="4" classId="4e177fec-afa5-47a5-88bb-18cf0c3920c3">Organic intermediate products</common:class>
+        </common:classification>
+      </classificationInformation>
+      <common:generalComment xml:lang="en">The data set covers all relevant process steps / technologies over the supply chain of the represented cradle to gate inventory with a good overall data quality. The inventory is mainly based on industry data and is completed, where necessary, by secondary data. This dataset is based on primary data from internationally adopted production processes, connected with regional precursor chains.</common:generalComment>
+    </dataSetInformation>
+    <quantitativeReference type="Reference flow(s)">
+      <referenceToReferenceFlow>97</referenceToReferenceFlow>
+    </quantitativeReference>
+    <time>
+      <common:referenceYear>2013</common:referenceYear>
+      <common:dataSetValidUntil>2016</common:dataSetValidUntil>
+      <common:timeRepresentativenessDescription xml:lang="en">annual average</common:timeRepresentativenessDescription>
+    </time>
+    <geography>
+      <locationOfOperationSupplyOrProduction location="DE">
+        <descriptionOfRestrictions xml:lang="en">The data set represents the country / region specific situation, focusing on the main technologies, the region specific characteristics and / or import statistics.</descriptionOfRestrictions>
+      </locationOfOperationSupplyOrProduction>
+    </geography>
+    <technology>
+      <technologyDescriptionAndIncludedProcesses xml:lang="en">This method of production is also a one-step process, though catalyst preparation is done in a separate reactor to ensure proper dissolving. In this process a rhodium catalyst is used. Methanol and carbon monoxide are continuously fed into the stirred reactor in which the reaction is conducted at 200 °C and 35 bars. Most noticeable by-products (however produced in very little quantities) are propionic acid, carbon dioxide and hydrogen.  
+The background system is addressed as follows: 
+ Electricity, Thermal energy: The electricity (and thermal energy as by-product) used is modelled according to the individual country-specific situation. The country-specific modelling is achieved on multiple levels. Firstly the individual power plants in service are modelled according to the current national grid. This includes net losses and imported electricity. Second, the national emission and efficiency standards of the power plants are modelled. Third, the country-specific fuel supply (share of resources used, by import and / or domestic supply) including the country-specific properties (e.g. element and energy contents) are accounted for. Fourth, the import, transport, mining and exploration processes for the energy carrier supply chain are modelled according to the specific situation of each power-producing country. The different mining and exploration techniques (emissions and efficiencies) in the different exploration countries are accounted for according to current engineering knowledge and information.  
+Steam: The steam supply is modelled according to the individual country-specific situation with regard to the technology efficiencies and energy carriers used. Efficiencies range from 84% to 94% in relation to the representative energy carrier (gas, oil, coal). Coal, crude oil and natural gas used for the generation of steam are modelled according to the specific import situation (see electricity).  
+Transports: All relevant and known transport processes used are included. Overseas transport including rail and truck transport to and from major ports for imported bulk resources are included. Furthermore all relevant and known pipeline and / or tanker transport of gases and oil imports are included.  
+Energy carriers: Coal, crude oil, natural gas and uranium are modelled according to the specific import situation (see electricity). 
+Refinery products: Diesel, gasoline, technical gases, fuel oils, basic oils and residues such as bitumen are modelled via a country-specific, refinery parameterized model. The refinery model represents the current national standard in refinery techniques (e.g. emission level, internal energy consumption,...) as well as the individual country-specific product output spectrum, which can be quite different from country to country. Hence the refinery products used show the individual country-specific use of resources. The supply of crude oil is modelled, again, according to the country-specific crude oil situation with the respective properties of the resources.</technologyDescriptionAndIncludedProcesses>
+      <referenceToIncludedProcesses refObjectId="300e0734-6b74-4225-a078-d64108783da3" version="09.00.000" type="process data set" uri="../processes/300e0734-6b74-4225-a078-d64108783da3.xml">
+        <common:shortDescription xml:lang="en">Water (desalinated; deionised)</common:shortDescription>
+      </referenceToIncludedProcesses>
+      <referenceToIncludedProcesses refObjectId="48ab6f40-203b-4895-8742-9bdbef55e494" version="09.00.000" type="process data set" uri="../processes/48ab6f40-203b-4895-8742-9bdbef55e494.xml">
+        <common:shortDescription xml:lang="en">Electricity grid mix</common:shortDescription>
+      </referenceToIncludedProcesses>
+      <referenceToIncludedProcesses refObjectId="28ffe59e-68b5-4c64-a607-b9c7e472cf0e" version="09.00.000" type="process data set" uri="../processes/28ffe59e-68b5-4c64-a607-b9c7e472cf0e.xml">
+        <common:shortDescription xml:lang="en">Process steam from light fuel oil (LFO) 90%</common:shortDescription>
+      </referenceToIncludedProcesses>
+      <referenceToIncludedProcesses refObjectId="831121be-2152-4536-99ec-3c7f5ad706ad" version="09.00.000" type="process data set" uri="../processes/831121be-2152-4536-99ec-3c7f5ad706ad.xml">
+        <common:shortDescription xml:lang="en">Carbon monoxide (via synthetic gas)</common:shortDescription>
+      </referenceToIncludedProcesses>
+      <referenceToIncludedProcesses refObjectId="9e2182ca-f05b-4acd-91d8-3d4e7adb827e" version="09.00.000" type="process data set" uri="../processes/9e2182ca-f05b-4acd-91d8-3d4e7adb827e.xml">
+        <common:shortDescription xml:lang="en">Methanol from natural gas (integrated technologies)</common:shortDescription>
+      </referenceToIncludedProcesses>
+      <technologicalApplicability xml:lang="en">Provision of a standard technical product according to the applied technology.</technologicalApplicability>
+      <referenceToTechnologyFlowDiagrammOrPicture refObjectId="15ec8680-a8dc-4e23-8cbf-f2fceecfe2c6" version="26.00.000" type="source data set" uri="../sources/15ec8680-a8dc-4e23-8cbf-f2fceecfe2c6.xml">
+        <common:shortDescription xml:lang="en">Intermediates_acetic acid (CO + MeOH).gif</common:shortDescription>
+      </referenceToTechnologyFlowDiagrammOrPicture>
+    </technology>
+  </processInformation>
+  <modellingAndValidation>
+    <LCIMethodAndAllocation>
+      <typeOfDataSet>LCI result</typeOfDataSet>
+      <LCIMethodPrinciple>Attributional</LCIMethodPrinciple>
+      <deviationsFromLCIMethodPrinciple xml:lang="en">None</deviationsFromLCIMethodPrinciple>
+      <LCIMethodApproaches>Allocation - market value</LCIMethodApproaches>
+      <LCIMethodApproaches>Allocation - net calorific value</LCIMethodApproaches>
+      <LCIMethodApproaches>Allocation - exergetic content</LCIMethodApproaches>
+      <LCIMethodApproaches>Allocation - mass</LCIMethodApproaches>
+      <deviationsFromLCIMethodApproaches>No allocation in the foreground system applied. For details please see the document "GaBi Databases Modelling Principles"</deviationsFromLCIMethodApproaches>
+      <modellingConstants xml:lang="en">All data used in the calculation of the LCI results refer to net calorific value.</modellingConstants>
+      <deviationsFromModellingConstants xml:lang="en">None</deviationsFromModellingConstants>
+      <referenceToLCAMethodDetails refObjectId="f2b512cd-43b2-4260-9882-eebc06731274" version="26.00.000" type="source data set" uri="../sources/f2b512cd-43b2-4260-9882-eebc06731274.xml">
+        <common:shortDescription xml:lang="en">GaBi Modelling Principles</common:shortDescription>
+      </referenceToLCAMethodDetails>
+      <referenceToLCAMethodDetails refObjectId="2f4e6329-f31d-44dc-8933-f4e6608590f5" version="26.00.000" type="source data set" uri="../sources/2f4e6329-f31d-44dc-8933-f4e6608590f5.xml">
+        <common:shortDescription xml:lang="en">GaBi Water Modelling Principles</common:shortDescription>
+      </referenceToLCAMethodDetails>
+      <referenceToLCAMethodDetails refObjectId="69cb87e8-2532-455d-b7d3-18eced579e8f" version="26.00.000" type="source data set" uri="../sources/69cb87e8-2532-455d-b7d3-18eced579e8f.xml">
+        <common:shortDescription xml:lang="en">GaBi Agriculture Model Documentation</common:shortDescription>
+      </referenceToLCAMethodDetails>
+      <referenceToLCAMethodDetails refObjectId="57a2608f-18fc-454f-998a-1657376a4322" version="26.00.000" type="source data set" uri="../sources/57a2608f-18fc-454f-998a-1657376a4322.xml">
+        <common:shortDescription xml:lang="en">GaBi Land Use Change Model Documentation</common:shortDescription>
+      </referenceToLCAMethodDetails>
+      <referenceToLCAMethodDetails refObjectId="3c6b1a84-fc51-463c-a66f-eaacfde2cb2f" version="26.00.000" type="source data set" uri="../sources/3c6b1a84-fc51-463c-a66f-eaacfde2cb2f.xml">
+        <common:shortDescription xml:lang="en">GaBi Energy Modelling Principles</common:shortDescription>
+      </referenceToLCAMethodDetails>
+      <referenceToLCAMethodDetails refObjectId="1a453aa5-4e46-468f-b441-17fb02054ac3" version="26.00.000" type="source data set" uri="../sources/1a453aa5-4e46-468f-b441-17fb02054ac3.xml">
+        <common:shortDescription xml:lang="en">GaBi Refinery Modelling Principles</common:shortDescription>
+      </referenceToLCAMethodDetails>
+    </LCIMethodAndAllocation>
+    <dataSourcesTreatmentAndRepresentativeness>
+      <dataCutOffAndCompletenessPrinciples xml:lang="en">Cut-off rules for each unit process: Coverage of at least 95 % of mass and energy of the input and output flows, and 98 % of their environmental relevance (according to expert judgement).
+For further details please see the document "GaBi Databases Modelling Principles"</dataCutOffAndCompletenessPrinciples>
+      <deviationsFromCutOffAndCompletenessPrinciples xml:lang="en">None</deviationsFromCutOffAndCompletenessPrinciples>
+      <dataSelectionAndCombinationPrinciples xml:lang="en">For details please see the document "GaBi Databases Modelling Principles"</dataSelectionAndCombinationPrinciples>
+      <deviationsFromSelectionAndCombinationPrinciples xml:lang="en">None</deviationsFromSelectionAndCombinationPrinciples>
+      <dataTreatmentAndExtrapolationsPrinciples xml:lang="en">For details please see the document "GaBi Databases Modelling Principles"</dataTreatmentAndExtrapolationsPrinciples>
+      <deviationsFromTreatmentAndExtrapolationPrinciples xml:lang="en">None</deviationsFromTreatmentAndExtrapolationPrinciples>
+      <referenceToDataSource refObjectId="d273494e-5fbd-11db-b0de-0800200c9a66" version="26.00.000" type="source data set" uri="../sources/d273494e-5fbd-11db-b0de-0800200c9a66.xml">
+        <common:shortDescription xml:lang="en">Industrial Inorganic Chemistry, 2000</common:shortDescription>
+      </referenceToDataSource>
+      <referenceToDataSource refObjectId="d273494f-5fbd-11db-b0de-0800200c9a66" version="26.00.000" type="source data set" uri="../sources/d273494f-5fbd-11db-b0de-0800200c9a66.xml">
+        <common:shortDescription xml:lang="en">Industrial Organic Chemistry, 2003</common:shortDescription>
+      </referenceToDataSource>
+      <referenceToDataSource refObjectId="d2732230-5fbd-11db-b0de-0800200c9a66" version="26.00.000" type="source data set" uri="../sources/d2732230-5fbd-11db-b0de-0800200c9a66.xml">
+        <common:shortDescription xml:lang="en">CD Römpp Chemie Lexikon, 1995</common:shortDescription>
+      </referenceToDataSource>
+      <referenceToDataSource refObjectId="d2732231-5fbd-11db-b0de-0800200c9a66" version="26.00.000" type="source data set" uri="../sources/d2732231-5fbd-11db-b0de-0800200c9a66.xml">
+        <common:shortDescription xml:lang="en">ULLMANN'S Encyclopedia of Industrial Chemistry</common:shortDescription>
+      </referenceToDataSource>
+      <referenceToDataSource refObjectId="d2737041-5fbd-11db-b0de-0800200c9a66" version="26.00.000" type="source data set" uri="../sources/d2737041-5fbd-11db-b0de-0800200c9a66.xml">
+        <common:shortDescription xml:lang="en">Selected Process from Chemical Process Economics, 1998</common:shortDescription>
+      </referenceToDataSource>
+      <percentageSupplyOrProductionCovered>95.0</percentageSupplyOrProductionCovered>
+      <uncertaintyAdjustments xml:lang="en">None</uncertaintyAdjustments>
+      <useAdviceForDataSet xml:lang="en">The LCI data set should be used for LCI/ LCA studies where acetic acid is used along the production chain. The most important application fields of acetic acid are in the chemical sector as an chemical reagent. The largest single use of acetic acid is in the production of vinyl acetate monomer, closely followed by acetic anhydride and ester production. Smaller volumes are used in vinegar production.</useAdviceForDataSet>
+    </dataSourcesTreatmentAndRepresentativeness>
+    <completeness>
+      <completenessProductModel>All relevant flows quantified</completenessProductModel>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="7541f413-21a1-44b9-803f-e8e1d3603e9d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Acidification, accumulated exceedance</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="eb627499-c286-4976-906e-bec4479be6a5" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Anthropogenic Abiotic Depletion Potential (AADP), TU Berlin</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="ff22d4db-a81e-4695-84c5-95790ab7dcfc" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Blue water consumption</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4dab804f-d372-4bbf-9adc-cc0373f59715" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Blue water use</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="01225272-a6e3-44c6-b7c0-7dee880e3f0d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Abiotic Depletion (ADP elements)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="a1b1da7e-f55c-4f83-86b5-8406644c4187" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Abiotic Depletion (ADP fossil)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="8831d43f-cb1f-46fa-bdea-192a563e41f6" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Acidification Potential (AP)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b7cc6c77-d43e-4356-b48c-2704b41159be" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Eutrophication Potential (EP)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="adb5650e-6b27-4100-bbc7-514f85719f00" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Freshwater Aquatic Ecotoxicity Pot. (FAETP inf.)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="97b83982-903d-431c-aa4f-7e05aad400e6" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Global Warming Potential (GWP 100 years)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="263f8082-d4e5-4356-ab62-ecd38a9eda86" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Global Warming Potential (GWP 100 years), excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="375f2927-c596-4d2a-9843-85226bdea84a" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Global Warming Potential (GWP 100), excl bio. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="9d53117c-84bb-47dd-8ca0-2fa8e30079e1" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Global Warming Potential (GWP 100), incl bio. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b7466ba7-2c0a-4623-946b-cb45e656066e" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Global Warming Potential (GWP 100), Land Use Change only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="284812ef-e3a6-4a66-aa6a-a9e3dbbf8292" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Human Toxicity Potential (HTP inf.)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="64a846a1-b058-4d15-885c-740a7aadd9d2" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Marine Aquatic Ecotoxicity Pot. (MAETP inf.)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="ee41c86c-7cdc-4e0d-9b5e-1c2b598f9a1c" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Ozone Layer Depletion Potential (ODP, steady state)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="27e624d1-46ae-4c68-958b-dbeed16b05a2" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Photochem. Ozone Creation Potential (POCP)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4ed780df-a7dd-486f-9a43-8b58e65fd6db" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">CML2001 - Apr. 2013, Terrestric Ecotoxicity Potential (TETP inf.)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="caae7475-1412-49c3-9c51-779a87ef0263" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Ecotoxicity for aquatic fresh water, USEtox (recommended)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="eff2eeef-d9b2-490c-9067-c29ba0fe03a1" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">EDIP 2003, Acidification potential</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="1e24adbd-b561-4157-bb0f-bf7d8f6398cf" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">EDIP 2003, Aquatic eutrophication</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5caa2f3a-187d-4629-b62d-329452d997ed" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">EDIP 2003, Global warming</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="cd5be58d-c37a-4a28-bb1f-d680350227e1" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">EDIP 2003, Photochemical ozone formation - impact on human health and materials</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="33d02fb0-11d7-4513-9870-b2d679e7ede0" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">EDIP 2003, Photochemical ozone formation - impact on vegetation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="9d5c0cd4-4a3d-4adf-9d04-1c6bc900ffd9" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">EDIP 2003, Stratospheric ozone depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="2a802848-8997-4f78-b813-81e6ae3863de" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">EDIP 2003, Terrestrial eutrophication</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="fba82f82-1a1f-4379-be26-58f48aca5116" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Freshwater eutrophication, EUTREND model, ReCiPe</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="84c27d3e-9c9d-4d4f-98f4-011311daef6b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Human toxicity cancer effects, USEtox (recommended)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="9050ac3c-adc6-4858-afe9-6995b396e282" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Human toxicity non-canc. effects, USEtox (recommended)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="20c50118-e023-4cd3-a02c-fc3d3c3b07f9" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Aquatic acidification - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f8e222bd-6398-40bd-b42a-8725211f0757" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Aquatic ecotoxicity - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="67d085c2-a3a5-42f9-ac52-d071caf28d37" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Aquatic eutrophication - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="c7b98eb8-7968-4ab3-a061-97733cdb92b6" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Carcinogens - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="05bb2152-fc10-444c-8fad-823d8fe362ef" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Global warming 500yr - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="55e834c8-c210-4ea2-97cf-dddd5be14209" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Ionizing radiation - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="c79145ca-cc90-49b1-905a-51aaedc0e36b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Land occupation - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="741595cb-a796-4896-9693-d666ecba5363" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Mineral extraction - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="a3e66a79-b102-41de-a503-9e7687994345" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Non-carcinogens - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5b3fe88c-4c12-4cab-b2d9-fa9199aad9ff" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Non-renewable energy - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b442b82b-4df6-47d9-8da8-b1b34a06d9dd" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Ozone layer depletion - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="a3ae4f25-6c8e-4ace-ba62-caca84ef40a6" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Photochemical oxidation - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="35203eed-00a8-4fc9-8431-afeaf75a3b95" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Respiratory effects - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="960cd6e0-1b0e-4f32-aadc-0ee0e15c524d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Terrestrial acidification/nutrification - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="fbfe798e-1798-4e73-99c6-556514770b7b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">I02+ v2.1 - Terrestrial ecotoxicity - Midpoint</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="46d70136-092f-4652-8f3a-d827bff58e3a" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Ionising radiation, human health effect model, ReCiPe</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="9c8bdc56-92e3-4e8c-865e-beec200e6207" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP100, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4f18227c-1719-4c73-a30b-6371a482e8de" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP100, excl biogenic carbon, incl Land Use Change, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="7ae29618-16b0-4fee-8727-513d1b1b6423" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP100, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="da67ab0e-8f69-4969-8217-28986d19fb7d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP100, incl biogenic carbon, incl Land Use Change, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5558951b-a5fd-4c1d-b63c-a823a6353648" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP100, Land Use Change only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="ce9b39f7-a124-47c4-8893-414c6ca83617" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP100, Land Use Change only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="cbaab90f-c417-4df4-bc97-e938e0d361db" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP20, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f7767f87-a27f-4fe8-bc4c-e3b120428271" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP20, excl biogenic carbon, incl Land Use Change, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b1b5edfb-94b7-4c83-b5ba-d3a7f840ab72" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP20, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="0976a8e2-92fe-43b6-a918-ebca91c1d128" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP20, incl biogenic carbon, incl Land Use Change, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="1999da62-9193-40a7-9481-95c547928113" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP20, Land Use Change only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f6f13cfd-d8b1-4a3d-9ca0-e5a7216c749b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP20, Land Use Change only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="fa709efe-49a0-4e7f-b91c-dfee0bddc802" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP50, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="014e652a-ceb9-4f91-9fd6-0a7c72ff6ab8" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP50, excl biogenic carbon, incl Land Use Change, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5c5c0c6f-e429-4913-858a-563652e92e9e" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP50, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f99059a4-7123-4400-bdf0-29560ca38a1b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP50, incl biogenic carbon, incl Land Use Change, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="61ab03cd-ecb9-49f4-aa6d-ceb25949c4f5" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP50, Land Use Change only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="62c50856-aa6d-4cc7-a43c-42fbbd0af666" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GTP50, Land Use Change only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="09e18ecd-a51a-4e45-b8c8-6bff3ed78f14" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GWP100, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="e3dd3e6a-a2c9-4960-9a71-db381474410f" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GWP100, excl biogenic carbon, incl Land Use Change, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="feedfda3-a8ca-4596-bcfd-8333222622fa" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GWP100, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="6483f5bc-d5e1-45e8-852e-004d6f99e44b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GWP100, incl biogenic carbon, incl Land Use Change, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="847e265f-a6bf-4733-a743-b941f912bd2b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GWP100, Land Use Change only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="fed60639-dd8f-48a9-93ba-e852fe6f291b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GWP100, Land Use Change only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5894d116-162b-4aac-aac1-bb863cdeb49d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GWP20, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="a95f1128-d635-4b2a-be66-e7ee08c20167" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GWP20, excl biogenic carbon, incl Land Use Change, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="ac8aeb41-a8ad-42c6-ad2d-573315c45698" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GWP20, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="3fd97594-9a7c-4eb6-a4b2-14864a53787c" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GWP20, incl biogenic carbon, incl Land Use Change, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="accf4bc9-1819-44a5-9222-ee8473f79352" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GWP20, Land Use Change only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f574d624-e5a6-4e36-91e8-25487bf65898" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC AR5 GWP20, Land Use Change only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="8ee1e2a9-020a-4ab3-ab68-31248a36ada8" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC global warming, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="71790765-fe69-42c8-9087-cf58b0c8441c" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">IPCC global warming, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="fc948b0a-7fcb-46c4-bef1-17e1c1d32b09" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Marine eutrophication, EUTREND model, ReCiPe</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="a4cb45f6-40cb-415d-84f2-d15f262a128c" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Ozone depletion, WMO model, ReCiPe</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="d3f291d5-177e-4195-b171-26b637565151" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Particulate matter/Respiratory inorganics, RiskPoll</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="7861df41-c692-4d93-bcfb-82b67a583dde" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Photochemical ozone formation, LOTOS-EUROS model, ReCiPe</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="804f172d-5d3a-4950-81d7-879f89881a6d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Primary energy demand from ren. and non ren. resources (gross cal. value)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="822f21ea-abc3-4f2f-8ed5-108b20530650" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Primary energy demand from ren. and non ren. resources (net cal. value)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="feb6cc77-686b-4bb6-acc3-7a087181f4cf" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Primary energy from non renewable resources (gross cal. value)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4a949ed1-f248-4cf0-a3f3-df023b58f0a5" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Primary energy from non renewable resources (net cal. value)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="d3ba5c06-2422-4f80-a06f-89ab1f273419" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Primary energy from renewable resources (gross cal. value)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="9290e9b6-4588-4ead-a774-7ea6ca6ac403" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Primary energy from renewable resources (net cal. value)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="aff1920f-a54f-488a-8824-5f17383cee59" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Agricultural land occupation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="337c1978-5b18-4ebf-8c1c-90f95f9f91b4" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Climate change Ecosystems, default, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="63069958-954b-4a12-80e8-2f42dc053a6d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Climate change Ecosystems, excl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="097e634c-5008-43d9-82b5-017dd4dbdd78" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Climate change Ecosystems, incl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="11ab930d-33e6-414d-be2b-65d2167daf75" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Climate change Ecosystems, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="94e37cb0-e27b-4f40-96ae-7aef5fb348a9" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Climate change Ecosystems, LUC only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5a1e0c89-8f63-454e-af7d-66e75f6ef184" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Climate change Human Health, default, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="79ff7402-1b5a-4db9-9f34-4cd2cc481d4b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Climate change Human Health, excl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="a3a99c85-b2ed-467d-820b-939335d6ad25" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Climate change Human Health, incl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="92510d76-0595-418d-b9e0-0678ca457b7d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Climate change Human Health, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="622690d9-498a-4f75-b66d-81523cf8df51" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Climate change Human Health, LUC only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="0a9a74d2-4f32-4141-bed1-61515a87a240" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Fossil depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5080f7cb-aac1-4c5f-b26e-7d6a94020e2f" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Freshwater ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="1a69fdcd-591a-445c-a55d-701b9ffd1255" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Freshwater eutrophication</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="d0a1aa4c-a8d4-4cc5-a85a-066541caea92" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Human toxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="da0e40a5-02da-44dc-b79f-3077e3c0dbca" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Ionising radiation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="ef217ebe-ddb3-442e-96f7-eba5fd3c4c89" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Marine ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="127478cc-5900-4c27-a6b4-7b392186ac5f" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Metal depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="70228ec8-1f5e-4ba5-a324-af17d4bda2de" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Natural land transformation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="a42356e6-714b-45f5-9af1-c962bd51714b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Ozone depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="7cbb15aa-bb08-40c5-94fc-fb471414df81" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Particulate matter formation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="58399a37-1b95-4b00-8dd8-82e05bb02f05" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Photochemical oxidant formation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f111652a-70be-4728-b68e-923663579902" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Terrestrial acidification</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4f58fec2-09ba-4e6b-a25b-d8f537ebd9c5" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Terrestrial ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="385a6b97-8793-48f3-9416-63436e67cf83" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (E) - Urban land occupation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="c3209d15-8fb0-43cd-b9c3-b810aa3ee7fb" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Agricultural land occupation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="71d0b585-99ae-4597-a193-9306e05a5e4b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Climate change Ecosystems, default, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4f4bb128-943d-47b0-a9a6-5c2da97361f1" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Climate change Ecosystems, excl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="a08807c8-23b0-45bd-b00f-cefd291b2b9b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Climate change Ecosystems, incl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f96a73e3-9f24-4c26-aee3-fec5a43cafc6" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Climate change Ecosystems, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f0e4a35d-21c9-4bdc-b3a7-15448aad9684" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Climate change Ecosystems, LUC only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="2d1b22e7-3c80-43db-9021-1a8a9e797f9f" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Climate change Human Health, default, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b0376d9c-17b0-49c1-bc97-719c05e8f5cf" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Climate change Human Health, excl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="bb8d5135-2e14-45f8-bb8a-34312228191c" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Climate change Human Health, incl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5c1b5b16-c370-4a55-b887-15013e2a45de" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Climate change Human Health, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="c6f4f488-a440-4a42-9932-4584d3998c3d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Climate change Human Health, LUC only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="7583a0c8-45f5-465b-a026-35799f35eb43" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Fossil depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="0826e00c-19ab-40e7-a535-4436b12cf2b3" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Freshwater ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="3a5e2172-ad3f-41e1-8481-2b96301cee37" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Freshwater eutrophication</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="70d34f09-3c7c-48dd-9e4f-dc775e0f831d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Human toxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="8223f48a-3b75-46df-bc71-cd03be6f84f9" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Ionising radiation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="8e3ab351-6912-4407-8f3d-241de23876b6" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Marine ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="93452cee-08d9-498d-81bb-3f2a55ee441e" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Metal depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="002cc1f9-69df-44ec-a816-36ed064f5dba" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Natural land transformation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="645f3982-abc7-4e2e-b946-99813d910c30" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Ozone depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="6f4cdcd5-d92f-4fa1-bd4e-9eb894021396" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Particulate matter formation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b143bf15-5ceb-4342-9bb0-53e7a803d144" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Photochemical oxidant formation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="22c9993b-690e-44fe-847c-dc2fd2cea17a" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Terrestrial acidification</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="ef965d29-8bf4-43bf-a2e9-34b014ba8339" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Terrestrial ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="8a3bdcff-7654-4c2a-a2e9-56dc676a4be1" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (H) - Urban land occupation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="ece57e26-eb0e-4d36-ad05-8010ffbce0ca" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Agricultural land occupation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="8ceb1468-b7e6-4813-b2a9-85729cd7184f" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Climate change Ecosystems, default, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="6d963d0f-53b4-4d7b-b5ee-f325c89468e4" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Climate change Ecosystems, excl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="6dedc68b-96f2-4d9c-aa11-11ba13556c80" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Climate change Ecosystems, incl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="27d49547-2315-48d0-9de1-45257f4f33c6" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Climate change Ecosystems, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="983814da-6a27-4ed7-b7d6-dcbca1366bbb" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Climate change Ecosystems, LUC only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="cd000cd2-706d-4348-8509-bd786c4cedfb" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Climate change Human Health, default, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="bb93f931-d028-4643-9f4b-a8b0449d9839" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Climate change Human Health, excl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4693a3a7-616c-41a1-af1f-01bbc56b5562" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Climate change Human Health, incl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="328a260c-9691-429c-9405-de33659b2e27" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Climate change Human Health, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="93658a66-bf96-411b-bbdf-782a9cd6160b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Climate change Human Health, LUC only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="994cf1dc-2cb3-492f-8307-cbd072731094" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Fossil depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="6679fc73-4eeb-4ecf-a768-e97a11862d01" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Freshwater ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="da88bf4e-5212-43aa-b2a2-a5aaa905bedd" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Freshwater eutrophication</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f68a8ed0-8f62-45ab-9fc9-d66a6d422b0e" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Human toxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="d5069975-5f38-4564-a061-2a85ae72ca02" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Ionising radiation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="724ec82e-925b-4579-bb42-1b82fc75cc63" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Marine ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="6ca9e2ce-59a5-4917-9028-c76a99afc754" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Metal depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="8c0a83bb-b5a0-4549-b4ef-51e4f01ff470" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Natural land transformation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="aeb2ccef-f3c9-4b28-8b34-55d9554a2192" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Ozone depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="92695825-0fc1-453e-b6c1-a17cc4870fa4" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Particulate matter formation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="69fcd476-8e21-48b3-9cd8-c20c77c0224e" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Photochemical oxidant formation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5ec94d5d-9624-45b1-bd0d-d94b01fad3ac" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Terrestrial acidification</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="d5fe807d-2c44-4a85-a8ec-00661aea8a85" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Terrestrial ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="05dca72f-de21-439e-940a-f3fcd7b7c9d3" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Endpoint (I) - Urban land occupation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="8b3f6acb-5991-4eda-8a84-5bad0952b49a" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Agricultural land occupation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b688102a-3be4-4584-be97-641709a59c2d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Climate change, default, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="8a7e842d-9b84-4323-8f17-426cbfeffc65" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Climate change, excl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="6316c20a-7673-4d15-942f-bbddc63726cb" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Climate change, incl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="a89d7410-e3a8-41dd-bfec-d6e44424e89a" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Climate change, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="e59f8bcb-515e-4bcf-8790-6cd91e1cd457" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Climate change, LUC only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="6758c1ff-cc1d-4241-aab4-3ed315771d79" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Fossil depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b227df1b-91a5-487e-b0d5-1efc8fdb9e3b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Freshwater ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="83df6d79-1b66-43e4-9259-aef93a60ee5e" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Freshwater eutrophication</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="3a2b822b-21ce-46ed-afbe-a72a64a30c8d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Human toxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="e121089d-4100-4cce-80f0-02fca162c05f" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Ionising radiation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f54d40c1-33b9-45dc-8b59-1b9e7c490581" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Marine ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="93649bb4-d3ff-4d07-b3db-cc5473eeb7c6" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Marine eutrophication</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="77fb7b32-ea4f-4dc7-ba8b-13a30dc1e556" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Metal depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="edb654ae-17f4-4288-913c-ee7745bcb489" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Natural land transformation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="9b6096f1-206e-44a3-95d6-1dacad39b96e" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Ozone depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="3785dfe3-a2cd-4faa-ad73-14322fead4bb" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Particulate matter formation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="7b6d13fb-e7eb-49a9-abe2-125ff503d029" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Photochemical oxidant formation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="c3085717-d4e2-46d7-9462-635375627b4c" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Terrestrial acidification</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4a2313bb-a033-44e1-a55d-208864d797a6" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Terrestrial ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="efd97cb7-53d6-42e3-ae57-91e623bed3ee" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Urban land occupation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="d1a91137-1153-403a-bad9-2b98b1d2f08b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (E) - Water depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="21e1a6a3-8eb5-4203-9f18-2288dc9b9194" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Agricultural land occupation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="6b78ee22-5506-481a-8973-36393143091e" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Climate change, default, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="75dc9a0f-acc4-4a41-8dfa-d120ceed1a51" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Climate change, excl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="3676cf10-f769-4ab4-bcd6-4e9ad0bae279" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Climate change, incl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="3ddd5f55-0b53-46b3-85bd-8367a68b12ec" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Climate change, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="832170c9-61f6-433d-aba3-1d6cde34d918" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Climate change, LUC only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="64bc4264-5028-4e9d-9560-542e4ca586fc" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Fossil depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="8ad76974-c7c2-4e95-9957-aac274855978" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Freshwater ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="d784f2dc-9b46-447c-b0c9-a6b040613fc1" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Freshwater eutrophication</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5816bfd4-7d90-4371-a0bd-32573cc694fa" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Human toxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="cd229f75-b112-495f-bce4-a2512fb87ad5" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Ionising radiation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="3eba6a7d-4cd3-48fb-a3a1-f55aa1743928" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Marine ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f58c8c23-0228-45ae-a96a-aaf78baa5b41" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Marine eutrophication</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="9ab76f45-53de-43fd-82e9-f78dfa950f2a" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Metal depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="fe53b912-a4fa-4325-a98c-1a719b7f19e3" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Natural land transformation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="63771749-653b-4764-80f3-8f0058978338" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Ozone depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="013ff6b6-fc6b-4e40-8abf-479665739d36" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Particulate matter formation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b5e64e42-899d-48a1-8202-9126cddd1de9" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Photochemical oxidant formation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="544b7f80-9d12-4581-964f-30acb52db55d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Terrestrial acidification</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5c2bacb9-5c97-4179-b42b-cf77e9515f90" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Terrestrial ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4a9520f8-cb8e-495b-b968-79ea37746ab6" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Urban land occupation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="737c2a6c-137f-4f6b-a12c-fd793cc3319e" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (H) - Water depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="a5112ed9-978d-41bf-9951-f61ad6541916" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Agricultural land occupation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="6e6466ee-f3e3-4483-a0f0-65f9cb3f4826" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Climate change, default, excl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="e1a4ac85-423c-4847-bd6a-9e9d44fa2284" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Climate change, excl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f18ad300-8aca-4193-bc01-5d89046a6587" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Climate change, incl biog. C, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="1ecb8526-4a05-4c4d-a9c5-2c009592bcaf" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Climate change, incl biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="55eeb968-2511-4143-9334-a3b6e89ff77a" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Climate change, LUC only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4e93bc49-8918-4573-bc1f-0645cb636344" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Fossil depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="9925e9a1-eadf-4462-97dc-480b5e2c54e8" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Freshwater ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5b45a419-1614-439f-ad62-4d0a02637a5d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Freshwater eutrophication</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b1db7b64-ed63-47c7-84f3-ef1e8a0a50af" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Human toxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b519eb90-51d6-4fba-b3a6-15158347d257" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Ionising radiation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="63c075f8-a537-4f81-8e65-888e6d28bd8b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Marine ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="2255f4a0-6fc9-43d0-900d-b97cb234a7e9" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Marine eutrophication</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b5d914e5-2757-420e-9a10-9fa7e45150f6" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Metal depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="96112c09-ffe7-4821-85bf-ae44d042054d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Natural land transformation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="d9789fe7-240d-453b-bc9d-11e85b7319e7" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Ozone depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="9ed65a25-84ae-4196-8279-836cd740216f" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Particulate matter formation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="0d5de463-0066-4723-81e0-b67139d6d9c9" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Photochemical oxidant formation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="e348200c-b91b-4ef4-a64d-8a80957f181f" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Terrestrial acidification</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="d146cb96-4c52-4249-a7f3-0df24cf00a72" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Terrestrial ecotoxicity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b7f17fba-12cb-49b1-a3f1-62ae54b36adc" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Urban land occupation</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="ad0d5810-31b2-4e49-9075-35cb13ea917c" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">ReCiPe 1.08 Midpoint (I) - Water depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4c109c0a-5398-4adb-a2d7-0818da86b5cd" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Resource Depletion, fossil and mineral, reserve Based, CML2002</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="0aedb4fd-4497-4985-8df1-e776a5b1d27f" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Terrestrial eutrophication, accumulated exceedance</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="e588a3c8-68fd-4686-9811-f8a7b2c3442a" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Total freshwater consumption (including rainwater)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="a5bda98b-df04-4617-a50a-dc03b1c51d13" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Total freshwater consumption, including rainwater, Swiss Ecoscarcity</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="a4052461-e0d3-48fe-89fb-b8d441a65ade" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">Total freshwater use</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="3536fd8c-e3d7-4984-9566-5161330db555" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Acidification</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="7078b7a5-3944-4774-ae40-f9bb479a02c3" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Ecotoxicity (recommended)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="5d68d8ce-2896-4adb-aa85-3b53b1da88d3" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Eutrophication</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="1e673537-808c-4876-94dc-8a510ef11cb4" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Global Warming Air, excl biogenic carbon, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="9f131f9b-3b3f-457f-a1d6-e8c1c5b2c8af" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Global Warming Air, excl. biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="d00c7636-0b39-4972-ac05-d919048d9424" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Global Warming Air, incl biogenic carbon, incl LUC, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="34f97896-f48e-410a-bce5-45e37e942206" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Global Warming Air, incl. biogenic carbon</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="c5140cb8-a771-48f2-a787-3dffe73b9b7a" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Global Warming Air, LUC only, no norm/weight</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="ba0b935d-ea10-4e2f-b123-22d894250c8f" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Human Health Particulate Air</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="67280119-5630-43eb-8da7-a651de831483" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Human toxicity, cancer (recommended)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="60e251bd-d466-442a-962d-b86a29e9c127" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Human toxicity, non-canc. (recommended)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="fc6b41a1-acb9-4f61-abed-014468cd9744" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Ozone Depletion Air</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="2bec1978-38cc-4274-8e40-9013e8827b22" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Resources, Fossil fuels</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="c3293481-4fd7-4672-88cf-5bc633601f5b" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">TRACI 2.1, Smog Air</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="8676abc8-40f3-474f-ad48-e1e3604c3b71" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Carcinogenic substances into air</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="cd0e0314-90e6-4400-8d46-d704e62e29a7" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Energy resources</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="56bc41f4-f0a6-405b-afaa-6d249641ffd2" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Global warming</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b21ff18c-83b2-492a-9ea6-8ee688a0b089" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Global warming, incl Land Use Change</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4e91061a-1387-4562-81d0-badd88656a60" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Global warming, Land Use Change only</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="10cc316e-c14e-475e-bd63-401a42e5f886" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Heavy metals into air</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="404e11d1-623d-44f1-a12c-46639ef12c7e" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Heavy metals into soil</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="89e4630c-665a-4973-91e0-19dc34d5999d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Heavy metals into water</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="9c1df4f9-9f6e-4767-9a18-d58c512bfa40" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Land use</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="9333be43-872c-4a8f-b0c1-3903a339194d" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Main air pollutants</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="0233ed38-b50a-4572-82e7-4b3325f57621" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Mineral resources</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="bf9d9d25-61e8-4d1b-ae45-099793f40abc" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Non radioactive waste to deposit</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="c81ad518-2c03-4c80-b3f9-bb548aedae50" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Ozone layer depletion</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="365b82c7-2315-415a-a5f8-3de6b3da3483" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Pesticides into soil</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="b0ef30b7-dbb7-465c-a810-99e99a4dd267" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, POP into water</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="275b68c7-0770-433d-ba1f-0bed4e35a319" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Radioactive substances into air</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="927090b6-ad93-4668-8a96-979e1bbf6512" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Radioactive substances into water</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="f08d1c4d-40ec-418a-a343-2ba68a8010ea" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Radioactive waste to deposit</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="c80bc558-b2aa-4426-b776-8e5ff1802cf2" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Water pollutants</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="86670477-5832-43db-af4a-238a6fee4c1a" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">UBP 2013, Water resources</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="fa63bc21-35ff-4ded-a08b-440c026e52ca" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">USEtox, Ecotoxicity (recommended)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="d3e970e9-3d79-4578-88d7-6f39f3dbb649" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">USEtox, Human toxicity, cancer (recommended)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <referenceToSupportedImpactAssessmentMethods refObjectId="4445f9a4-56e2-499a-8630-1e54acb4ed0f" version="26.00.000" type="LCIA method data set">
+        <common:shortDescription xml:lang="en">USEtox, Human toxicity, non-canc. (recommended)</common:shortDescription>
+      </referenceToSupportedImpactAssessmentMethods>
+      <completenessElementaryFlows type="Noise" value="No statement" />
+    </completeness>
+    <validation>
+      <review type="Dependent internal review">
+        <common:scope name="Raw data">
+          <common:method name="Validation of data sources" />
+          <common:method name="Sample tests on calculations" />
+          <common:method name="Cross-check with other source" />
+          <common:method name="Expert judgement" />
+        </common:scope>
+        <common:scope name="Unit process(es), single operation">
+          <common:method name="Validation of data sources" />
+          <common:method name="Sample tests on calculations" />
+          <common:method name="Energy balance" />
+          <common:method name="Element balance" />
+          <common:method name="Cross-check with other source" />
+          <common:method name="Cross-check with other data set" />
+          <common:method name="Expert judgement" />
+          <common:method name="Mass balance" />
+          <common:method name="Compliance with ISO 14040 to 14044" />
+        </common:scope>
+        <common:scope name="Unit process(es), black box">
+          <common:method name="Validation of data sources" />
+          <common:method name="Sample tests on calculations" />
+          <common:method name="Energy balance" />
+          <common:method name="Element balance" />
+          <common:method name="Cross-check with other source" />
+          <common:method name="Cross-check with other data set" />
+          <common:method name="Expert judgement" />
+          <common:method name="Mass balance" />
+          <common:method name="Compliance with ISO 14040 to 14044" />
+        </common:scope>
+        <common:scope name="LCI results or Partly terminated system">
+          <common:method name="Validation of data sources" />
+          <common:method name="Sample tests on calculations" />
+          <common:method name="Energy balance" />
+          <common:method name="Element balance" />
+          <common:method name="Cross-check with other source" />
+          <common:method name="Cross-check with other data set" />
+          <common:method name="Expert judgement" />
+          <common:method name="Mass balance" />
+          <common:method name="Compliance with ISO 14040 to 14044" />
+        </common:scope>
+        <common:scope name="LCIA results">
+          <common:method name="Cross-check with other source" />
+          <common:method name="Cross-check with other data set" />
+          <common:method name="Expert judgement" />
+        </common:scope>
+        <common:scope name="Documentation">
+          <common:method name="Expert judgement" />
+          <common:method name="Compliance with ISO 14040 to 14044" />
+        </common:scope>
+        <common:scope name="Life cycle inventory methods">
+          <common:method name="Compliance with ISO 14040 to 14044" />
+        </common:scope>
+        <dataQualityIndicators xmlns="http://lca.jrc.it/ILCD/Common">
+          <dataQualityIndicator name="Technological representativeness" value="Very good" />
+          <dataQualityIndicator name="Time representativeness" value="Very good" />
+          <dataQualityIndicator name="Geographical representativeness" value="Very good" />
+          <dataQualityIndicator name="Completeness" value="Good" />
+          <dataQualityIndicator name="Precision" value="Good" />
+          <dataQualityIndicator name="Methodological appropriateness and consistency" value="Good" />
+          <dataQualityIndicator name="Overall quality" value="Good" />
+        </dataQualityIndicators>
+        <common:reviewDetails xml:lang="en">The LCI method applied is in compliance with ISO 14040 and 14044. The documentation includes all relevant information in view of the data quality and scope of the application of the respective LCI result / data set. The dataset represents the state-of-the-art in view of the referenced functional unit.</common:reviewDetails>
+        <common:referenceToNameOfReviewerAndInstitution refObjectId="623edf96-39d1-4e6f-9892-674c7228546b" version="26.00.000" type="contact data set" uri="../contacts/623edf96-39d1-4e6f-9892-674c7228546b.xml">
+          <common:shortDescription xml:lang="en">PE INTERNATIONAL</common:shortDescription>
+        </common:referenceToNameOfReviewerAndInstitution>
+        <common:referenceToNameOfReviewerAndInstitution refObjectId="de53c560-d6a9-11da-a94d-0800200c9a66" version="26.00.000" type="contact data set" uri="../contacts/de53c560-d6a9-11da-a94d-0800200c9a66.xml">
+          <common:shortDescription xml:lang="en">LBP-GaBi</common:shortDescription>
+        </common:referenceToNameOfReviewerAndInstitution>
+        <common:referenceToNameOfReviewerAndInstitution refObjectId="c0a9feeb-48d1-4c8f-9e8f-3ada7c0294c7" version="26.00.000" type="contact data set" uri="../contacts/c0a9feeb-48d1-4c8f-9e8f-3ada7c0294c7.xml">
+          <common:shortDescription xml:lang="en">IBP-GaBi</common:shortDescription>
+        </common:referenceToNameOfReviewerAndInstitution>
+        <common:otherReviewDetails xml:lang="en">Overall quality according to different validation schemes
+GaBi = 1,5 interpreted into "good overall quality" in the GaBi quality validation scheme
+ILCD = 1,7 interpreted into "basic overall quality" in the ILCD quality validation scheme
+PEF = 1,5 interpreted into "excellent overall quality" in the PEF quality validation scheme</common:otherReviewDetails>
+      </review>
+      <review type="Independent external review">
+        <common:scope name="Unit process(es), single operation">
+          <common:method name="Sample tests on calculations" />
+          <common:method name="Energy balance" />
+          <common:method name="Cross-check with other source" />
+          <common:method name="Cross-check with other data set" />
+          <common:method name="Mass balance" />
+        </common:scope>
+        <common:scope name="Unit process(es), black box">
+          <common:method name="Sample tests on calculations" />
+          <common:method name="Energy balance" />
+          <common:method name="Cross-check with other source" />
+          <common:method name="Cross-check with other data set" />
+          <common:method name="Mass balance" />
+        </common:scope>
+        <common:scope name="LCI results or Partly terminated system">
+          <common:method name="Sample tests on calculations" />
+          <common:method name="Energy balance" />
+          <common:method name="Cross-check with other source" />
+          <common:method name="Cross-check with other data set" />
+          <common:method name="Mass balance" />
+        </common:scope>
+        <common:scope name="LCIA results">
+          <common:method name="Cross-check with other source" />
+          <common:method name="Cross-check with other data set" />
+        </common:scope>
+        <common:reviewDetails xml:lang="en">The dataset and systems, which are provided with our software and databases for public use into a broad user community, are constantly used, compared, benchmarked, screened, reviewed and results published in various external, professional and third party LCA applications in industry, academia and politics. So user feedback via the online GaBi forum or direct via user information is a standard routine in the maintenance and update process and leads to stable quality and constant control and improvement of data, if knowledge or technology improves or industrial process chains develop or change.</common:reviewDetails>
+        <common:referenceToNameOfReviewerAndInstitution refObjectId="8f1306f0-7b83-4f36-a537-aa83f0498266" version="26.00.000" type="contact data set" uri="../contacts/8f1306f0-7b83-4f36-a537-aa83f0498266.xml">
+          <common:shortDescription xml:lang="en">GaBi user forum</common:shortDescription>
+        </common:referenceToNameOfReviewerAndInstitution>
+        <common:referenceToNameOfReviewerAndInstitution refObjectId="851d996c-b88d-45ce-983a-b00ed0393ffb" version="26.00.000" type="contact data set" uri="../contacts/851d996c-b88d-45ce-983a-b00ed0393ffb.xml">
+          <common:shortDescription xml:lang="en">GaBi bug forum</common:shortDescription>
+        </common:referenceToNameOfReviewerAndInstitution>
+        <common:referenceToNameOfReviewerAndInstitution refObjectId="47511c41-5096-4dcf-be4f-dbb0c1c5cffc" version="26.00.000" type="contact data set" uri="../contacts/47511c41-5096-4dcf-be4f-dbb0c1c5cffc.xml">
+          <common:shortDescription xml:lang="en">GaBi user community</common:shortDescription>
+        </common:referenceToNameOfReviewerAndInstitution>
+      </review>
+    </validation>
+    <complianceDeclarations>
+      <compliance>
+        <common:referenceToComplianceSystem refObjectId="6a08f8f9-58c3-492c-8c34-6df3dd69a326" version="26.00.000" type="source data set" uri="../sources/6a08f8f9-58c3-492c-8c34-6df3dd69a326.xml">
+          <common:shortDescription xml:lang="en">GaBi conformity system</common:shortDescription>
+        </common:referenceToComplianceSystem>
+        <common:approvalOfOverallCompliance>Fully compliant</common:approvalOfOverallCompliance>
+        <common:nomenclatureCompliance>Fully compliant</common:nomenclatureCompliance>
+        <common:methodologicalCompliance>Fully compliant</common:methodologicalCompliance>
+        <common:reviewCompliance>Fully compliant</common:reviewCompliance>
+        <common:documentationCompliance>Fully compliant</common:documentationCompliance>
+        <common:qualityCompliance>Not defined</common:qualityCompliance>
+      </compliance>
+      <compliance>
+        <common:referenceToComplianceSystem refObjectId="10f467f6-6bee-4e67-a187-d06383b2984b" version="26.00.000" type="source data set" uri="../sources/10f467f6-6bee-4e67-a187-d06383b2984b.xml">
+          <common:shortDescription xml:lang="en">UNEP SETAC Life Cycle Initiative</common:shortDescription>
+        </common:referenceToComplianceSystem>
+        <common:approvalOfOverallCompliance>Not defined</common:approvalOfOverallCompliance>
+        <common:nomenclatureCompliance>Not defined</common:nomenclatureCompliance>
+        <common:methodologicalCompliance>Not defined</common:methodologicalCompliance>
+        <common:reviewCompliance>Not defined</common:reviewCompliance>
+        <common:documentationCompliance>Not defined</common:documentationCompliance>
+        <common:qualityCompliance>Not defined</common:qualityCompliance>
+      </compliance>
+      <compliance>
+        <common:referenceToComplianceSystem refObjectId="d92a1a12-2545-49e2-a585-55c259997756" version="03.00.000" type="source data set" uri="../sources/d92a1a12-2545-49e2-a585-55c259997756.xml">
+          <common:shortDescription xml:lang="en">ILCD Data Network - Entry-level</common:shortDescription>
+        </common:referenceToComplianceSystem>
+        <common:approvalOfOverallCompliance>Not defined</common:approvalOfOverallCompliance>
+        <common:nomenclatureCompliance>Fully compliant</common:nomenclatureCompliance>
+        <common:methodologicalCompliance>Fully compliant</common:methodologicalCompliance>
+        <common:reviewCompliance>Not defined</common:reviewCompliance>
+        <common:documentationCompliance>Fully compliant</common:documentationCompliance>
+        <common:qualityCompliance>Not defined</common:qualityCompliance>
+      </compliance>
+    </complianceDeclarations>
+  </modellingAndValidation>
+  <administrativeInformation>
+    <common:commissionerAndGoal>
+      <common:referenceToCommissioner refObjectId="623edf96-39d1-4e6f-9892-674c7228546b" version="26.00.000" type="contact data set" uri="../contacts/623edf96-39d1-4e6f-9892-674c7228546b.xml">
+        <common:shortDescription xml:lang="en">PE INTERNATIONAL</common:shortDescription>
+      </common:referenceToCommissioner>
+      <common:intendedApplications xml:lang="en">The data set represents a cradle to gate inventory. It can be used to characterise the supply chain situation of the respective commodity in a representative manner. Combination with individual unit processes using this commodity enables the generation of user-specific (product) LCAs. The data set does not necessarily fit for any possible specific supply situation - especially if significantly different technology routes exist - but is representative for a common supply chain situation.</common:intendedApplications>
+    </common:commissionerAndGoal>
+    <dataGenerator>
+      <common:referenceToPersonOrEntityGeneratingTheDataSet refObjectId="623edf96-39d1-4e6f-9892-674c7228546b" version="26.00.000" type="contact data set" uri="../contacts/623edf96-39d1-4e6f-9892-674c7228546b.xml">
+        <common:shortDescription xml:lang="en">PE INTERNATIONAL</common:shortDescription>
+      </common:referenceToPersonOrEntityGeneratingTheDataSet>
+    </dataGenerator>
+    <dataEntryBy>
+      <common:timeStamp>2014-12-01T00:00:00+01:00</common:timeStamp>
+      <common:referenceToDataSetFormat refObjectId="a97a0155-0234-4b87-b4ce-a45da52f2a40" version="03.00.000" type="source data set" uri="../sources/a97a0155-0234-4b87-b4ce-a45da52f2a40.xml">
+        <common:shortDescription xml:lang="en">ILCD format 1.1</common:shortDescription>
+      </common:referenceToDataSetFormat>
+      <common:referenceToPersonOrEntityEnteringTheData refObjectId="623edf96-39d1-4e6f-9892-674c7228546b" version="26.00.000" type="contact data set" uri="../contacts/623edf96-39d1-4e6f-9892-674c7228546b.xml">
+        <common:shortDescription xml:lang="en">PE INTERNATIONAL</common:shortDescription>
+      </common:referenceToPersonOrEntityEnteringTheData>
+      <common:referenceToDataSetUseApproval refObjectId="be34bbb0-b054-11db-abbd-0800200c9a66" version="26.00.000" type="contact data set" uri="../contacts/be34bbb0-b054-11db-abbd-0800200c9a66.xml">
+        <common:shortDescription xml:lang="en">No official approval by producer or operator</common:shortDescription>
+      </common:referenceToDataSetUseApproval>
+    </dataEntryBy>
+    <publicationAndOwnership>
+      <common:dateOfLastRevision>2014-12-01T00:00:00+01:00</common:dateOfLastRevision>
+      <common:dataSetVersion>09.00.000</common:dataSetVersion>
+      <common:workflowAndPublicationStatus>Data set finalised; entirely published</common:workflowAndPublicationStatus>
+      <common:referenceToUnchangedRepublication refObjectId="61875b4e-7249-444b-8691-e4a04e6d3c47" version="26.00.000" type="source data set" uri="../sources/61875b4e-7249-444b-8691-e4a04e6d3c47.xml">
+        <common:shortDescription xml:lang="en">GaBi databases</common:shortDescription>
+      </common:referenceToUnchangedRepublication>
+      <common:referenceToOwnershipOfDataSet refObjectId="623edf96-39d1-4e6f-9892-674c7228546b" version="26.00.000" type="contact data set" uri="../contacts/623edf96-39d1-4e6f-9892-674c7228546b.xml">
+        <common:shortDescription xml:lang="en">PE INTERNATIONAL</common:shortDescription>
+      </common:referenceToOwnershipOfDataSet>
+      <common:copyright>true</common:copyright>
+      <common:licenseType>Other</common:licenseType>
+      <common:accessRestrictions xml:lang="en">GaBi (source code, database including extension modules and single data sets, documentation) remains property of PE INTERNATIONAL AG. PE INTERNATIONAL AG delivers GaBi licenses comprising data storage medium and manual as ordered by the customer. The license guarantees the right of use for one installation of GaBi. Further installations using the same license are not permitted. Additional licenses are only valid if the licensee holds at least one main license. Licenses are not transferable and must only be used within the licensee's organisation. Data sets may be copied for internal use. The number of copies is restricted to the number of licenses of the software system GaBi the licensee owns. The right of use is exclusively valid for the licensee. All rights reserved.</common:accessRestrictions>
+    </publicationAndOwnership>
+  </administrativeInformation>
+  <exchanges>
+    <exchange dataSetInternalID="97">
+      <referenceToFlowDataSet refObjectId="10435aaa-3aa8-4f08-8564-8b772a8745aa" version="26.00.000" type="flow data set" uri="../flows/10435aaa-3aa8-4f08-8564-8b772a8745aa.xml">
+        <common:shortDescription xml:lang="en">Acetic acid</common:shortDescription>
+      </referenceToFlowDataSet>
+      <exchangeDirection>Output</exchangeDirection>
+      <meanAmount>1</meanAmount>
+      <resultingAmount>1</resultingAmount>
+      <relativeStandardDeviation95In>0.000</relativeStandardDeviation95In>
+      <dataSourceType>Mixed primary / secondary</dataSourceType>
+      <dataDerivationTypeStatus>Measured</dataDerivationTypeStatus>
+      <common:other>
+        <GaBi xmlns="http://www.pe-international.com/GaBi" IOType="valuable" />
+      </common:other>
+    </exchange>
+  </exchanges>
+</processDataSet>
