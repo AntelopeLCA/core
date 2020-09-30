@@ -129,3 +129,6 @@ dmypy.json
 .pyre/
 # Local web cache
 antelope_core/providers/web_cache/
+
+# LcCatalog tester
+antelope_core/catalog/cat-test/
