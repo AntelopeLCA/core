@@ -23,22 +23,18 @@ From the catalog_ref file, the catalog should meet the following spec:
 
 import os
 import re
-from shutil import copy2
 import hashlib
-from shutil import rmtree
 # from collections import defaultdict
 
-from ..archives import REF_QTYS, archive_from_json, InterfaceError
-from ..lcia_engine import LciaDb, DEFAULT_CONTEXTS, DEFAULT_FLOWABLES
+from ..archives import InterfaceError
+from ..lcia_engine import LciaDb
 
 
-from antelope import local_ref, EntityNotFound, CatalogRef
+from antelope import EntityNotFound, CatalogRef
 from ..catalog_query import CatalogQuery, INTERFACE_TYPES, zap_inventory, UnknownOrigin
 from .lc_resolver import LcCatalogResolver
-from ..lc_resource import LcResource, download_file
+from ..lc_resource import LcResource
 # from lcatools.flowdb.compartments import REFERENCE_INT  # reference intermediate flows
-
-TEST_ROOT = os.path.join(os.path.dirname(__file__), 'cat-test')  # volatile, inspectable
 
 
 class DuplicateEntries(Exception):
@@ -49,10 +45,12 @@ class CatalogError(Exception):
     pass
 
 
-class LcCatalog(object):
+class StaticCatalog(object):
 
     """
-    Provides query-based access to LCI information
+    Provides query-based access to LCI information. The static version is ideal for creating read-only web resources
+    from curated LcCatalogs. However, it must already exist. Only an LcCatalog (or subclasses) support de novo
+    instantiation.
 
     A catalog is stored in the local file system and creates and stores resources relative to its root directory.
     Subfolders (all accessors return absolute paths):
@@ -109,31 +107,6 @@ class LcCatalog(object):
     def cache_file(self, source):
         return os.path.join(self._cache_dir, self._source_hash_file(source) + '.json.gz')
 
-    def download_file(self, url=None, md5sum=None, force=False, localize=True):
-        """
-        Download a file from a remote location into the catalog and return its local path.  Optionally validate the
-        download with an MD5 digest.
-        :param url:
-        :param md5sum:
-        :param force:
-        :param localize: whether to return the filename relative to the catalog root
-        :return:
-        """
-        local_file = os.path.join(self._download_dir, self._source_hash_file(url))
-        if os.path.exists(local_file):
-            if force:
-                print('File exists.. re-downloading.')
-            else:
-                print('File already downloaded.  Force=True to re-download.')
-                if localize:
-                    return self._localize_source(local_file)
-                return local_file
-
-        download_file(url, local_file, md5sum)
-        if localize:
-            return self._localize_source(local_file)
-        return local_file
-
     @property
     def archive_dir(self):
         return os.path.join(self._rootdir, 'archives')
@@ -182,30 +155,6 @@ class LcCatalog(object):
     def root(self):
         return self._rootdir
 
-    @property
-    def _dirs(self):
-        for x in (self._cache_dir, self._index_dir, self.resource_dir, self.archive_dir, self._download_dir):
-            yield x
-
-    def _make_rootdir(self):
-        for x in self._dirs:
-            os.makedirs(x, exist_ok=True)
-        if not os.path.exists(self._contexts):
-            copy2(DEFAULT_CONTEXTS, self._contexts)
-        if not os.path.exists(self._flowables):
-            copy2(DEFAULT_FLOWABLES, self._flowables)
-        if not os.path.exists(self._reference_qtys):
-            copy2(REF_QTYS, self._reference_qtys)
-
-    @classmethod
-    def make_tester(cls, **kwargs):
-        rmtree(TEST_ROOT, ignore_errors=True)
-        return cls(TEST_ROOT, **kwargs)
-
-    @classmethod
-    def load_tester(cls):
-        return cls(TEST_ROOT)
-
     def __init__(self, rootdir, strict_clookup=True, **kwargs):
         """
         Instantiates a catalog based on the resources provided in resource_dir
@@ -216,7 +165,8 @@ class LcCatalog(object):
         :param kwargs: passed to Qdb
         """
         self._rootdir = os.path.abspath(rootdir)
-        self._make_rootdir()  # this will be a git clone / fork;; clones reference quantities
+        if not os.path.exists(self._rootdir):
+            raise FileNotFoundError(self._rootdir)
         self._resolver = LcCatalogResolver(self.resource_dir)
 
         """
@@ -234,7 +184,8 @@ class LcCatalog(object):
         qdb = LciaDb.new(source=self._reference_qtys, contexts=self._contexts, flowables=self._flowables,
                          strict_clookup=strict_clookup, **kwargs)
         self._qdb = qdb
-        self.add_existing_archive(qdb, interfaces=('index', 'quantity'), store=False)
+        res = LcResource.from_archive(qdb, interfaces=('index', 'quantity'), store=False)
+        self._resolver.add_resource(res, store=False)
 
     @property
     def lcia_engine(self):
@@ -243,15 +194,6 @@ class LcCatalog(object):
     def register_quantity_ref(self, q_ref):
         print('registering %s' % q_ref.link)
         self._qdb.add(q_ref)
-
-    def save_local_changes(self):
-        self._qdb.write_to_file(self._reference_qtys, characterizations=True, values=True)
-        self.lcia_engine.save_flowables(self._flowables)
-
-    def restore_qdb(self, really=False):
-        if really:
-            copy2(REF_QTYS, self._reference_qtys)
-            print('Reference quantities restored. Please re-initialize the catalog.')
 
     @property
     def sources(self):
@@ -300,76 +242,9 @@ class LcCatalog(object):
         else:
             raise KeyError('Source %s not found' % source)
 
-    '''
-    Create + Add data resources
-    '''
-
-    def new_resource(self, *args, store=True, **kwargs):
-        """
-        Create a new data resource by specifying its properties directly to the constructor
-        :param args: reference, source, ds_type
-        :param store: [True] permanently store this resource
-        :param kwargs: interfaces=None, priority=0, static=False; **kwargs passed to archive constructor
-        :return:
-        """
-        return self._resolver.new_resource(*args, store=store, **kwargs)  # explicit store= for doc purposes
 
     def has_resource(self, res):
         return self._resolver.has_resource(res)
-
-    def add_resource(self, resource, store=True):
-        """
-        Add an existing LcResource to the catalog.
-        :param resource:
-        :param store: [True] permanently store this resource
-        :return:
-        """
-        self._resolver.add_resource(resource, store=store)
-        # self._ensure_resource(resource)
-
-    def delete_resource(self, resource, delete_source=None, delete_cache=True):
-        """
-        Removes the resource from the resolver and also removes the serialization of the resource. Also deletes the
-        resource's source under the following circumstances:
-         (resource is internal AND resources_with_source(resource.source) is empty AND resource.source is a file)
-        This can be overridden using he delete_source param (see below)
-        :param resource: an LcResource
-        :param delete_source: [None] If None, follow default behavior. If True, delete the source even if it is
-         not internal (source will not be deleted if other resources refer to it OR if it is not a file). If False,
-         do not delete the source.
-        :param delete_cache: [True] whether to delete cache files (you could keep them around if you expect to need
-         them again and you don't think the contents will have changed)
-        :return:
-        """
-        self._resolver.delete_resource(resource)
-        abs_src = self.abs_path(resource.source)
-
-        if delete_source is False or resource.source is None or not os.path.isfile(abs_src):
-            return
-        if len([t for t in self._resolver.resources_with_source(resource.source)]) > 0:
-            return
-        if resource.internal or delete_source:
-            if os.path.isdir(abs_src):
-                rmtree(abs_src)
-            else:
-                os.remove(abs_src)
-        if delete_cache:
-            if os.path.exists(self.cache_file(resource.source)):
-                os.remove(self.cache_file(resource.source))
-            if os.path.exists(self.cache_file(abs_src)):
-                os.remove(self.cache_file(abs_src))
-
-    def add_existing_archive(self, archive, interfaces=None, store=True, **kwargs):
-        """
-        Makes a resource record out of an existing archive.  by default, saves it in the catalog's resource dir
-        :param archive:
-        :param interfaces:
-        :param store: [True] if False, don't save the record - use it for this session only
-        :param kwargs:
-        :return:
-        """
-        res = LcResource.from_archive(archive, interfaces, source=self._localize_source(archive.source), **kwargs)
-        self._resolver.add_resource(res, store=store)
 
     '''
     Retrieve resources
@@ -406,168 +281,6 @@ class LcCatalog(object):
         return rc.archive
 
     '''
-    Manage resources locally
-     - index
-     - cache
-     - static archive (performs load_all())
-    '''
-
-    def _index_source(self, source, priority, force=False):
-        """
-        Instructs the resource to create an index of itself in the specified file; creates a new resource for the
-        index
-        :param source:
-        :param priority:
-        :param force:
-        :return:
-        """
-        res = next(r for r in self._resolver.resources_with_source(source))
-        res.check(self)
-        priority = min([priority, res.priority])  # why are we doing this?? we want index to have higher priority i.e. get loaded second
-        stored = self._resolver.is_permanent(res)
-
-        # save configuration hints in derived index
-        cfg = None
-        if stored:
-            if len(res.config['hints']) > 0:
-                cfg = {'hints': res.config['hints']}
-
-        inx_file = self._index_file(source)
-        inx_local = self._localize_source(inx_file)
-        if os.path.exists(inx_file):
-            if not force:
-                print('Not overwriting existing index. force=True to override.')
-                try:
-                    ex_res = next(r for r in self._resolver.resources_with_source(inx_local))
-                    return ex_res.reference
-                except StopIteration:
-                    # index file exists, but no matching resource
-                    inx = archive_from_json(inx_file)
-                    self.new_resource(inx.ref, inx_local, 'json', priority=priority, store=stored,
-                                      interfaces='index', _internal=True, static=True, preload_archive=inx,
-                                      config=cfg)
-                    return inx.ref
-
-            print('Re-indexing %s' % source)
-            # TODO: need to delete the old index resource!!
-        the_index = res.make_index(inx_file, force=force)
-        self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=stored, interfaces='index',
-                          _internal=True, static=True, preload_archive=the_index, config=cfg)
-        return the_index.ref
-
-    def index_ref(self, origin, interface=None, source=None, priority=60, force=False):
-        """
-        Creates an index for the specified resource.  'origin' and 'interface' must resolve to one or more LcResources
-        that all have the same source specification.  That source archive gets indexed, and index resources are created
-        for all the LcResources that were returned.
-
-        Performs load_all() on the source archive, writes the archive to a compressed json file in the local index
-        directory, and creates a new LcResource pointing to the JSON file.   Aborts if the index file already exists
-        (override with force=True).
-        :param origin:
-        :param interface: [None]
-        :param source: find_single_source input
-        :param priority: [60] priority setting for the new index
-        :param force: [False] if True, overwrite existing index
-        :return:
-        """
-        source = self._find_single_source(origin, interface, source=source)
-        return self._index_source(source, priority, force=force)
-
-    def cache_ref(self, origin, interface=None, source=None, static=False):
-        source = self._find_single_source(origin, interface, source=source)
-        self.create_source_cache(source, static=static)
-
-    def create_source_cache(self, source, static=False):
-        """
-        Creates a cache of the named source's current contents, to speed up access to commonly used entities.
-        source must be either a key present in self.sources, or a name or nickname found in self.names
-        :param source:
-        :param static: [False] create archives of a static archive (use to force archival of a complete database)
-        :return:
-        """
-        res = next(r for r in self._resolver.resources_with_source(source))
-        if res.static:
-            if not static:
-                print('Not archiving static resource %s' % res)
-                return
-            print('Archiving static resource %s' % res)
-        res.check(self)
-        res.make_cache(self.cache_file(self._localize_source(source)))
-
-    def _background_for_origin(self, ref):
-        inx_ref = self.index_ref(ref, interface='exchange')
-        bk_file = self._localize_source(os.path.join(self.archive_dir, '%s_background.mat' % inx_ref))
-        bk = LcResource(inx_ref, bk_file, 'Background', interfaces='background', priority=99,
-                        save_after=True, _internal=True)
-        bk.check(self)  # ImportError if antelope_background pkg not found
-        self.add_resource(bk)
-        return bk.make_interface('background')  # when the interface is returned, it will trigger setup_bm
-
-    '''# deprecated-- background stores itself now
-    def create_static_archive(self, archive_file, origin, interface=None, source=None, background=True, priority=90):
-        """
-        Creates a local replica of a static archive, usually for purposes of improving load time in computing
-        background results.  Uses create_source_cache to generate a cache and then renames it to the target
-        archive file (which should end in .json.gz) in the catalog's archive directory. Creates resources mapping
-        the newly created archive file to the origin with the specified priority.
-
-        The source file can be specified in one of two ways:
-         * origin + interface (with interface defaulting to None), as long as it unambiguously identifies one source
-         * origin + explicit source, which must correspond
-
-        :param archive_file:
-        :param origin:
-        :param interface:
-        :param source:
-        :param background: [True] whether to include the background interface on the created resource
-        :param priority: priority of the created resource
-        :return:
-        """
-        source = self._find_single_source(origin, interface, source=source)
-        res = next(self._resolver.resources_with_source(source))
-        res.check(self)
-        res.archive.load_all()
-
-        if not os.path.isabs(archive_file):
-            archive_file = os.path.join(self.archive_dir, archive_file)
-        self.create_source_cache(source, static=True)
-        os.rename(self.cache_file(source), archive_file)
-        for res in self._resolver.resources_with_source(source):
-            ifaces = set(i for i in res.interfaces)
-            ifaces.add('index')  # load_all will satisfy index requirement
-            if background:
-                ifaces.add('background')
-            store = self._resolver.is_permanent(res)
-            self.new_resource(res.reference, archive_file, 'JSON', interfaces=ifaces, priority=priority,
-                              store=store,
-                              _internal=True,
-                              static=True)
-    '''
-
-    def create_descendant(self, origin, interface=None, source=None, force=False, signifier=None, strict=True,
-                          priority=None, **kwargs):
-        """
-
-        :param origin:
-        :param interface:
-        :param source:
-        :param force: overwrite if exists
-        :param signifier: semantic descriptor for the new descendant (optional)
-        :param strict:
-        :param priority:
-        :param kwargs:
-        :return:
-        """
-        res = self.get_resource(origin, iface=interface, source=source, strict=strict)
-        new_ref = res.archive.create_descendant(self.archive_dir, signifier=signifier, force=force)
-        print('Created archive with reference %s' % new_ref)
-        ar = res.archive
-        prio = priority or res.priority
-        self.add_existing_archive(ar, interfaces=res.interfaces, priority=prio, **kwargs)
-        res.remove_archive()
-
-    '''
     Main data accessor
     '''
     def _sorted_resources(self, origin, interfaces, strict):
@@ -596,10 +309,6 @@ class LcCatalog(object):
                 yield res.make_interface(itype)
             except InterfaceError:
                 continue
-
-        if itype == 'background':
-            if origin.startswith('local') or origin.startswith('test'):
-                yield self._background_for_origin(origin)
 
         '''
         # no need for this because qdb is (a) listed in the resolver and (b) upstream of everything
@@ -674,94 +383,3 @@ class LcCatalog(object):
         except UnknownOrigin:
             ref = CatalogRef(origin, external_ref, entity_type=entity_type, **kwargs)
         return ref
-
-    def foreground(self, path, ref=None, quiet=True, reset=False, delete=False):
-        """
-        Creates or activates a foreground as a sub-folder within the catalog's root directory.  Returns a
-        Foreground interface.
-        :param path: either an absolute path or a subdirectory path relative to the catalog root
-        :param ref: semantic reference (optional)
-        :param quiet: passed to fg archive
-        :param reset: [False] if True, clear the archive and create it from scratch, before returning the interface
-        :param delete: [False] if True, delete the existing tree completely and irreversibly. actually just rename
-        the directory to whatever-DELETED; but if this gets overwritten, there's no going back.  Overrides reset.
-        :return:
-        """
-        if not os.path.isabs(path):
-            path = os.path.join(self._rootdir, path)
-
-        abs_path = os.path.abspath(path)
-        local_path = self._localize_source(abs_path)
-        _fg_path = re.sub('^\$CAT_ROOT', '', local_path)
-
-        if delete:
-            if os.path.exists(abs_path):
-                del_path = abs_path + '-DELETED'
-                if os.path.exists(del_path):
-                    rmtree(del_path)
-                os.rename(abs_path, del_path)
-            dels = [k for k in self._resolver.resources_with_source(local_path)]
-            for k in dels:
-                self.delete_resource(k, delete_source=True, delete_cache=True)
-
-        if ref is None:
-            ref = local_ref(_fg_path, prefix='foreground')
-
-        try:
-            res = next(self._resolver.resources_with_source(local_path))
-        except StopIteration:
-            res = self.new_resource(ref, local_path, 'LcForeground', interfaces=['index', 'foreground', 'quantity'],
-                                    quiet=quiet)
-
-        if reset:
-            res.remove_archive()
-        res.check(self)
-
-        return res.make_interface('foreground')
-
-    def assign_new_ref(self, old_ref, new_ref):
-        """
-        This only works for certain types of archives. Foregrounds, in particular. but it is hard to say what else.
-        What needs to happen here is:
-         - first we retrieve the archive for the ref (ALL archives?)
-         - then we call set_origin() on the archive
-         - then we save the archive
-         - then we rename the resource file
-         = actually we just rewrite the resource file, since the filename and JSON key have to match
-         = since we can't update resource references, it's easiest to just blow them away and reload them
-         = but to save time we should transfer the archives from the old resource to the new resource
-         = anyway, it's not clear when we would want to enable this operation in the first place.
-         * so for now we leave it
-        :param old_ref:
-        :param new_ref:
-        :return:
-        """
-        pass
-
-    def configure_resource(self, reference, config, *args):
-        """
-        We must propagate configurations to internal, derived resources. This also begs for testing.
-        :param reference:
-        :param config:
-        :param args:
-        :return:
-        """
-        # TODO: testing??
-        for res in self._resolver.resolve(reference, strict=False):
-            abs_src = self.abs_path(res.source)
-            if res.add_config(config, *args):
-                if res.internal:
-                    if os.path.dirname(abs_src) == self._index_dir:
-                        print('Saving updated index %s' % abs_src)
-                        res.archive.write_to_file(abs_src, gzip=True,
-                                                  exchanges=False, characterizations=False, values=False)
-                else:
-                    print('Saving resource configuration for %s' % res.reference)
-                    res.save(self)
-
-            else:
-                if res.internal:
-                    print('Deleting unconfigurable internal resource for %s\nsource: %s' % (res.reference, abs_src))
-                    self.delete_resource(res, delete_source=True)
-                else:
-                    print('Unable to apply configuration to resource for %s\nsource: %s' % (res.reference, res.source))
