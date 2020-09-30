@@ -17,25 +17,28 @@ from .from_json import from_json, to_json
 from .archives import archive_factory, ArchiveError
 
 FOUND_PROVIDERS = LowerDict()
-for ant in [__name__] + antelope_herd:
-    p = importlib.import_module('.providers', package=ant)
-    try:
-        inits = getattr(p, 'PROVIDERS')
-    except AttributeError:
-        print('No PROVIDERS found in %s' % ant)
-        continue
-    for mod in inits:
-        FOUND_PROVIDERS[mod] = p
+def _find_providers():
+    for ant in [__name__] + antelope_herd:
+        p = importlib.import_module('.providers', package=ant)
+        try:
+            inits = getattr(p, 'PROVIDERS')
+        except AttributeError:
+            print('No PROVIDERS found in %s' % ant)
+            continue
+        for mod in inits:
+            FOUND_PROVIDERS[mod] = p
 
-print('Found Antelope providers:' )
-for k, v in FOUND_PROVIDERS.items():
-    print('%s:%s' % (v.__name__, k))
+    print('Found Antelope providers:' )
+    for k, v in FOUND_PROVIDERS.items():
+        print('%s:%s' % (v.__name__, k))
 
 
 def herd_factory(ds_type):
     try:
         return archive_factory(ds_type)
     except ArchiveError:
+        if len(FOUND_PROVIDERS) == 0:
+            _find_providers()
         if ds_type in FOUND_PROVIDERS:
             prov = FOUND_PROVIDERS[ds_type]
             try:
