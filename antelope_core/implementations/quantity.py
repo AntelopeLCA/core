@@ -641,7 +641,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
             if xt in ('cutoff', 'reference'):
                 res.add_cutoff(x)
                 continue
-            elif xt in ('node', 'self'):
+            elif xt == 'self':
                 continue
             try:
                 ref_q = self.get_canonical(x.flow.reference_entity)
