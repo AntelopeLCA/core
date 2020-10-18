@@ -214,7 +214,13 @@ class OpenLcaJsonLdArchive(LcArchive):
         For each allocation factor, we want to characterize the flow so that its exchange value times its
         characterization equals the stated factor.  Then we want to allocate the process by its default allocation
         property.
-        :param p:
+
+        A few notes: the allocation quantity is PROCESS-SPECIFIC (strictly, it's process.name-specific, so that is
+        either a feature or a bug, TBD).  Because of this, NO allocation will be achievable UNLESS the process has
+        alloationFactors defined.
+
+        This whole thing needs to be sorted out with testing, probably in collaboration with GreenDelta.
+        :param p: an LcProcess generated from the JSON-LD archive
         :return:
         """
         if p.has_property('allocationFactors'):
@@ -243,9 +249,9 @@ class OpenLcaJsonLdArchive(LcArchive):
                 self.tm.add_characterization(f.link, f.reference_entity, q, v, context=f.context, origin=self.ref)
                 #f.add_characterization(q, value=v)
 
-        if p.has_property('defaultAllocationMethod'):
-            aq = self._create_allocation_quantity(p, p['defaultAllocationMethod'])
-            p.allocate_by_quantity(aq)
+            if p.has_property('defaultAllocationMethod'):
+                aq = self._create_allocation_quantity(p, p['defaultAllocationMethod'])
+                p.allocate_by_quantity(aq)
 
     def _create_process(self, p_id):
         q = self[p_id]
