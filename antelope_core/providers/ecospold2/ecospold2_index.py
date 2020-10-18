@@ -10,7 +10,7 @@ class EcoSpold2IndexImplementation(IndexImplementation):
         """
         pass
 
-    def terminate(self, flow, **kwargs):
+    def targets(self, flow, **kwargs):
         for p in self._terminations[flow]:
             yield self._archive.retrieve_or_fetch_entity(p)
 

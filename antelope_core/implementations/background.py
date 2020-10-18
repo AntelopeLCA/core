@@ -85,7 +85,7 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
             if search_skip(f, search):
                 continue
             try:
-                next(self._index.terminate(f.external_ref, direction=direction))
+                next(self._index.targets(f.external_ref, direction=direction))
             except StopIteration:
                 cx = self._index.get_context(f.context)
                 dir = comp_dir(cx.sense)

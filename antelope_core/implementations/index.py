@@ -71,7 +71,7 @@ class IndexImplementation(BasicImplementation, IndexInterface):
             if q.is_lcia_method:
                 yield q
 
-    def terminate(self, flow_ref, direction=None, **kwargs):
+    def targets(self, flow_ref, direction=None, **kwargs):
         """
         Generate processes in the archive that terminate a given exchange i.e. - have the same flow and a complementary
         direction.  If refs_only is specified, only report processes that terminate the exchange with a reference
