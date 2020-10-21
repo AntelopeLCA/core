@@ -134,6 +134,16 @@ class DetailedLciaResult(object):
                                                   self.flowable,
                                                   self.context)
 
+    def serialize(self, detailed=False):
+        return {
+            'flowable': self.flowable,
+            'context': self.context,
+            'exchange': self.value,
+            'factor': self._qr.value,
+            'result': self.result,
+            'locale': self._qr.locale
+        }
+
 
 class SummaryLciaResult(object):
     """
@@ -297,6 +307,26 @@ class SummaryLciaResult(object):
             raise InconsistentSummaries('At least one not static, and unit scores do not match')
         return SummaryLciaResult(self._lc, self.entity, _node_weight, unit_score)
 
+    def serialize(self, detailed=False):
+        j = {
+            'node_weight': self.node_weight,
+            'unit_score': self.unit_score,
+            'result': self.cumulative_result
+        }
+        try:
+            j['component'] = self.entity.fragment.name
+        except AttributeError:
+            try:
+                j['component'] = self.entity.name
+            except AttributeError:
+                j['component'] = str(self.entity)
+
+        if detailed:
+            if not self.static:
+                f = self.flatten()  # will yield a list of aggregate lcia scores with one component each
+                j['details'] = [d.serialize() for p in f.components() for d in p.details()]
+        return j
+
 
 class AggregateLciaScore(object):
     """
@@ -369,6 +399,25 @@ class AggregateLciaScore(object):
 
     def __str__(self):
         return '%s  %s' % (number(self.cumulative_result * self._lc.autorange), self.entity)
+
+    def serialize(self, detailed=False):
+        j = {
+            'result': self.cumulative_result
+        }
+        try:
+            j['component'] = self.entity.fragment.name
+        except AttributeError:
+            try:
+                j['component'] = self.entity.name
+            except AttributeError:
+                j['component'] = str(self.entity)
+
+        if detailed:
+            if self.static:
+                j['details'] = []
+            j['details'] = [p.serialize(detailed=False) for p in self.LciaDetails]
+        return j
+
 
 
 def show_lcia(lcia_results):
@@ -815,3 +864,6 @@ class LciaResult(object):
             return results, 0.0
         else:
             return results, balance
+
+    def serialize_components(self, detailed=False):
+        return [c.serialize(detailed=detailed) for c in self.components()]
