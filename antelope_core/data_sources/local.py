@@ -43,9 +43,6 @@ TO ADD A NEW DATA SOURCE:
 
 """
 
-import os
-import warnings
-
 from .gwp_ipcc_2007 import GwpIpcc2007
 from .traci import TraciConfig
 from .uslci import UsLciConfig
@@ -55,18 +52,6 @@ from .uslci import UsLciConfig
 #from .ecoinvent_lcia import EcoinventLciaConfig
 #from .calrecycle_lca import CalRecycleConfig
 
-
-'''CATALOG_ROOT specifies the local folder that stores the reference catalog
-It must either:
- - be specified in an environment variable os.environ['ANTELOPE_CATALOG_ROOT'], 
- - or as a file in the local directory named antelope_catalog_root  
-'''
-
-try:
-    CATALOG_ROOT = os.environ['ANTELOPE_CATALOG_ROOT']
-except KeyError:
-    CATALOG_ROOT = '/data/LCI/cat-demo/'  # persistent
-    warnings.warn('environ ANTELOPE_CATALOG_ROOT missing; using BK default: %s' % CATALOG_ROOT)
 
 '''RESOURCES_CONFIG 
 provides enabling and configuration information to the various data resource

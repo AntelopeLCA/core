@@ -1,7 +1,9 @@
 import unittest
 
 from ... import LcCatalog
-from ..local import CATALOG_ROOT, make_config, check_enabled
+from ..local import make_config, check_enabled
+from ...catalog.catalog_root import CATALOG_ROOT
+
 
 _run_test = check_enabled('ipcc2007')
 

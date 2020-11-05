@@ -2,7 +2,9 @@ import unittest
 from collections import namedtuple
 
 from ... import LcCatalog
-from ..local import CATALOG_ROOT, make_config, check_enabled
+from ..local import make_config, check_enabled
+
+from ...catalog.catalog_root import CATALOG_ROOT
 
 RefStats = namedtuple('RefStats', ('proc', 'elem', 'flowables'))
 

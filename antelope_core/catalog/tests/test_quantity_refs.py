@@ -4,7 +4,8 @@ This file deals with tests for auto-loading and masquerading of LCIA methods
 import unittest
 
 from .. import LcCatalog
-from ...data_sources.local import CATALOG_ROOT, make_config
+from ...data_sources.local import make_config
+from ..catalog_root import CATALOG_ROOT
 
 
 cat = LcCatalog(CATALOG_ROOT)

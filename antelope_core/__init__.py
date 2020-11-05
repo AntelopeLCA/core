@@ -52,4 +52,4 @@ def herd_factory(ds_type):
 from .catalog_query import CatalogQuery, UnknownOrigin
 from .catalog import LcCatalog
 from .lc_resource import LcResource
-from .data_sources.local import CATALOG_ROOT, make_config
+from .data_sources.local import make_config

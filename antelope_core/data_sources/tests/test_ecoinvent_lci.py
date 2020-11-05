@@ -21,7 +21,9 @@ from ... import LcCatalog
 from ...entities import LcProcess
 from ...archives import LcArchive, archive_from_json
 
-from ..local import CATALOG_ROOT, check_enabled
+from ..local import check_enabled
+from ...catalog.catalog_root import CATALOG_ROOT
+
 
 EcoinventNode = namedtuple('EcoinventNode', ['version', 'model', 'node'])
 _debug = False

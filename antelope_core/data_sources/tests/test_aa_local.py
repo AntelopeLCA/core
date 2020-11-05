@@ -16,9 +16,11 @@ import unittest
 import os
 import json
 
-from ..local import CATALOG_ROOT, RESOURCES_CONFIG
+from ..local import RESOURCES_CONFIG
 from ...catalog import LcCatalog
 from ...catalog_query import zap_inventory
+
+from ...catalog.catalog_root import CATALOG_ROOT
 
 resource_dir = os.path.join(CATALOG_ROOT, 'resources')
 

@@ -242,7 +242,7 @@ class LcCatalog(StaticCatalog):
         self.add_resource(bk)
         return bk.make_interface('background')  # when the interface is returned, it will trigger setup_bm
 
-    def gen_interfaces(self, origin, itype=None, strict=False):
+    def gen_interfaces(self, origin, itype=None, strict=False, ):
         """
         Override parent method to also create local backgrounds
         :param origin:
@@ -254,7 +254,7 @@ class LcCatalog(StaticCatalog):
             yield k
 
         if itype == 'background':
-            if origin.startswith('local') or origin.startswith('test'):
+            if True:  # origin.startswith('local') or origin.startswith('test'):
                 yield self._background_for_origin(origin)
 
     def create_descendant(self, origin, interface=None, source=None, force=False, signifier=None, strict=True,
