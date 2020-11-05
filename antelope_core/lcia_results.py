@@ -7,6 +7,7 @@ from .exchanges import ExchangeValue, DissipationExchange
 from .autorange import AutoRange
 from numbers import Number
 from math import isclose
+from collections import defaultdict
 # from lcatools.interfaces import to_uuid
 
 
@@ -81,6 +82,10 @@ class DetailedLciaResult(object):
         return self._exchange.flow
 
     @property
+    def name(self):
+        return '; '.join(filter(None, (self.flowable, self.context)))
+
+    @property
     def direction(self):
         return self._exchange.direction
 
@@ -90,6 +95,8 @@ class DetailedLciaResult(object):
 
     @property
     def context(self):
+        if self.exchange.termination is not None:
+            return str(self.exchange.termination)
         return str(self._qr.context)
 
     @property
@@ -135,8 +142,11 @@ class DetailedLciaResult(object):
                                                   self.context)
 
     def serialize(self, detailed=False):
+        flowname = self.flow.name
+        if self.exchange.termination is not None:
+            flowname = ', '.join([flowname, self.exchange.termination.name])
         return {
-            'flowable': self.flowable,
+            'flow': self.flowable,
             'context': self.context,
             'exchange': self.value,
             'factor': self._qr.value,
@@ -170,6 +180,18 @@ class SummaryLciaResult(object):
 
     def update_parent(self, lc):
         self._lc = lc
+
+    @property
+    def name(self):
+        if isinstance(self.entity, tuple):
+            return '; '.join(str(k) for k in self.entity)
+        try:
+            return self.entity.fragment.name
+        except AttributeError:
+            try:
+                return self.entity.name
+            except AttributeError:
+                return str(self.entity)
 
     @property
     def static(self):
@@ -229,7 +251,8 @@ class SummaryLciaResult(object):
             yield self
         else:
             for k in self._internal_result.keys():
-                yield self._internal_result[k]
+                for d in self._internal_result[k].details():
+                    yield d
 
     def show_detailed_result(self):
         if self.static:
@@ -311,16 +334,9 @@ class SummaryLciaResult(object):
         j = {
             'node_weight': self.node_weight,
             'unit_score': self.unit_score,
-            'result': self.cumulative_result
+            'result': self.cumulative_result,
+            'component': self.name
         }
-        try:
-            j['component'] = self.entity.fragment.name
-        except AttributeError:
-            try:
-                j['component'] = self.entity.name
-            except AttributeError:
-                j['component'] = str(self.entity)
-
         if detailed:
             if not self.static:
                 f = self.flatten()  # will yield a list of aggregate lcia scores with one component each
@@ -345,6 +361,18 @@ class AggregateLciaScore(object):
         self._lc = lc_result
 
     @property
+    def name(self):
+        if isinstance(self.entity, tuple):
+            return '; '.join(str(k) for k in self.entity)
+        try:
+            return self.entity.fragment.name
+        except AttributeError:
+            try:
+                return self.entity.name
+            except AttributeError:
+                return str(self.entity)
+
+    @property
     def cumulative_result(self):
         if len(self.LciaDetails) == 0:
             return 0.0
@@ -357,12 +385,14 @@ class AggregateLciaScore(object):
                 return False
         return True
 
+    '''
     def _augment_entity_contents(self, other):
         """
         when duplicate fragmentflows are aggregated, their node weights and magnitudes should be added together
         :return:
         """
         self.entity = self.entity + other
+    '''
 
     def add_detailed_result(self, exchange, qrresult):
         d = DetailedLciaResult(self._lc, exchange, qrresult)
@@ -402,15 +432,9 @@ class AggregateLciaScore(object):
 
     def serialize(self, detailed=False):
         j = {
-            'result': self.cumulative_result
+            'result': self.cumulative_result,
+            'component': self.name
         }
-        try:
-            j['component'] = self.entity.fragment.name
-        except AttributeError:
-            try:
-                j['component'] = self.entity.name
-            except AttributeError:
-                j['component'] = str(self.entity)
 
         if detailed:
             if self.static:
@@ -583,6 +607,7 @@ class LciaResult(object):
         """
         flat = LciaResult(self.quantity, scenario=self.scenario, private=self._private, scale=1.0)
         recurse = []  # store flattened summary scores to handle later
+        totals = defaultdict(list)
         for k, c in self._LciaScores.items():
             if isinstance(c, SummaryLciaResult):
                 if c.static:
@@ -591,10 +616,7 @@ class LciaResult(object):
                     recurse.append(c.flatten())
             else:
                 for d in c.details():
-                    flat.add_component(d.flow.external_ref, d.flow)
-                    # create a new exchange that has already had scaling applied
-                    exch = ExchangeValue(d.exchange.process, d.flow, d.exchange.direction, value=d.value * _apply_scale)
-                    flat.add_score(d.flow.external_ref, exch, d.factor)
+                    totals[d.factor, d.exchange.direction, d.exchange.termination].append(d.exchange)
 
         for r in recurse:
             for k in r.keys():
@@ -610,10 +632,18 @@ class LciaResult(object):
                         raise
                 else:
                     for d in c.details():
-                        flat.add_component(d.flow.external_ref, d.flow)
-                        exch = ExchangeValue(d.exchange.process, d.flow, d.exchange.direction,
-                                             value=d.value * _apply_scale)
-                        flat.add_score(k, exch, d.factor)
+                        totals[d.factor, d.exchange.direction, d.exchange.termination].append(d.exchange)
+
+        for k, l in totals.items():
+            if len(l) == 0:
+                continue
+            factor, dirn, term = k
+            name = '; '.join([factor.flowable, str(term or factor.context)])
+            flat.add_component(name)
+            exch = ExchangeValue(l[0].process, l[0].flow, dirn,
+                                 value=sum(x.value for x in l) * _apply_scale,
+                                 termination=term)
+            flat.add_score(name, exch, factor)
 
         scaled_total = self.total() * _apply_scale
         if not isclose(scaled_total, flat.total(), rel_tol=1e-10):

@@ -41,6 +41,16 @@ class QuantityConversion(object):
         for arg in args:
             self.add_result(arg)
 
+    def __hash__(self):
+        return hash((self.flowable, self.ref, self.query, self.context, self.locale))
+
+    def __eq__(self, other):
+        try:
+            return (self.flowable == other.flowable and self.query == other.query and self.context == other.context
+                    and self.locale == other.locale and self.value == other.value)
+        except AttributeError:
+            return False
+
     def invert(self):
         inv_qrr = type(self)(query=self.ref)
         for res in self._results[::-1]:
@@ -148,12 +158,12 @@ class QuantityConversion(object):
 
     def __str__(self):
         if self.qualitative:
-            return '%s [context %s] %s: %s [%s] (%s)' % (self.flowable, self.context, self.query, self.value,
-                                                         self._results[-1].locale, self._results[-1].origin)
+            return '%s [%s] %s: %s [%s] (%s)' % (self.flowable, self.context, self.query, self.value,
+                                                 self._results[-1].locale, self._results[-1].origin)
         conv = ' x '.join(['%g %s/%s' % (res.value, res.query.unit, res.ref.unit) for res in self._results])
-        return '%s [context %s]: 1 %s x %s [%s] (%s)' % (self.flowable, self.context,
-                                                         self.ref.unit, conv, self._results[-1].locale,
-                                                         self._results[-1].origin)
+        return '%s; %s: %s [%s] (%s)' % (self.flowable, self.context,
+                                         conv, self._results[-1].locale,
+                                         self._results[-1].origin)
 
     def __repr__(self):
         return '%s(%s)' % (self.__class__.__name__, self.__str__())
