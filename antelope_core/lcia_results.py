@@ -194,6 +194,17 @@ class SummaryLciaResult(object):
                 return str(self.entity)
 
     @property
+    def id(self):
+        try:
+            return self.entity.fragment.external_ref
+        except AttributeError:
+            try:
+                return self.entity.external_ref
+            except AttributeError:
+                return None
+
+
+    @property
     def static(self):
         return self._static_value is not None
 
@@ -335,8 +346,11 @@ class SummaryLciaResult(object):
             'node_weight': self.node_weight,
             'unit_score': self.unit_score,
             'result': self.cumulative_result,
-            'component': self.name
+            'component': self.name,
         }
+        if self.id is not None:
+            j['entity_id'] = self.id
+
         if detailed:
             if not self.static:
                 f = self.flatten()  # will yield a list of aggregate lcia scores with one component each
@@ -435,6 +449,8 @@ class AggregateLciaScore(object):
             'result': self.cumulative_result,
             'component': self.name
         }
+        if hasattr(self.entity, 'external_ref'):
+            j['entity_id'] = self.entity.external_ref
 
         if detailed:
             if self.static:
