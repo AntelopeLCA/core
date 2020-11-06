@@ -46,7 +46,7 @@ def herd_factory(ds_type):
             except AttributeError:
                 raise ArchiveError('ds_type %s not found in %s' % (ds_type, prov.__name__))
     print('# LENGTH OF PROVIDERS: %d' % len(FOUND_PROVIDERS))
-    raise ArchiveError('Even the herd cannot save you with %s' % ds_type)
+    raise ImportError('Cannot find a package for loading %s' % ds_type)
 
 
 from .catalog_query import CatalogQuery, UnknownOrigin

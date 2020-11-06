@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 
 requires = [
     "antelope"
@@ -16,5 +16,5 @@ setup(
     url="https://github.com/AntelopeLCA/core",
     summary="A reference implementation of the Antelope interface for accessing a variety of LCA data sources",
     long_description=open('README.md').read(),
-    packages=['antelope_core']
+    packages=find_packages()
 )
