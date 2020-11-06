@@ -1,6 +1,9 @@
 from .data_source import DataSource, ResourceInfo
-from antelope_utilities import IPCC_2007_TRACI_REF
+# from antelope_utilities import IPCC_2007_TRACI_REF
 from ..lcia_engine import IPCC_2007_GWP
+
+
+IPCC_2007_TRACI_REF = 'lcia.ipcc.2007.traci21'
 
 
 gwp_ipcc_2007 = ResourceInfo(IPCC_2007_GWP, 'json', None, None,
