@@ -3,10 +3,9 @@ from __future__ import print_function, unicode_literals
 import os
 import re
 import posixpath
-import magic
+import warnings
 
 
-from py7zlib import Archive7z
 from zipfile import ZipFile
 try:
     from urllib.request import urlopen
@@ -23,6 +22,7 @@ def get_ext(fname):
     if bool(_ext.search(fname)):
         return _ext.search(fname).groups()[0].lower()
     else:
+        import magic
         typ = magic.from_file(fname)
         if typ.startswith('Zip archive'):
             return 'zip'
@@ -47,19 +47,17 @@ class FileStore(object):
     @staticmethod
     def _access_7z(path):
         try:
+            from py7zlib import Archive7z
             fp = open(path, 'rb')
             archive = Archive7z(fp)
-        except:
-            archive = False
-            raise
+        except ImportError:
+            warnings.warn('Python package pylzma required to handle 7-zip archives... archive is inactive')
+            archive = None
         return archive
 
     @staticmethod
     def _access_zip(path):
-        try:
-            archive = ZipFile(path)
-        except:
-            archive = False
+        archive = ZipFile(path)
         return archive
 
     def __init__(self, path, internal_prefix=None, query_string=None, cache=True):

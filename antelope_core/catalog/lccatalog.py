@@ -79,15 +79,18 @@ class LcCatalog(StaticCatalog):
     Create + Add data resources
     '''
 
-    def new_resource(self, *args, store=True, **kwargs):
+    def new_resource(self, reference, source, ds_type, store=True, **kwargs):
         """
         Create a new data resource by specifying its properties directly to the constructor
-        :param args: reference, source, ds_type
+        :param reference:
+        :param source:
+        :param ds_type:
         :param store: [True] permanently store this resource
         :param kwargs: interfaces=None, priority=0, static=False; **kwargs passed to archive constructor
         :return:
         """
-        return self._resolver.new_resource(*args, store=store, **kwargs)  # explicit store= for doc purposes
+        source = self._localize_source(source)
+        return self._resolver.new_resource(reference, source, ds_type, store=store, **kwargs)  # explicit store= for doc purposes
 
     def add_resource(self, resource, store=True):
         """

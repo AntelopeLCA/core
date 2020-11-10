@@ -146,7 +146,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             if ref is None:
                 deref = None
             elif isinstance(ref, list):
-                deref = [RxRef(x.process, x.flow, x.direction, x.comment) for x in ref]
+                deref = [RxRef(self.make_ref(x.process), self.make_ref(x.flow), x.direction, x.comment) for x in ref]
             elif ref.entity_type == 'unit':
                 deref = ref.unitstring
             else:

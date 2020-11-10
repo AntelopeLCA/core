@@ -259,11 +259,11 @@ class LcEntity(BaseEntity):
             # don't catch KeyErrors here-- leave that to subclasses
             return self._d[item]
 
-    def get(self, item):
+    def get(self, item, default=None):
         try:
             return self.__getitem__(item)
         except KeyError:
-            return None
+            return default
 
     def __setitem__(self, key, value):
         if key == 'EntityType':
