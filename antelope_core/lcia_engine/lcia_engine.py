@@ -278,7 +278,7 @@ class LciaEngine(TermManager):
         Given a quantity, import its CFs into the local database.  Unfortunately this is still going to be slow because
         every part of the CF still needs to be canonicalized. The only thing that's saved is creating a new
         Characterization instance.
-        :param quantity:
+        :param quantity: this is a TRUE quantity whose query points to the authentic origin.
         :return:
         """
         try:
@@ -293,15 +293,7 @@ class LciaEngine(TermManager):
             try:
                 fb = self._fm[cf.flowable]
             except KeyError:
-                if cf.flowable.find('/') > 0:
-                    # split origin off if the flowable is a link
-                    fb_extref = cf.flowable.split('/', maxsplit=1)[1]
-                    try:
-                        fb = self._fm[fb_extref]
-                    except KeyError:
-                        fb = self._create_flowable(cf.flowable)
-                else:
-                    fb = self._create_flowable(cf.flowable)
+                fb = self._create_flowable(*quantity.synonyms(cf.flowable))
 
             self.add_quantity(cf.ref_quantity)  # this may lead to the creation of non-converting quantities if units mismatch
 

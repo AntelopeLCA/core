@@ -1,6 +1,8 @@
 import json
 import os
 
+from collections import defaultdict
+
 from ..entities import *
 from ..entities.processes import NoExchangeFound
 from ..archives import LcArchive
@@ -24,12 +26,19 @@ class OpenLcaJsonLdArchive(LcArchive):
     def _gen_index(self):
         self._print('Generating index')
         self._type_index = dict()
+        self._lm_index = dict()
         for f in self._archive.listfiles():
             if f in SKIP_DURING_INDEX:
                 continue
             ff = f.split('/')
             fg = ff[1].split('.')
             self._type_index[fg[0]] = ff[0]
+            if ff[0] == 'lcia_methods':
+                # we need to do a further indexing to generate a list of LCIA quantities aka categories by method.
+                # that means actually loading the files
+                obj = self._create_object(ff[0], fg[0])
+                for c in obj['impactCategories']:
+                    self._lm_index[c['@id']] = fg[0]
 
     def __init__(self, source, prefix=None, skip_index=False, **kwargs):
         super(OpenLcaJsonLdArchive, self).__init__(source, **kwargs)
@@ -318,7 +327,22 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         return q
 
-    def _create_lcia_method(self, m_id):
+    def _create_lcia_category(self, c_id):
+        """
+        In this case, the client has requested a specific lcia quantity, a.k.a. LCIA category.  This is tricky because
+        we don't know which method the category is part of. So we modify our indexing process to track this.
+        :param c_id:
+        :return:
+        """
+        if c_id in self._lm_index:
+            try:
+                q = next(t for t in self._create_lcia_method(self._lm_index[c_id], c_id) if t.uuid == c_id)
+            except StopIteration:
+                raise OpenLcaException('Specified LCIA category does not match the one found')
+            return q
+        raise KeyError('Specified key is not an LCIA Category: %s' % c_id)
+
+    def _create_lcia_method(self, m_id, *categories):
         """
         Note: in OLCA archives, an "LCIA Method" is really a methodology with a collection of category indicators, which
         is what we colloquially call "methods". So every method includes zero or more distinct quantities.
@@ -327,8 +351,35 @@ class OpenLcaJsonLdArchive(LcArchive):
         """
         m_obj, method, cats = self._clean_object('lcia_methods', m_id)
         m_desc = m_obj.pop('description', None)
+
+        sets = []
+        norms = defaultdict(list)
+        weights = defaultdict(list)
+
+        if 'nwSets' in m_obj:
+            for n in m_obj['nwSets']:
+                norm_j = self._create_object('nw_sets', n['@id'])
+                sets.append(norm_j['name'])
+                for fac in norm_j['factors']:
+                    norms[fac['impactCategory']['@id']].append(fac.get('normalisationFactor', None))
+                    weights[fac['impactCategory']['@id']].append(fac.get('weightingFactor', None))
+
+        qs = []
+
         for imp in m_obj.pop('impactCategories', []):
-            self._create_lcia_quantity(imp, method, MethodDescription=m_desc)
+            if len(categories) > 0:
+                # if the user specifies certain categories to load, then skip the ones that aren't specified
+                if imp['@id'] not in categories:
+                    continue
+            q = self._create_lcia_quantity(imp, method, MethodDescription=m_desc)
+            norm = norms[q.external_ref]
+            if len(norm) > 0:
+                q['normalisationFactors'] = norm
+                q['normSets'] = sets
+                q['weightingFactors'] = weights[q.external_ref]
+            qs.append(q)
+
+        return qs
 
     def _fetch(self, key, typ=None, **kwargs):
         if typ is None:
@@ -337,8 +388,10 @@ class OpenLcaJsonLdArchive(LcArchive):
             typ = self._type_index[key]
         try:
             _ent_g = {'processes': self._create_process,
-                   'flows': self._create_flow,
-                   'flow_properties': self._create_quantity}[typ]
+                      'flows': self._create_flow,
+                      'flow_properties': self._create_quantity,
+                      'lcia_methods': self._create_lcia_method,
+                      'lcia_categories': self._create_lcia_category}[typ]
         except KeyError:
             print('Warning: generating generic object for unrecognized type %s' % typ)
             _ent_g = lambda x: self._create_object(typ, x)

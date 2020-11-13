@@ -11,6 +11,8 @@
         "Air",
         "Emissions to air",
         "Emissions to air, unspecified",
+        "Emission to air",
+        "Emission to air, unspecified",
         "Group NMVOC to air",
         "Halogenated organic emissions to air",
         "Heavy metals to air",
@@ -24,7 +26,9 @@
     },
     {
       "name": "Emissions to air, unspecified (long-term)",
-      "synonyms": [],
+      "synonyms": [
+        "Emission to air, unspecified (long-term)"
+      ],
       "parent": "to air"
     },
     {
@@ -73,6 +77,8 @@
       "synonyms": [
         "Emissions to soil",
         "Emissions to soil, unspecified",
+        "Emission to soil",
+        "Emission to soil, unspecified",
         "Soil",
         "soil",
         "to soil"
@@ -111,7 +117,9 @@
       "synonyms": [
         "Water",
         "Emissions to water",
-        "Emissions to water, unspecified"
+        "Emissions to water, unspecified",
+        "Emission to water",
+        "Emission to water, unspecified"
       ],
       "parent": "Emissions"
     },

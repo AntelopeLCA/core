@@ -140,11 +140,11 @@ class TermManager(object):
             print(*args)
 
     def add_terms(self, term_type, *terms, **kwargs):
-        d = {'context': self._cm,
-             'flow': self._fm,
-             'flowable': self._fm,
-             'quantity': self._qm}[term_type]
-        d.new_entry(*terms, **kwargs)
+        d = {'context': self._cm.new_entry,
+             'flow': self._create_flowable,
+             'flowable': self._create_flowable,
+             'quantity': self._qm.new_entry}[term_type]
+        d(*terms, **kwargs)
 
     @staticmethod
     def is_context(cx):
@@ -454,8 +454,17 @@ class TermManager(object):
 
             return new_cf
         else:
+            if cf.ref_quantity != rq:
+                # create a conversion-factor instead:
+                if value == 0:
+                    factor = 0
+                else:
+                    factor = value / cf[location]
+
+                self.add_characterization(fb, rq, cf.ref_quantity, factor, context=cx, origin=origin, location=location)
+                return cf
             # update entry in the lookup tree
-            if isinstance(value, dict):
+            elif isinstance(value, dict):
                 cf.update_values(**value)
             else:
                 cf.add_value(value, location=location, overwrite=overwrite)

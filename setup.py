@@ -1,10 +1,26 @@
 from setuptools import setup, find_packages
 
 requires = [
-    "antelope"
+    "antelope",
+    "xlrd",
+    "six",
+    "lxml",
+    "python-magic"
 ]
 
-VERSION = '0.1.0'
+# optional: pylzma
+"""
+Version History
+0.1.1 - 2020/11/12 - Bug fixes all over the place.  
+                     Catalogs implemented
+                     LCIA computation + flat LCIA computation reworked
+                     Improvements for OpenLCA LCIA methods
+
+0.1.0 - 2020/07/31 - Initial release - JIE paper
+"""
+
+
+VERSION = '0.1.1'
 
 setup(
     name="antelope_core",

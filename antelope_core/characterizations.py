@@ -15,7 +15,7 @@ A QRResult is a namedtuple that documents the result of a "quantity relation" ca
 """
 
 from collections import namedtuple
-
+from math import isclose
 
 # namedtuple to store the parameters and result of a quantity-relation lookup
 # the first 4 are input params, 'locale' is as-found if found, as-specified if not; origin and value are results
@@ -179,6 +179,11 @@ class Characterization(object):
         if key in self._locations:
             if self._locations[key] == value:
                 return  # just skip if they are the same
+            elif isclose(self._locations[key], value):
+                return
+            elif isclose(self._locations[key], value, rel_tol=1e-6):
+                print('%e %e' % (self._locations[key], value))
+                return
             if isinstance(self._locations[key], str):
                 pval = '%s (incoming: %s)' % (self._locations[key], value)
             else:

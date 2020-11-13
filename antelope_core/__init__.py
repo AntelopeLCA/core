@@ -41,9 +41,11 @@ def herd_factory(ds_type):
             _find_providers()
         if ds_type in FOUND_PROVIDERS:
             prov = FOUND_PROVIDERS[ds_type]
+            dsl = ds_type.lower()
             try:
-                return getattr(prov, ds_type)
-            except AttributeError:
+                attr = next(k for k in prov.PROVIDERS if k.lower().startswith(dsl))
+                return getattr(prov, attr)
+            except (StopIteration, AttributeError):
                 raise ArchiveError('ds_type %s not found in %s' % (ds_type, prov.__name__))
     print('# LENGTH OF PROVIDERS: %d' % len(FOUND_PROVIDERS))
     raise ImportError('Cannot find a package for loading %s' % ds_type)

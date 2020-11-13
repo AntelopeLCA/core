@@ -7,7 +7,7 @@ import unittest
 
 from .. import LciaDb
 from ...entities import LcQuantity, LcFlow
-
+from ...contexts import Context
 
 class LciaEngineTest(unittest.TestCase):
     @classmethod
@@ -47,6 +47,12 @@ class LciaEngineTest(unittest.TestCase):
             flow._flowable.add_term(k)
         self.lcia.tm.add_flow(flow)
         self.assertEqual(self.lcia.tm._fm['1234-56-7'].name, 'test.origin/Dummy Flow')
+
+    def test_add_non_matching_context(self):
+        cx = self.lcia.tm['emissions to air']
+        c_out = Context('Elementary Flows',  'Emission to air', 'Emission to air, unspecified')
+        c_out.add_origin('test')
+        self.assertIs(self.lcia.tm[c_out], cx)
 
 
 
