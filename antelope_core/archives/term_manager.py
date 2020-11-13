@@ -656,17 +656,17 @@ class TermManager(object):
         if search is None:
             if quantity is None:
                 for fb in self._fm.objects:
-                    yield str(fb)
+                    yield fb
             else:
                 for fb in self._q_dict[qq].keys():
-                    yield str(fb)
+                    yield fb
         else:
             for fb in self._fm.objects_with_string(search):
                 if qq is None:
-                    yield str(fb)
+                    yield fb
                 else:
                     if fb in self._q_dict[qq]:
-                        yield str(fb)
+                        yield fb
 
     def unmatched_flowables(self, flowables):
         """

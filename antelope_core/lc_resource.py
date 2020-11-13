@@ -388,7 +388,7 @@ class LcResource(object):
         j = {
             "dataSource": self.source,
             "dataSourceType": self.ds_type,
-            "interfaces": [k for k in self.interfaces],
+            "interfaces": sorted([k for k in self.interfaces]),
             "priority": self.priority,
             "static": self.static
         }

@@ -77,6 +77,9 @@ class LcFlow(LcEntity, Flow):
     def cf(self, quantity, **kwargs):
         return quantity.cf(self, **kwargs)
 
+    def chk_char(self, *args):
+        raise KeyError
+
     '''
     def profile(self):
         print('%s' % self)

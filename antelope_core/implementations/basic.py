@@ -42,15 +42,7 @@ class BasicImplementation(object):
     def __getitem__(self, item):
         return self._archive[item]
 
-    def get_item(self, external_ref, item):
-        """
-        In this, we accept either an external_ref or an entity reference itself.  If the latter, we dereference via
-        the archive to an actual entity, which we then ask for the item.  If the dereference and the reference are the
-        same, throws an error.
-        :param external_ref:
-        :param item:
-        :return:
-        """
+    def _dereference_entity(self, external_ref):
         if hasattr(external_ref, 'external_ref'):
             eref = external_ref
             external_ref = eref.external_ref
@@ -60,6 +52,18 @@ class BasicImplementation(object):
         # if entity:
         if entity is eref:
             raise NoAccessToEntity(entity.link)
+        return entity
+
+    def get_item(self, external_ref, item):
+        """
+        In this, we accept either an external_ref or an entity reference itself.  If the latter, we dereference via
+        the archive to an actual entity, which we then ask for the item.  If the dereference and the reference are the
+        same, throws an error.
+        :param external_ref:
+        :param item:
+        :return:
+        """
+        entity = self._dereference_entity(external_ref)
         if entity.has_property(item):
             return entity[item]
         raise KeyError('%s: %s [%s]' % (self.origin, external_ref, item))
@@ -115,3 +119,8 @@ class BasicImplementation(object):
 
     def synonyms(self, item, **kwargs):
         return self._archive.tm.synonyms(item)
+
+    def properties(self, external_ref, **kwargs):
+        e = self._dereference_entity(external_ref)
+        for i in e.properties():
+            yield i

@@ -293,7 +293,7 @@ class LciaEngine(TermManager):
             try:
                 fb = self._fm[cf.flowable]
             except KeyError:
-                fb = self._create_flowable(*quantity.synonyms(cf.flowable))
+                fb = self._create_flowable(*quantity.query_synonyms(cf.flowable))
 
             self.add_quantity(cf.ref_quantity)  # this may lead to the creation of non-converting quantities if units mismatch
 

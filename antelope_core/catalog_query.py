@@ -175,6 +175,8 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         return q_can
 
     def make_ref(self, entity):
+        if isinstance(entity, list):
+            return [self.make_ref(k) for k in entity]
         if entity.entity_type == 'fragment':
             # TODO: create a new ForegroundQuery to eliminate the need for this hack
             return entity  # don't make references for fragments just now

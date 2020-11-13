@@ -622,6 +622,56 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
             for r in qrg + qrm:
                 yield r
 
+    def norm(self, quantity, region=None, **kwargs):
+        """
+
+        :param quantity:
+        :param region:
+        :param kwargs:
+        :return:
+        """
+        q = self.get_canonical(quantity)
+        n = q.get('normalisationFactors', [])
+        if len(n) == 0:
+            return 0.0
+        ix = 0
+        if region is not None:
+            try:
+                ix = next(i for i, k in enumerate(q.get('normSets', [])) if k == region)
+            except StopIteration:
+                pass
+        return n[ix]
+
+    def _lookup_x(self, x, q, locale, **kwargs):
+        cx = self._archive.tm[x.termination]
+        try:  # look for a cached result
+            return x.flow.chk_char(q, cx, locale)
+        except KeyError:
+            pass
+        try:
+            ref_q = self.get_canonical(x.flow.reference_entity)
+        except EntityNotFound:
+            ref_q = self._archive.tm.add_quantity(x.flow.reference_entity)
+        try:
+            qr, mis = self._quantity_relation(x.flow.name, ref_q, q, cx, locale=locale,
+                                              **kwargs)
+            if qr is None and len(mis) > 0:
+                qrr = mis[0]
+                if q.is_lcia_method:
+                    print('Conversion error %s' % x)
+                    if len(mis) > 1:
+                        print('omitting mismatches:')
+                        for k in mis[1:]:
+                            print(k)
+            else:
+                qrr = qr
+        except NoFactorsFound:
+            qrr = None
+
+        if not x.flow.is_entity:  # why don't we cache conversions on actual flows? because cfs might change??
+            x.flow.see_char(q, cx, locale, qrr)
+        return qrr
+
     def do_lcia(self, quantity, inventory, locale='GLO', group=None, dist=2, **kwargs):
         """
         Successively implement the quantity relation over an iterable of exchanges.
@@ -653,28 +703,18 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 continue
             elif xt == 'self':
                 continue
-            try:
-                ref_q = self.get_canonical(x.flow.reference_entity)
-            except EntityNotFound:
-                ref_q = self._archive.tm.add_quantity(x.flow.reference_entity)
-            try:
-                cx = self._archive.tm[x.termination]
-                qr, mis = self._quantity_relation(x.flow.name, ref_q, q, cx, locale=locale,
-                                                  dist=dist, **kwargs)
-                if qr is None and len(mis) > 0:
-                    res.add_error(x, mis[0])
-                    if q.is_lcia_method:
-                        print('Conversion error %s' % x)
-                        if len(mis) > 1:
-                            print('omitting mismatches:')
-                            for k in mis[1:]:
-                                print(k)
-                elif qr.value == 0:
-                    res.add_zero(x, qr)
+            qrr = self._lookup_x(x, q, locale, dist=dist, **kwargs)
+            if isinstance(qrr, QuantityConversion):
+                if qrr.value == 0:
+                    res.add_zero(x, qrr)
                 else:
-                    res.add_score(group(x), x, qr)
-            except NoFactorsFound:
+                    res.add_score(group(x), x, qrr)
+            elif isinstance(qrr, QuantityConversionError):
+                res.add_error(x, qrr)
+            elif qrr is None:
                 res.add_cutoff(x)
+            else:
+                raise TypeError('Unknown qrr type %s' % qrr)
         return res
 
     def lcia(self, process, ref_flow, quantity_ref, **kwargs):
