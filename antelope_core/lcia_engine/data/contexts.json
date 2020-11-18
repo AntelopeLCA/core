@@ -34,7 +34,8 @@
     {
       "name": "Emissions to lower stratosphere and upper troposphere",
       "synonyms": [
-        "lower stratosphere + upper troposphere"
+        "lower stratosphere + upper troposphere",
+        "stratosphere + troposphere"
       ],
       "parent": "to air"
     },
@@ -84,6 +85,13 @@
         "to soil"
       ],
       "parent": "Emissions"
+    },
+    {
+      "name": "Final waste flows",
+      "synonyms": [
+        "Final waste"
+      ],
+      "parent": "to ground"
     },
     {
       "name": "forestry",
