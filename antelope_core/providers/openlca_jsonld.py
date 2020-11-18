@@ -23,10 +23,21 @@ class OpenLcaJsonLdArchive(LcArchive):
     """
     Opens JSON-LD archives formatted according to the OpenLCA schema
     """
+    def _cat_as_list(self, cat_id):
+        cat = self._cat_index[cat_id]
+        if 'category' in cat:
+            return self._cat_as_list(cat['category']['@id']) + [cat['name']]
+        return [cat['name']]
+
     def _gen_index(self):
         self._print('Generating index')
         self._type_index = dict()
         self._lm_index = dict()
+        # these are cheap- but we should really not need more than 3
+        self._cat_index = dict()  # maps olca id to olca category object
+        self._cat_lookup = dict()  # maps tuple of category-as-list to olca id
+        self._cat_tuple = dict()  # maps olca id to tuple of category-as-list
+
         for f in self._archive.listfiles():
             if f in SKIP_DURING_INDEX:
                 continue
@@ -39,6 +50,15 @@ class OpenLcaJsonLdArchive(LcArchive):
                 obj = self._create_object(ff[0], fg[0])
                 for c in obj['impactCategories']:
                     self._lm_index[c['@id']] = fg[0]
+            elif ff[0] == 'categories':
+                obj = self._create_object(ff[0], fg[0])
+                self._cat_index[fg[0]] = obj
+        for cat_key in self._cat_index.keys():
+            cat = self._cat_as_list(cat_key)
+            lookup_key = tuple(cat)
+            self._cat_tuple[cat_key] = lookup_key  # forward lookup key -> tuple
+            self._cat_lookup[lookup_key] = cat_key  # reverse lookup of tuple -> key
+            self.tm.add_context(lookup_key, cat_key)
 
     def __init__(self, source, prefix=None, skip_index=False, **kwargs):
         super(OpenLcaJsonLdArchive, self).__init__(source, **kwargs)
@@ -65,6 +85,12 @@ class OpenLcaJsonLdArchive(LcArchive):
         return process
 
     def _clean_object(self, typ, key):
+        """
+
+        :param typ:
+        :param key:
+        :return: clean json, name, list of category IDs
+        """
         j = self._create_object(typ, key)
         j.pop('@context')
         j.pop('@id')
@@ -78,13 +104,32 @@ class OpenLcaJsonLdArchive(LcArchive):
         return j, name, cat
 
     def _get_category_list(self, cat_key):
-        c_j = self._create_object('categories', cat_key)
+        if cat_key in self._cat_tuple:
+            return list(self._cat_tuple[cat_key])
+        c_j = self._cat_index[cat_key]
         if 'category' in c_j:
             cat = self._get_category_list(c_j['category']['@id'])
         else:
             cat = []
         cat.append(c_j['name'])
         return cat
+
+    def openlca_category(self, name_or_full_list):
+        """
+        returns an olca id for a name or a list of hierarchical names, if one exists
+        :param name_or_full_list:
+        :return:
+        """
+        cx = self.tm[name_or_full_list]
+        if cx is not None:
+            # this will be a Context
+            return self._cat_lookup[tuple(cx.as_list())]
+        return self._cat_lookup[tuple(name_or_full_list)]
+
+    @property
+    def openlca_categories(self):
+        for k in sorted(self._cat_lookup.keys()):
+            yield k
 
     def _create_unit(self, unit_id):
         try:
@@ -165,9 +210,9 @@ class OpenLcaJsonLdArchive(LcArchive):
                     facs.append(fac)
         if ref_q is None:
             raise OpenLcaException('No reference flow property found: %s' % f_id)
-        f = LcFlow(f_id, Name=name, Compartment=comp, CasNumber=cas, ReferenceQuantity=ref_q, **f_j)
+        f = LcFlow(f_id, Name=name, Compartment=comp, CasNumber=cas, ReferenceQuantity=ref_q, **f_j)  # context gets set by _catch_context()
 
-        self.add(f)
+        self.add(f)  # context gets matched inside tm.add_flow().  NONSPECIFIC entries are automatically prepended with parent name in CompartmentManager.new_entry()
 
         for i, q in enumerate(qs):
             self.tm.add_characterization(f.link, ref_q, q, facs[i], context=f.context, location=loc)
