@@ -21,6 +21,9 @@ a tuple of string terms or a context, but the latter requires a context.  find_m
 then top-down to look for matches.  It requires an input context to have an origin already specified, so that the
 resources can assign "hints" that map local terms to canonical contexts on an origin-specific basis.
 
+Note that a "matching" generally requires an exact (case-insensitive) match to an entry in the contexts database.
+Curation of the synonym set is required.
+
 Because contexts must be directional, some terms are protected as ambiguous: "air", "water", and "ground" should be
 avoided in favor of explicit "from air" or "to air" or synonyms.
 
@@ -37,7 +40,7 @@ The NullContext should be returned by the context manager
 from synonym_dict.example_compartments import Compartment, CompartmentManager
 from antelope import valid_sense
 
-ELEMENTARY = {'resources', 'emissions'}
+ELEMENTARY = {'elementary flows', 'resource', 'emission', 'resources', 'emissions'}
 
 PROTECTED = ('air', 'water', 'ground')
 
@@ -69,6 +72,9 @@ def _dir_mod(arg, sense):
 
 class Context(Compartment):
     """
+    If 'resources' or 'emissions' match any terms in a compartment, it is considered 'elementary', along with all its
+    subcompartments.
+
     A context has a natural directional "sense", which is either 'Source', 'Sink', or None.  A Source context
     generates flows which may be inputs to the activity; a Sink context absorbs flows which are output from the
     activity.
@@ -118,19 +124,38 @@ class Context(Compartment):
 
     @property
     def sense(self):
-        if self.parent is None:
+        if self._sense is not None:
+            return self._sense
+        elif self.parent is None:
             return self._sense
         return self.parent.sense
+
+    def _check_sense(self, v_sense):
+        if self.sense is not None and self.sense != v_sense:
+            raise InconsistentSense('Value %s conflicts with current v_sense %s' % (v_sense, self.sense))
+        for sub in self.subcompartments:
+            sub._check_sense(v_sense)
 
     @sense.setter
     def sense(self, value):
         sense = valid_sense(value)
-        if self.sense is not None and self.sense != sense:
-            raise InconsistentSense('Value %s conflicts with current sense %s' % (sense, self.sense))
-        if self.parent is None:
-            self._sense = valid_sense(value)
-        else:
-            self.parent.sense = value
+        self._check_sense(sense)
+        self._sense = sense
+        for sub in self.subcompartments:
+            sub.sense = sense
+
+    def as_list(self):
+        """
+        Strip out prepended parent names. This really belongs in compartment.py since that is where the parent names
+        are added
+        :return:
+        """
+        l = super(Context, self).as_list()
+        for i in range(len(l), 1, -1):
+            upname = l[i-2] + ', '
+            if l[i-1].startswith(upname):
+                l[i-1] = l[i-1][len(upname):]
+        return l
 
     @property
     def parent(self):  # duplicating here to override setter

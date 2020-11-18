@@ -130,11 +130,24 @@ class ContextManagerTest(CompartmentContainer.CompartmentManagerTest):
 
         self.assertIs(fw, rw)
 
+    @unittest.skip
     def test_disregard(self):
+        """
+        Changed how we handle elementary flows
+        :return:
+        """
         n = self.cm.add_compartments(['elementary flows', 'emissions', 'air', 'urban air'])
         self.assertNotIn('elementary flows', self.cm)
         self.assertIn('elementary flows', self.cm.disregarded_terms)
         self.assertListEqual(n.as_list(), ['Emissions', 'to air', 'urban air'])
+
+    def test_elementary(self):
+        self.assertEqual(len(list(self.cm.objects)), 2)
+        n = self.cm.add_compartments(['elementary flows', 'emissions', 'air', 'urban air'])
+        self.assertListEqual(n.as_list(), ['elementary flows', 'Emissions', 'to air', 'urban air'])
+        self.assertTrue(n.elementary)
+        self.assertIn(self.cm['Emissions'], self.cm['Elementary flows'].subcompartments)
+        self.assertEqual(len(list(self.cm.objects)), 5)
 
     def test_protected(self):
         """
@@ -150,7 +163,7 @@ class DefaultContextsTest(unittest.TestCase):
         self.cm = ContextManager(source_file=DEFAULT_CONTEXTS)
 
     def test_load(self):
-        self.assertEqual(len(self.cm), 34)
+        self.assertEqual(len(self.cm), 35)
         self.assertSetEqual({k.name for k in self.cm.top_level_compartments}, {'Emissions', 'Resources'})
 
     def test_matching_compartment(self):

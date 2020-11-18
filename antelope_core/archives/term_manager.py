@@ -199,7 +199,7 @@ class TermManager(object):
             yield c
             c = c.parent
 
-    def add_context(self, context, origin=None):
+    def add_context(self, context, *terms, origin=None):
         """
 
         :param context:
@@ -212,6 +212,8 @@ class TermManager(object):
         if origin is not None:
             if cx.fullname == cx.name:
                 cx.add_origin(origin)
+        for term in terms:
+            self._cm.add_synonym(cx.name, term)
         return cx
 
     def _check_context(self, flow):
