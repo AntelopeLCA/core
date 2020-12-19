@@ -110,11 +110,14 @@ class ExchangesTest(unittest.TestCase):
         reference values, sum up to the un-allocated value.
         :return:
         """
+        '''
         for k in self.petro.inventory():
             if k.is_reference:
                 continue
             total = sum(k[rx] * rx.value for rx in self.petro.references())
             self.assertAlmostEqual(total, k.value, places=10)
+        '''
+        self.assertTrue(self.petro.test_allocation_consistency(display=False))
 
     def test_alloc_equality(self):
         d_cf = self.petro.alloc_qty.cf(self.petro_d.flow)
