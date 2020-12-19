@@ -29,8 +29,7 @@ def _check_resource(ref):
     return os.path.exists(os.path.join(resource_dir, ref))
 
 
-def setUpModule():
-    LcCatalog(CATALOG_ROOT)
+cat = LcCatalog(CATALOG_ROOT)
 
 
 class LocalCatalog(unittest.TestCase):
@@ -44,7 +43,7 @@ class LocalCatalog(unittest.TestCase):
         :return:
         """
         cls._configs = dict()
-        cls._cat = LcCatalog(CATALOG_ROOT)
+        cls._cat = cat
         for k, d in RESOURCES_CONFIG.items():
             if d.pop('enable_test', False):
                 print('data source %s enabled' % k)

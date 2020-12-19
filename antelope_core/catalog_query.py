@@ -2,7 +2,7 @@
 Query Interface -- used to operate catalog refs
 """
 
-from antelope import (IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface, EntityNotFound)
+from antelope import (IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface, EntityNotFound, UnknownOrigin)
 #                      ForegroundInterface,
 #                      IndexRequired, PropertyExists,
 #                      )
@@ -21,10 +21,6 @@ def zap_inventory(interface, warn=False):
 
 
 class NoCatalog(Exception):
-    pass
-
-
-class UnknownOrigin(Exception):
     pass
 
 

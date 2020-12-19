@@ -1,10 +1,8 @@
 import unittest
 from collections import namedtuple
 
-from ... import LcCatalog
 from ..local import make_config, check_enabled
 
-from ...catalog.catalog_root import CATALOG_ROOT
 
 RefStats = namedtuple('RefStats', ('proc', 'elem', 'flowables'))
 
@@ -18,7 +16,7 @@ else:
     _run_ecoinvent = check_enabled('ecoinvent') or _debug
 
 if _run_ecoinvent:
-    cat = LcCatalog(CATALOG_ROOT)
+    from .test_aa_local import cat
     cfg = make_config('ecoinvent')
 
 

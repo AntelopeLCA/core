@@ -15,7 +15,7 @@ class LciaEngineTest(unittest.TestCase):
         cls.lcia = LciaDb.new()
 
     def test_0_init(self):
-        self.assertEqual(len([x for x in self.lcia.query.contexts()]), 36)
+        self.assertEqual(len([x for x in self.lcia.query.contexts()]), 37)
         self.assertEqual(len([x for x in self.lcia.query.flowables()]), 4005)
         self.assertEqual(len([x for x in self.lcia.query.quantities()]), 25)
         self.assertEqual(len(self.lcia.tm._q_dict), 3)

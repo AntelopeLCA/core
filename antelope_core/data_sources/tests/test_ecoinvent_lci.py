@@ -17,12 +17,11 @@ from math import isclose
 
 from antelope import EntityNotFound
 
-from ... import LcCatalog
+
 from ...entities import LcProcess
 from ...archives import LcArchive, archive_from_json
 
 from ..local import check_enabled
-from ...catalog.catalog_root import CATALOG_ROOT
 
 
 EcoinventNode = namedtuple('EcoinventNode', ['version', 'model', 'node'])
@@ -36,7 +35,7 @@ else:
 
 
 if _run_ecoinvent:
-    cat = LcCatalog(CATALOG_ROOT)
+    from .test_aa_local import cat
 else:
     cat = None
 

@@ -1,15 +1,13 @@
 import unittest
 
-from ... import LcCatalog
+from .test_aa_local import cat
 from ..local import make_config, check_enabled
-from ...catalog.catalog_root import CATALOG_ROOT
 
 
 _run_test = check_enabled('ipcc2007')
 
 
 if _run_test:
-    cat = LcCatalog(CATALOG_ROOT)
     cfg = make_config('ipcc2007')
     ref = next(cfg.references)
 
