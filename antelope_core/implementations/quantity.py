@@ -6,7 +6,7 @@ from antelope import (QuantityInterface, NoFactorsFound, ConversionReferenceMism
 convert, NoUnitConversionTable)
 
 from .basic import BasicImplementation
-from ..characterizations import QRResult
+from ..characterizations import QRResult, LocaleMismatch
 from ..contexts import NullContext
 from ..lcia_results import LciaResult
 
@@ -160,6 +160,8 @@ class QuantityConversion(object):
         if self.qualitative:
             return '%s [%s] %s: %s [%s] (%s)' % (self.flowable, self.context, self.query, self.value,
                                                  self._results[-1].locale, self._results[-1].origin)
+        if len(self._results) == 0:
+            return str(self.query)
         conv = ' x '.join(['%g %s/%s' % (res.value, res.query.unit, res.ref.unit) for res in self._results])
         return '%s; %s: %s [%s] (%s)' % (self.flowable, self.context,
                                          conv, self._results[-1].locale,
@@ -377,6 +379,11 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 except ConversionReferenceMismatch:
                     res.add_result(QRResult(fb, qq, qq, cx, locale, qq.origin, 1.0))
                     qr_mismatch.append(QuantityConversionError(res, rq))
+                except LocaleMismatch as e:
+                    locales = e.args[0]
+                    for loc in locales:
+                        res = QuantityConversion(query=qq)
+                        qr_geog.append(self._ref_qty_conversion(rq, fb, cx, res, loc))
 
                 return qr_results, qr_geog, qr_mismatch
 
@@ -386,6 +393,10 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 qr_results.append(self._ref_qty_conversion(rq, fb, cx, res, locale))
             except ConversionReferenceMismatch:
                 qr_mismatch.append(QuantityConversionError(res, rq))
+            except LocaleMismatch as e:
+                locales = e.args[0]
+                for loc in locales:
+                    qr_geog.append(self._ref_qty_conversion(rq, fb, cx, res, loc))
 
         ''' # leaving this OUT- we should only do forward and reverse matching for ref quantity conversion, not qq
         Leaving it back in because it breaks a unit test
@@ -398,12 +409,13 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 pass  # qr_mismatch.append(res.invert())  We shouldn't be surprised that there is no reverse conversion
         ##'''
 
-        if len(qr_results + qr_mismatch) == 0:
+        if len(qr_results + qr_geog + qr_mismatch) == 0:
             raise NoFactorsFound
 
         if len(qr_results) > 1:
-            qr_geog = [k for k in filter(lambda x: x[0].locale != locale, qr_results)]
+            _geog = [k for k in filter(lambda x: x[0].locale != locale, qr_results)]
             qr_results = [k for k in filter(lambda x: x[0].locale == locale, qr_results)]
+            qr_geog += _geog
 
         return qr_results, qr_geog, qr_mismatch
 
