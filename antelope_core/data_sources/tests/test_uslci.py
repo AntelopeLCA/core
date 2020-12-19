@@ -1,8 +1,8 @@
 import unittest
 
-from ... import LcCatalog, UnknownOrigin
+from antelope import UnknownOrigin
+from .test_aa_local import cat
 from ..local import make_config, check_enabled
-from ...catalog.catalog_root import CATALOG_ROOT
 
 
 etypes = ('quantity', 'flow', 'process')
@@ -16,7 +16,6 @@ else:
 
 
 if _run_uslci:
-    cat = LcCatalog(CATALOG_ROOT)
     cfg = make_config('uslci')
     try:
         gwp = next(cat.query('lcia.ipcc').lcia_methods())

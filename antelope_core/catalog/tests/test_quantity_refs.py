@@ -5,10 +5,9 @@ import unittest
 
 from .. import LcCatalog
 from ...data_sources.local import make_config
-from ..catalog_root import CATALOG_ROOT
 
 
-cat = LcCatalog(CATALOG_ROOT)
+cat = LcCatalog.make_tester()
 cfg = make_config('ipcc2007')
 ref = next(cfg.references)
 
