@@ -4,10 +4,12 @@ from collections import defaultdict
 import requests
 import hashlib
 
+from antelope import UnknownOrigin
+
 from .archives import InterfaceError, index_archive, update_archive, create_archive
 
 # from .foreground import LcForeground
-from .catalog_query import INTERFACE_TYPES, NoCatalog, zap_inventory, UnknownOrigin
+from .catalog_query import INTERFACE_TYPES, NoCatalog, zap_inventory
 
 # from .providers import create_archive
 from . import herd_factory

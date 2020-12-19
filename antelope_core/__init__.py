@@ -51,7 +51,6 @@ def herd_factory(ds_type):
     raise ImportError('Cannot find a package for loading %s' % ds_type)
 
 
-from .catalog_query import CatalogQuery, UnknownOrigin
 from .catalog import LcCatalog
 from .lc_resource import LcResource
 from .data_sources.local import make_config

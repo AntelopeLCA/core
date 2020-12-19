@@ -30,8 +30,8 @@ from ..archives import InterfaceError
 from ..lcia_engine import LciaDb
 
 
-from antelope import EntityNotFound, CatalogRef
-from ..catalog_query import CatalogQuery, INTERFACE_TYPES, zap_inventory, UnknownOrigin
+from antelope import CatalogRef, UnknownOrigin
+from ..catalog_query import CatalogQuery, INTERFACE_TYPES, zap_inventory
 from .lc_resolver import LcCatalogResolver
 from ..lc_resource import LcResource
 # from lcatools.flowdb.compartments import REFERENCE_INT  # reference intermediate flows
@@ -332,13 +332,7 @@ class StaticCatalog(object):
         :return:
         """
 
-        try:
-            next(self._resolver.resolve(origin, strict=strict))
-        except UnknownOrigin:
-            if strict:
-                raise
-            origin = '.'.join(['foreground', origin])
-            next(self._resolver.resolve(origin, strict=strict))
+        next(self._resolver.resolve(origin, strict=strict))
 
         if refresh or (origin not in self._queries):
             self._queries[origin] = CatalogQuery(origin, catalog=self, **kwargs)
