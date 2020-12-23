@@ -606,11 +606,11 @@ class LcProcess(LcEntity):
         j = super(LcProcess, self).serialize(domesticate=domesticate, drop_fields=drop_fields)
         j.pop(self._ref_field)  # reference reported in exchanges
         j['exchanges'] = sorted([x.serialize(**kwargs) for x in self.reference_entity],
-                                    key=lambda x: (x['direction'], x['flow']))
+                                key=lambda x: (x['direction'], x['flow']))
         if exchanges:
             # if exchanges is true, report all exchanges
             j['exchanges'] += sorted([x.serialize(**kwargs) for x in self._exchanges.values()],
-                                    key=lambda x: (x['direction'], x['flow']))
+                                     key=lambda x: (x['direction'], x['flow']))
         else:
             j.pop('allocationFactors', None)  # added just for OpenLCA JSON-LD, but could be generalized
         return j

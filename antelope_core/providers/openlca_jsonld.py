@@ -293,22 +293,25 @@ class OpenLcaJsonLdArchive(LcArchive):
         else:
             dm = 'NO_ALLOCATION'
         _causal_msg = True
+        stored_alloc = []
         for af in alloc:
-            if af['value'] == 0:
-                continue
-
             rf = self.retrieve_or_fetch_entity(af['product']['@id'])
             try:
                 rx = p.reference(rf)
             except NoExchangeFound:
                 try:
-                    rx = next(_x for _x in p.exchange_values(rf))
+                    rx = next(_x for _x in p.exchange_values(rf) if _x.type in ('context', 'cutoff'))
                     p.set_reference(rf, rx.direction)
                     assert rx.is_reference
                 except StopIteration:
                     print('%s: Unable to find allocatable exchange for %s' % (p.external_ref, rf.external_ref))
                     continue
+
             if af['allocationType'] == 'CAUSAL_ALLOCATION':
+                if af['value'] == 0:
+                    # Keep 0-allocation factors for non-causal
+                    continue
+
                 if dm != 'CAUSAL_ALLOCATION':
                     if _causal_msg:
                         print('%s: Skipping Speculative CAUSAL_ALLOCATION' % p.external_ref)
@@ -322,6 +325,7 @@ class OpenLcaJsonLdArchive(LcArchive):
                 x = xs[0]
 
                 val = af['value']
+                stored_alloc.append(af)
 
                 x[rx] = x.value * val
                 if _causal_msg:
@@ -331,6 +335,7 @@ class OpenLcaJsonLdArchive(LcArchive):
                 q = self._create_allocation_quantity(p, af['allocationType'])
 
                 v = af['value'] / rx.value
+                stored_alloc.append(af)
 
                 self.tm.add_characterization(rf.link, rf.reference_entity, q, v, context=rf.context, origin=self.ref)
                 #f.add_characterization(q, value=v)
@@ -338,6 +343,7 @@ class OpenLcaJsonLdArchive(LcArchive):
         if dm != 'NO_ALLOCATION':
             aq = self._create_allocation_quantity(p, p['defaultAllocationMethod'])
             p.allocate_by_quantity(aq)
+        p['allocationFactors'] = stored_alloc  # only keep factors we used
 
     def _create_process(self, p_id):
         q = self[p_id]
@@ -357,7 +363,7 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         if 'allocationFactors' in p_j:
             # process later-- do we keep or remove them???
-            alloc = [v for v in p_j.pop('allocationFactors') if v['value'] != 0]
+            alloc = p_j.pop('allocationFactors')
         else:
             alloc = None
 
