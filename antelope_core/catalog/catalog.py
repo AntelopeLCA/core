@@ -249,8 +249,8 @@ class StaticCatalog(object):
     '''
     Retrieve resources
     '''
-    def _find_single_source(self, origin, interface, source=None):
-        r = self._resolver.get_resource(ref=origin, iface=interface, source=source, include_internal=False)
+    def _find_single_source(self, origin, interface, source=None, strict=True):
+        r = self._resolver.get_resource(ref=origin, iface=interface, source=source, include_internal=False, strict=strict)
         r.check(self)
         return r.source
 

@@ -196,7 +196,7 @@ class LcCatalog(StaticCatalog):
                           _internal=True, static=True, preload_archive=the_index, config=cfg)
         return the_index.ref
 
-    def index_ref(self, origin, interface=None, source=None, priority=60, force=False):
+    def index_ref(self, origin, interface=None, source=None, priority=60, force=False, strict=True):
         """
         Creates an index for the specified resource.  'origin' and 'interface' must resolve to one or more LcResources
         that all have the same source specification.  That source archive gets indexed, and index resources are created
@@ -210,9 +210,10 @@ class LcCatalog(StaticCatalog):
         :param source: find_single_source input
         :param priority: [60] priority setting for the new index
         :param force: [False] if True, overwrite existing index
+        :param strict: [True] whether to be strict
         :return:
         """
-        source = self._find_single_source(origin, interface, source=source)
+        source = self._find_single_source(origin, interface, source=source, strict=strict)
         return self._index_source(source, priority, force=force)
 
     def cache_ref(self, origin, interface=None, source=None, static=False):
@@ -236,8 +237,8 @@ class LcCatalog(StaticCatalog):
         res.check(self)
         res.make_cache(self.cache_file(self._localize_source(source)))
 
-    def _background_for_origin(self, ref):
-        inx_ref = self.index_ref(ref, interface='exchange')
+    def _background_for_origin(self, ref, strict=False):
+        inx_ref = self.index_ref(ref, interface='exchange', strict=strict)
         bk_file = self._localize_source(os.path.join(self.archive_dir, '%s_background.mat' % inx_ref))
         bk = LcResource(inx_ref, bk_file, 'Background', interfaces='background', priority=99,
                         save_after=True, _internal=True)
@@ -258,7 +259,7 @@ class LcCatalog(StaticCatalog):
 
         if itype == 'background':
             if True:  # origin.startswith('local') or origin.startswith('test'):
-                yield self._background_for_origin(origin)
+                yield self._background_for_origin(origin, strict=strict)
 
     def create_descendant(self, origin, interface=None, source=None, force=False, signifier=None, strict=True,
                           priority=None, **kwargs):

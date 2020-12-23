@@ -19,6 +19,10 @@ from .archives import archive_factory, ArchiveError
 FOUND_PROVIDERS = LowerDict()
 def _find_providers():
     for ant in [__name__] + antelope_herd:
+        try:
+            importlib.import_module('.', package=ant)
+        except ModuleNotFoundError:
+            continue
         p = importlib.import_module('.providers', package=ant)
         try:
             inits = getattr(p, 'PROVIDERS')
