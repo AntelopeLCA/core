@@ -42,6 +42,9 @@ class OpenLcaJsonLdArchive(LcArchive):
             if f in SKIP_DURING_INDEX:
                 continue
             ff = f.split('/')
+            if len(ff) < 2:
+                self._type_index['root'] = ff[0]
+                continue
             fg = ff[1].split('.')
             self._type_index[fg[0]] = ff[0]
             if ff[0] == 'lcia_methods':
