@@ -1,7 +1,8 @@
 import re
 
 from .basic import BasicImplementation
-from antelope import BackgroundInterface, ProductFlow, ExteriorFlow, EntityNotFound, comp_dir
+from antelope_interface import BackgroundInterface, ProductFlow, ExteriorFlow, EntityNotFound, comp_dir
+from antelope_core.contexts import Context
 
 
 class NonStaticBackground(Exception):
@@ -73,6 +74,7 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
 
     def exterior_flows(self, direction=None, search=None, **kwargs):
         """
+        Exterior flows are all flows that do not have interior terminations (i.e. not found in the index targets)
         Since contexts are still in limbo, we need a default directionality (or some way to establish directionality
         for compartments..) but for now let's just use default 'output' for all exterior flows
         :param direction:
@@ -121,13 +123,31 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
 
     def emissions(self, process, ref_flow=None, **kwargs):
         """
-        All processes are LCI, so they have no emissions
+        All processes are LCI, so they have only exterior flows. Emissions are the exterior flows with elementary
+        contexts
         :param process:
         :param ref_flow:
         :param kwargs:
         :return:
         """
-        for i in []:
+        for i in self.lci(process, ref_flow=ref_flow, **kwargs):
+            if isinstance(i.termination, Context):
+                if i.termination.elementary:
+                    yield i
+
+    def cutoffs(self, process, ref_flow=None, **kwargs):
+        """
+        All processes are LCI, so they have only exterior flows. Emissions are the exterior flows with non-elementary
+        contexts
+        :param process:
+        :param ref_flow:
+        :param kwargs:
+        :return:
+        """
+        for i in self.lci(process, ref_flow=ref_flow, **kwargs):
+            if isinstance(i.termination, Context):
+                if i.termination.elementary:
+                    continue
             yield i
 
     def foreground(self, process, ref_flow=None, **kwargs):
