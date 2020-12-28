@@ -32,6 +32,7 @@ setup(
     install_requires=requires,
     url="https://github.com/AntelopeLCA/core",
     summary="A reference implementation of the Antelope interface for accessing a variety of LCA data sources",
+    long_description_content_type='text/markdown',
     long_description=open('README.md').read(),
     classifiers=[
         "Development Status :: 4 - Beta",
