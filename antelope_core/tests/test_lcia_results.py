@@ -1,7 +1,7 @@
 import unittest
 
 from ..lcia_results import LciaResult
-from antelope import CatalogRef
+from antelope_interface import CatalogRef
 
 
 class LciaResultTestCase(unittest.TestCase):

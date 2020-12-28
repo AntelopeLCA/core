@@ -2,7 +2,7 @@ import json
 import os
 from collections import defaultdict
 
-from antelope import UnknownOrigin
+from antelope_interface import UnknownOrigin
 from ..lc_resource import LcResource
 
 

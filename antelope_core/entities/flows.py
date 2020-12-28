@@ -1,7 +1,7 @@
 from __future__ import print_function, unicode_literals
 import uuid
 
-from antelope import Flow, CONTEXT_STATUS_
+from antelope_interface import Flow, CONTEXT_STATUS_
 from .entities import LcEntity
 # from lcatools.entities.quantities import LcQuantity
 

@@ -3,7 +3,7 @@ from __future__ import print_function, unicode_literals
 import uuid
 from itertools import chain
 from numbers import Number
-from antelope import CatalogRef, BaseEntity, PropertyExists
+from antelope_interface import CatalogRef, BaseEntity, PropertyExists
 
 from synonym_dict import LowerDict
 

@@ -2,11 +2,11 @@
 Query Interface -- used to operate catalog refs
 """
 
-from antelope import (IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface, EntityNotFound, UnknownOrigin)
+from antelope_interface import (IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface, EntityNotFound, UnknownOrigin)
 #                      ForegroundInterface,
 #                      IndexRequired, PropertyExists,
 #                      )
-from antelope.refs.exchange_ref import RxRef
+from antelope_interface.refs.exchange_ref import RxRef
 
 INTERFACE_TYPES = {'basic', 'index', 'exchange', 'background', 'quantity', 'foreground'}
 READONLY_INTERFACE_TYPES = {'basic', 'index', 'exchange', 'background', 'quantity'}

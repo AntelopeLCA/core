@@ -6,15 +6,7 @@ from itertools import chain
 from lxml import objectify
 from lxml.etree import XMLSyntaxError
 
-try:  # python3
-    from urllib.parse import urljoin
-    from urllib.error import HTTPError
-except ImportError:  # python2
-    from urlparse import urljoin
-    from urllib2 import HTTPError
-
-    bytes = str
-    str = unicode
+from urllib.error import HTTPError
 
 
 from ..file_store import FileStore

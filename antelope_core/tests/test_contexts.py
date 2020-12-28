@@ -1,7 +1,7 @@
 import unittest
 from synonym_dict.example_compartments.test_compartments import CompartmentContainer, InconsistentLineage
 from ..contexts import Context, ContextManager, InconsistentSense
-from antelope.interfaces.iindex import InvalidSense
+from antelope_interface.interfaces.iindex import InvalidSense
 from ..lcia_engine.lcia_engine import DEFAULT_CONTEXTS
 
 
@@ -156,6 +156,16 @@ class ContextManagerTest(CompartmentContainer.CompartmentManagerTest):
         :return:
         """
         pass
+
+    def test_as_list(self):
+        r_l = ['elementary flows', 'resources', 'water', 'subterranean']
+        e_l = ['elementary flows', 'emissions', 'water', 'subterranean']
+        r = self.cm.add_compartments(r_l)
+        e = self.cm.add_compartments(e_l)
+        self.assertEqual(r.name, 'subterranean')
+        self.assertEqual(e.name, 'to water, subterranean')
+        self.assertListEqual(r.as_list(), ['elementary flows', 'Resources', 'from water', 'subterranean'])
+        self.assertListEqual(e.as_list(), ['elementary flows', 'Emissions', 'to water', 'subterranean'])
 
 
 class DefaultContextsTest(unittest.TestCase):

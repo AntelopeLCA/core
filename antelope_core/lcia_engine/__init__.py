@@ -1,6 +1,6 @@
 from ..archives import Qdb, REF_QTYS
 from .lcia_engine import LciaEngine, DEFAULT_CONTEXTS, DEFAULT_FLOWABLES
-from antelope import QuantityRef, FlowInterface
+from antelope_interface import QuantityRef, FlowInterface
 
 import os
 

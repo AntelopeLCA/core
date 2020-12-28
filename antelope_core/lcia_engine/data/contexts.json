@@ -2,7 +2,9 @@
   "Compartments": [
     {
       "name": "Emissions",
-      "synonyms": [],
+      "synonyms": [
+        "Emission"
+      ],
       "sense": "Sink"
     },
     {

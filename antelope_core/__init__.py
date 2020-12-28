@@ -9,7 +9,7 @@ Package Includes:
 
 
 from synonym_dict import LowerDict
-from antelope import antelope_herd
+from antelope_interface import antelope_herd
 
 import importlib
 

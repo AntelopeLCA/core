@@ -9,7 +9,7 @@ import unittest
 import os
 from uuid import uuid4
 
-from antelope import local_ref, CatalogRef
+from antelope_interface import local_ref, CatalogRef
 from ..entity_store import SourceAlreadyKnown
 from ..basic_archive import BasicArchive
 

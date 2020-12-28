@@ -4,7 +4,7 @@ from collections import defaultdict
 import requests
 import hashlib
 
-from antelope import UnknownOrigin
+from antelope_interface import UnknownOrigin
 
 from .archives import InterfaceError, index_archive, update_archive, create_archive
 

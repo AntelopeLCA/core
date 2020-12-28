@@ -6,7 +6,7 @@ import uuid
 
 from collections import defaultdict
 
-from antelope import check_direction
+from antelope_interface import check_direction
 
 from .entities import LcEntity
 from ..exchanges import ExchangeValue, DuplicateExchangeError, AmbiguousReferenceError
