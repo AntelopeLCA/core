@@ -1,0 +1,5 @@
+antelope_interface>=0.1.2
+lxml>=4.5.2
+xlrd>=1.2.0
+six>=1.15.0
+python-magic>=0.4.18
