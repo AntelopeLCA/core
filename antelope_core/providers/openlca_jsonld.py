@@ -378,13 +378,6 @@ class OpenLcaJsonLdArchive(LcArchive):
         for ex in exch:
             self._add_exchange(p, ex)
 
-        for ex in exch:
-            ref = ex.pop('quantitativeReference', False)
-            if ref:
-                flow = self.retrieve_or_fetch_entity(ex['flow']['@id'], typ='flows')
-                dirn = 'Input' if ex['input'] else 'Output'
-                p.set_reference(flow, dirn)
-
         self._apply_olca_allocation(p, alloc)
 
         return p
