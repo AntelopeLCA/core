@@ -2,8 +2,8 @@
 Each archive now has a TermManager which interprets query arguments as synonyms for canonical flows and contexts.  This
 can also be upgraded to an LciaEngine, which extends the synonymization strategy to quantities as well
 """
-from antelope import (QuantityInterface, NoFactorsFound, ConversionReferenceMismatch, EntityNotFound, FlowInterface,
-convert, NoUnitConversionTable)
+from antelope_interface import (QuantityInterface, NoFactorsFound, ConversionReferenceMismatch, EntityNotFound, FlowInterface,
+                                convert, NoUnitConversionTable)
 
 from .basic import BasicImplementation
 from ..characterizations import QRResult, LocaleMismatch
@@ -29,14 +29,22 @@ class QuantityConversion(object):
     QuantityConversion(QRResult('methane', 'kg', 'kg CO2eq', 'emissions to air', 'GLO', 'ipcc.2007', 25.0),
                        QRResult('methane', 'mol', 'kg', None, 'GLO', 'local.qdb', 0.016))
     giving the resulting value of 0.4.
+
+    The QuantityConversion needs information to be fully defined: the query quantity and the query context, both of
+    which should be canonical.  The canonical context is especially needed to test directionality for LCIA.
     """
     @classmethod
     def null(cls, flowable, rq, qq, context, locale, origin):
         qrr = QRResult(flowable, rq, qq, context or NullContext, locale, origin, 0.0)
         return cls(qrr)
 
-    def __init__(self, *args, query=None):
+    @classmethod
+    def copy(cls, conv):
+        return cls(*conv.results, query=conv.query, context=conv.context)
+
+    def __init__(self, *args, query=None, context=NullContext):
         self._query = query  # this is just a stub to give ref conversion machinery something to grab hold of
+        self._context = context
         self._results = []
         for arg in args:
             self.add_result(arg)
@@ -102,10 +110,7 @@ class QuantityConversion(object):
 
     @property
     def context(self):
-        if len(self._results) > 0:
-            if self._results[0].context is not None:
-                return self._results[0].context
-        return NullContext
+        return self._context
 
     @property
     def locale(self):
@@ -321,7 +326,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                                                                           context=compartment, dist=3)
                        if not conv.seen(cf.ref_quantity)]
             for cf in cfs_fwd:
-                new_conv = QuantityConversion(*conv.results)
+                new_conv = QuantityConversion.copy(conv)
                 new_conv.add_result(cf.query(locale))
                 try:
                     return self._ref_qty_conversion(target_quantity, flowable, compartment, new_conv, locale,
@@ -331,7 +336,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
 
             # then look for reverse matches... but... only once
             if _reverse:
-                new_conv = QuantityConversion(*conv.results)
+                new_conv = QuantityConversion.copy(conv)
                 rev_conv = self._ref_qty_conversion(found_quantity, flowable, compartment,
                                                     QuantityConversion(query=target_quantity), locale,
                                                     _reverse=False)
@@ -373,7 +378,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
         # if we are not doing LCIA, jump straight to unit conversion
         if qq is not None:
             if not qq.is_lcia_method:
-                res = QuantityConversion(query=qq)
+                res = QuantityConversion(query=qq, context=cx)
                 try:
                     qr_results.append(self._ref_qty_conversion(rq, fb, cx, res, locale))
                 except ConversionReferenceMismatch:
@@ -382,13 +387,13 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 except LocaleMismatch as e:
                     locales = e.args[0]
                     for loc in locales:
-                        res = QuantityConversion(query=qq)
+                        res = QuantityConversion(query=qq, context=cx)
                         qr_geog.append(self._ref_qty_conversion(rq, fb, cx, res, loc))
 
                 return qr_results, qr_geog, qr_mismatch
 
         for cf in self._archive.tm.factors_for_flowable(fb, quantity=qq, context=cx, **kwargs):
-            res = QuantityConversion(cf.query(locale))
+            res = QuantityConversion(cf.query(locale), context=cx)
             try:
                 qr_results.append(self._ref_qty_conversion(rq, fb, cx, res, locale))
             except ConversionReferenceMismatch:
