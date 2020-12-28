@@ -38,7 +38,7 @@ The NullContext should be returned by the context manager
 """
 
 from synonym_dict.example_compartments import Compartment, CompartmentManager
-from antelope import valid_sense
+from antelope_interface import valid_sense
 
 ELEMENTARY = {'elementary flows', 'resource', 'emission', 'resources', 'emissions'}
 

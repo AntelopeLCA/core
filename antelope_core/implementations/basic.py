@@ -1,4 +1,4 @@
-from antelope import EntityNotFound, NoAccessToEntity
+from antelope_interface import EntityNotFound, NoAccessToEntity
 
 
 class BasicImplementation(object):

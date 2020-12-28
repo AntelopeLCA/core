@@ -4,7 +4,7 @@ Interim classes with useful building blocks
 
 from __future__ import print_function, unicode_literals
 
-from antelope import LcQuery
+from antelope_interface import LcQuery
 
 from ..entities import LcProcess
 from ..implementations import ExchangeImplementation, BackgroundImplementation, LcConfigureImplementation

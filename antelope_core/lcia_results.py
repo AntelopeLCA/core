@@ -2,7 +2,7 @@
 This object replaces the LciaResult types spelled out in Antelope-- instead, it serializes to an LCIA result directly.
 
 """
-from antelope import comp_dir
+from antelope_interface import comp_dir
 from .exchanges import ExchangeValue, DissipationExchange
 from .autorange import AutoRange
 from numbers import Number

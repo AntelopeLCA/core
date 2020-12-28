@@ -1,6 +1,6 @@
 import unittest
 
-from antelope import UnknownOrigin
+from antelope_interface import UnknownOrigin
 from .test_aa_local import cat
 from ..local import make_config, check_enabled
 

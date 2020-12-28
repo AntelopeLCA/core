@@ -1,6 +1,6 @@
 from ...archives import BasicArchive, Qdb
 from ...lcia_engine import IPCC_2007_GWP
-from antelope import EntityNotFound, ConversionReferenceMismatch  # , NoFactorsFound
+from antelope_interface import EntityNotFound, ConversionReferenceMismatch  # , NoFactorsFound
 from ..quantity import RefQuantityRequired
 
 import unittest

@@ -15,7 +15,7 @@ from collections import namedtuple
 
 from math import isclose
 
-from antelope import EntityNotFound
+from antelope_interface import EntityNotFound
 
 
 from ...entities import LcProcess

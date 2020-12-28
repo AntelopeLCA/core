@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from antelope import IndexInterface, comp_dir, CONTEXT_STATUS_
+from antelope_interface import IndexInterface, comp_dir, CONTEXT_STATUS_
 from .basic import BasicImplementation
 from ..contexts import NullContext
 

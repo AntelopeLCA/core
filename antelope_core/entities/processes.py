@@ -5,8 +5,6 @@ import uuid
 
 from collections import defaultdict
 
-from antelope import ExchangeRequired
-
 from .entities import LcEntity
 from ..exchanges import Exchange, ExchangeValue, DuplicateExchangeError, AmbiguousReferenceError
 

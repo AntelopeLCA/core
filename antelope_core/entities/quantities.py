@@ -2,7 +2,7 @@ from __future__ import print_function, unicode_literals
 import uuid
 
 from synonym_dict import LowerDict
-from antelope import QuantityRef, convert
+from antelope_interface import QuantityRef, convert
 
 from .entities import LcEntity
 
