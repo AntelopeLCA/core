@@ -100,7 +100,7 @@ class Exchange(object):
         return self._is_reference
 
     def set_ref(self, setter):
-        if setter is self._process and self._termination is None:
+        if setter is self._process and (self._termination is None or self.type == 'context'):
             self._is_reference = True
             return True
         return False
@@ -199,7 +199,9 @@ class Exchange(object):
 
     @property
     def type(self):
-        if self.termination is not None:
+        if self.is_reference:
+            return 'reference'
+        elif self.termination is not None:
             if isinstance(self.termination, Context):
                 if self.termination.elementary:
                     return 'elementary'
@@ -208,8 +210,6 @@ class Exchange(object):
                 return 'self'
             else:
                 return 'node'
-        elif self.is_reference:
-            return 'reference'
         return 'cutoff'
 
     @property

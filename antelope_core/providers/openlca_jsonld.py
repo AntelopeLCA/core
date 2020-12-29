@@ -3,10 +3,15 @@ import os
 
 from collections import defaultdict
 
+# from antelope import NoFactorsFound
+
+from ..exchanges import AmbiguousReferenceError
+
 from ..entities import *
 from ..entities.processes import NoExchangeFound
 from ..archives import LcArchive
 from .file_store import FileStore
+from .ecospold import parse_math
 
 
 valid_types = {'processes', 'flows', 'flow_properties'}
@@ -241,13 +246,17 @@ class OpenLcaJsonLdArchive(LcArchive):
             self._print('%s: Unit Conversion exch: %g %s to native: %g %s' % (p.uuid, oldval, v_unit, value, fp.unit))
 
         if fp != flow.reference_entity:
-            print('%s:\n%s flow reference quantity does not match\n%s exchange f.p. Conversion Required' %
-                  (p.external_ref,
-                   flow.reference_entity.external_ref,
-                   fp.external_ref))
-            print('From %g %s' % (value, fp.unit))
-            value /= fp.cf(flow)  # TODO: account for locale?  ## is this even right?
-            print('To %g %s' % (value, flow.unit))
+            try:
+                value /= fp.cf(flow)  ## is this even right?  ### yes  # TODO: account for locale?
+            except (TypeError, ZeroDivisionError):
+                print('%s:%s:%s flow reference quantity does not match\n%s exchange f.p. Conversion Required' %
+                      (p.external_ref, dirn, flow.external_ref, flow.name))
+                print('From %s to %g %s' % (flow.unit, value, fp.unit))
+                val = parse_math(input('Enter conversion factor 1 %s = x %s [context %s]\nx: ' %
+                                       (flow.unit, fp.unit, flow.context)))
+                self.tm.add_characterization(flow.link, flow.reference_entity, fp, val, context=flow.context,
+                                             origin=self.ref)
+                value /= fp.cf(flow)
 
         is_ref = ex.pop('quantitativeReference', False)
         if is_ref:
@@ -266,7 +275,7 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         return exch
 
-    def _apply_olca_allocation(self, p):
+    def _apply_olca_allocation(self, p, alloc=None):
         """
         For each allocation factor, we want to characterize the flow so that its exchange value times its
         characterization equals the stated factor.  Then we want to allocate the process by its default allocation
@@ -280,35 +289,64 @@ class OpenLcaJsonLdArchive(LcArchive):
         :param p: an LcProcess generated from the JSON-LD archive
         :return:
         """
-        if p.has_property('allocationFactors'):
-            for af in p['allocationFactors']:
-                if af['value'] == 0:
-                    continue
-                if af['allocationType'] == 'CAUSAL_ALLOCATION':
-                    # not sure how to correctly interpret this
-                    if af['value'] != 1.0:  # 1.0 is default NOP for causal allocation
-                        print('Skipping Speculative CAUSAL_ALLOCATION of %g' % af['value'])
-                    continue
-                q = self._create_allocation_quantity(p, af['allocationType'])
-                f = self.retrieve_or_fetch_entity(af['product']['@id'], typ='flows')
+        if alloc is None:
+            return
+        if p.has_property('defaultAllocationMethod'):
+            dm = p['defaultAllocationMethod']
+        else:
+            dm = 'NO_ALLOCATION'
+        _causal_msg = True
+        stored_alloc = []
+        for af in alloc:
+            rf = self.retrieve_or_fetch_entity(af['product']['@id'])
+            try:
+                rx = p.reference(rf)
+            except NoExchangeFound:
                 try:
-                    x = p.reference(f)
-                except NoExchangeFound:
-                    try:
-                        x = next(rx for rx in p.exchange_values(f) if rx.termination is None)
-                        p.set_reference(f, x.direction)
-                    except StopIteration:
-                        print('%s: Unable to find allocatable exchange for %s' % (p.external_ref, f.external_ref))
-                        continue
+                    rx = next(_x for _x in p.exchange_values(rf) if _x.type in ('context', 'cutoff'))
+                    p.set_reference(rf, rx.direction)
+                    assert rx.is_reference
+                except StopIteration:
+                    print('%s: Unable to find allocatable exchange for %s' % (p.external_ref, rf.external_ref))
+                    continue
 
-                v = af['value'] / x.value
+            if af['allocationType'] == 'CAUSAL_ALLOCATION':
+                if af['value'] == 0:
+                    # Keep 0-allocation factors for non-causal
+                    continue
 
-                self.tm.add_characterization(f.link, f.reference_entity, q, v, context=f.context, origin=self.ref)
+                if dm != 'CAUSAL_ALLOCATION':
+                    if _causal_msg:
+                        print('%s: Skipping Speculative CAUSAL_ALLOCATION' % p.external_ref)
+                        _causal_msg = False
+                    continue
+                f = self.retrieve_or_fetch_entity(af['exchange']['flow']['@id'])
+
+                xs = list(p.exchange_values(f))
+                if len(xs) > 1:
+                    raise AmbiguousReferenceError('%s: Multiple flows with ID %s' % (p.external_ref, f.external_ref))
+                x = xs[0]
+
+                val = af['value']
+                stored_alloc.append(af)
+
+                x[rx] = x.value * val
+                if _causal_msg:
+                    print('%s: Warning: causal allocation has not been tested' % p.external_ref)
+                    _causal_msg = False
+            else:
+                q = self._create_allocation_quantity(p, af['allocationType'])
+
+                v = af['value'] / rx.value
+                stored_alloc.append(af)
+
+                self.tm.add_characterization(rf.link, rf.reference_entity, q, v, context=rf.context, origin=self.ref)
                 #f.add_characterization(q, value=v)
 
-            if p.has_property('defaultAllocationMethod'):
-                aq = self._create_allocation_quantity(p, p['defaultAllocationMethod'])
-                p.allocate_by_quantity(aq)
+        if dm != 'NO_ALLOCATION':
+            aq = self._create_allocation_quantity(p, p['defaultAllocationMethod'])
+            p.allocate_by_quantity(aq)
+        p['allocationFactors'] = stored_alloc  # only keep factors we used
 
     def _create_process(self, p_id):
         q = self[p_id]
@@ -327,9 +365,11 @@ class OpenLcaJsonLdArchive(LcArchive):
         exch = p_j.pop('exchanges')
 
         if 'allocationFactors' in p_j:
-            p_j['allocationFactors'] = [v for v in p_j['allocationFactors'] if v['value'] != 0]
+            # process later-- do we keep or remove them???
+            alloc = p_j.pop('allocationFactors')
+        else:
+            alloc = None
 
-        # leave allocation in place for now
 
         p = LcProcess(p_id, Name=name, Classifications=cls, SpatialScope=ss, TemporalScope=stt, **p_j)
 
@@ -338,14 +378,7 @@ class OpenLcaJsonLdArchive(LcArchive):
         for ex in exch:
             self._add_exchange(p, ex)
 
-        for ex in exch:
-            ref = ex.pop('quantitativeReference', False)
-            if ref:
-                flow = self.retrieve_or_fetch_entity(ex['flow']['@id'], typ='flows')
-                dirn = 'Input' if ex['input'] else 'Output'
-                p.set_reference(flow, dirn)
-
-        self._apply_olca_allocation(p)
+        self._apply_olca_allocation(p, alloc)
 
         return p
 

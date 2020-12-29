@@ -1,4 +1,4 @@
-from .data_source import DataSource, ResourceInfo
+from antelope_core.data_sources.data_source import DataSource, ResourceInfo
 
 VALID_FORMATS = ('olca', 'ecospold')  # 'ecospold')
 
@@ -159,7 +159,7 @@ INFO = {
 class UsLciConfig(DataSource):
 
     prefix = 'local.uslci'
-    _ifaces = ('inventory', 'quantity')
+    _ifaces = ('exchange', 'quantity')
 
     def _ref(self, fmt):
         return '.'.join([self.prefix, fmt])

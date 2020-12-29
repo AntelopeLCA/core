@@ -41,6 +41,13 @@ class MissingContext(Exception):
     pass
 
 
+class LocaleMismatch(Exception):
+    """
+    Requested locale is not found
+    """
+    pass
+
+
 class Characterization(object):
     """
     A characterization is an affiliation of a flow and a quantity. Characterizations are inherently naively spatialized,
@@ -153,17 +160,18 @@ class Characterization(object):
         found_locale = None
         if len(self._locations) > 0:
             if locale in self._locations.keys():
+                # we're looking for a locale that exists
                 found_locale = locale
             elif 'GLO' in self._locations.keys():
+                # we're looking for something specific that doesn't exist, but GLO does exist
                 found_locale = 'GLO'
                 # today is not the day to write a location best-match finder
         return found_locale
 
     def query(self, locale):
-        found = self._lookup(locale)
+        found = self._lookup(locale)  # with the addition of LocaleMismatch, we should do away with this
         if found is None:
-            return QRResult(self.flowable, self.ref_quantity, self.quantity, self.context, locale,
-                            None, None)
+            raise LocaleMismatch(list(self._locations.keys()))
         return QRResult(self.flowable, self.ref_quantity, self.quantity, self.context, found,
                         self.origin, self._locations[found])
 
