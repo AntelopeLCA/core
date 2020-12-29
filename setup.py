@@ -1,5 +1,4 @@
 from setuptools import setup, find_packages
-from antelope import ANTELOPE_VERSION as VERSION
 
 requires = [
     "antelope_interface",
@@ -12,6 +11,7 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.1.2b - 2020/12/29 - fix some minor items
 0.1.2 - 2020/12/28 - PyPI installation
 
 0.1.1 - 2020/11/12 - Bug fixes all over the place.  
@@ -22,6 +22,7 @@ Version History
 0.1.0 - 2020/07/31 - Initial release - JIE paper
 """
 
+VERSION = '0.1.2b'
 
 setup(
     name="antelope_core",
