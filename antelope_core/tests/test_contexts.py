@@ -130,17 +130,6 @@ class ContextManagerTest(CompartmentContainer.CompartmentManagerTest):
 
         self.assertIs(fw, rw)
 
-    @unittest.skip
-    def test_disregard(self):
-        """
-        Changed how we handle elementary flows
-        :return:
-        """
-        n = self.cm.add_compartments(['elementary flows', 'emissions', 'air', 'urban air'])
-        self.assertNotIn('elementary flows', self.cm)
-        self.assertIn('elementary flows', self.cm.disregarded_terms)
-        self.assertListEqual(n.as_list(), ['Emissions', 'to air', 'urban air'])
-
     def test_elementary(self):
         self.assertEqual(len(list(self.cm.objects)), 2)
         n = self.cm.add_compartments(['elementary flows', 'emissions', 'air', 'urban air'])

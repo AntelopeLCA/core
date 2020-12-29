@@ -84,6 +84,7 @@ class Context(Compartment):
     """
     _first_origin = None
     entity_type = 'context'
+    _elem = None
 
     @property
     def origin(self):
@@ -144,19 +145,6 @@ class Context(Compartment):
         for sub in self.subcompartments:
             sub.sense = sense
 
-    def as_list(self):
-        """
-        Strip out prepended parent names. This really belongs in compartment.py since that is where the parent names
-        are added
-        :return:
-        """
-        l = super(Context, self).as_list()
-        for i in range(len(l), 1, -1):
-            upname = l[i-2] + ', '
-            if l[i-1].startswith(upname):
-                l[i-1] = l[i-1][len(upname):]
-        return l
-
     @property
     def parent(self):  # duplicating here to override setter
         return self._parent
@@ -174,13 +162,15 @@ class Context(Compartment):
 
     @property
     def elementary(self):
-        if self.parent is None:
-            for t in self.terms:
-                if t.strip().lower() in ELEMENTARY:
-                    return True
-            return False
-        else:
-            return self.parent.elementary
+        if self._elem is None:
+            if self.parent is None:
+                for t in self.terms:
+                    if t.strip().lower() in ELEMENTARY:
+                        self._elem = True
+                self._elem = False
+            else:
+                self._elem = self.parent.elementary
+        return self._elem
 
     @property
     def seq(self):
@@ -233,16 +223,9 @@ class ContextManager(CompartmentManager):
     def __init__(self, source_file=None):
         super(ContextManager, self).__init__()
 
-        self._disregarded = set()  # this is a set of terms that
-
         self.new_entry('Resources', sense='source')
         self.new_entry('Emissions', sense='sink')
         self.load(source_file)
-
-    @property
-    def disregarded_terms(self):
-        for t in sorted(self._disregarded):
-            yield t
 
     def add_context_hint(self, origin, term, canonical):
         """
@@ -258,23 +241,8 @@ class ContextManager(CompartmentManager):
         syn = '%s:%s' % (origin, term)
         self.add_synonym(c, syn)
 
-    def _disregard(self, comp):
-        """
-        The compartment's terms are added to the disregard list.  Its child compartments are "orphaned" (brutal!).
-        recurse on parent.
-        :param comp:
-        :return:
-        """
-        for c in comp.subcompartments:
-            c.parent = None
-        for t in comp.terms:
-            self._disregarded.add(t.lower())
-        self.remove_entry(comp)
-        if comp.parent is not None:
-            self._disregard(comp.parent)
-
     def new_entry(self, *args, parent=None, **kwargs):
-        args = tuple(filter(lambda arg: arg.lower() not in self._disregarded, args))
+        args = tuple(filter(None, args))
         if parent is not None:
             if not isinstance(parent, Compartment):
                 parent = self._d[parent]
@@ -353,19 +321,6 @@ class ContextManager(CompartmentManager):
                     current = nxt
                 except StopIteration:
                     self.add_synonym(current, this.fullname)
+        if current is not None:
+            self.add_synonym(current, context)
         return current
-
-    def _check_subcompartment_lineage(self, current, c):
-        try:
-            return super(ContextManager, self)._check_subcompartment_lineage(current, c)
-        except FrozenElementary:
-            new = self.get(c)
-            self._disregard(current)
-            return new
-
-    def __getitem__(self, item):
-        if str(item).lower() in self._disregarded:
-            return self._null_entry
-        # if str(item).lower() in PROTECTED:
-        #     raise ProtectedTerm('Use "to %s" or "from %s"' % (item, item))
-        return super(ContextManager, self).__getitem__(item)
