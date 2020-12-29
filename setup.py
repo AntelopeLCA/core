@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-from antelope_interface import ANTELOPE_VERSION as VERSION
+from antelope import ANTELOPE_VERSION as VERSION
 
 requires = [
     "antelope_interface",

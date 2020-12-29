@@ -1,6 +1,6 @@
 import unittest
 
-from antelope_interface import EntityNotFound
+from antelope import EntityNotFound
 
 from ...archives import Qdb
 from ...entities.tests.base_testclass import BasicEntityTest

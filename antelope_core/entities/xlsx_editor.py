@@ -29,7 +29,7 @@ from xlsxwriter import Workbook
 import xlrd
 from synonym_dict.lower_dict import LowerDict
 
-from antelope_interface import EntityNotFound
+from antelope import EntityNotFound
 from ..implementations.quantity import convert
 from ..characterizations import DuplicateCharacterizationError
 

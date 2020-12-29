@@ -1,7 +1,7 @@
 import os
 import re
 
-from antelope_interface import EntityNotFound, local_ref
+from antelope import EntityNotFound, local_ref
 
 from ..lc_resource import LcResource
 from ..lcia_engine import LciaDb

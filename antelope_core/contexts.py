@@ -38,7 +38,7 @@ The NullContext should be returned by the context manager
 """
 
 from synonym_dict.example_compartments import Compartment, CompartmentManager
-from antelope_interface import valid_sense
+from antelope import valid_sense
 
 ELEMENTARY = {'elementary flows', 'resource', 'emission', 'resources', 'emissions'}
 
@@ -160,17 +160,26 @@ class Context(Compartment):
         if parent is not None:
             parent.register_subcompartment(self)
 
+    def _is_elem(self):
+        for t in self.terms:
+            if t.strip().lower() in ELEMENTARY:
+                return True
+        return False
+
     @property
     def elementary(self):
-        if self._elem is None:
-            if self.parent is None:
-                for t in self.terms:
-                    if t.strip().lower() in ELEMENTARY:
-                        self._elem = True
-                self._elem = False
-            else:
-                self._elem = self.parent.elementary
-        return self._elem
+        """
+        A context's "elementary-ness" is determined by the top-most parent.  Everything inherits from above.
+        If the (lower cased) parent context is found in ELEMENTARY, it's elementary.
+
+        The only way to make a context elementary is to name it such, or give it an elementary parent.
+        :return:
+        """
+        if self.parent is None:
+            if self._elem is None:
+                self._elem = self._is_elem()
+            return self._elem
+        return self.parent.elementary
 
     @property
     def seq(self):

@@ -2,8 +2,8 @@
 Each archive now has a TermManager which interprets query arguments as synonyms for canonical flows and contexts.  This
 can also be upgraded to an LciaEngine, which extends the synonymization strategy to quantities as well
 """
-from antelope_interface import (QuantityInterface, NoFactorsFound, ConversionReferenceMismatch, EntityNotFound, FlowInterface,
-                                convert, NoUnitConversionTable)
+from antelope import (QuantityInterface, NoFactorsFound, ConversionReferenceMismatch, EntityNotFound, FlowInterface,
+                      convert, NoUnitConversionTable)
 
 from .basic import BasicImplementation
 from ..characterizations import QRResult, LocaleMismatch

@@ -1,5 +1,5 @@
 from collections import namedtuple
-from antelope_interface import ConfigureInterface, check_direction
+from antelope import ConfigureInterface, check_direction
 
 from .basic import BasicImplementation
 

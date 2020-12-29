@@ -1,7 +1,7 @@
 import re
 
 from .basic import BasicImplementation
-from antelope_interface import BackgroundInterface, ProductFlow, ExteriorFlow, EntityNotFound, comp_dir
+from antelope import BackgroundInterface, ProductFlow, ExteriorFlow, EntityNotFound, comp_dir
 from antelope_core.contexts import Context
 
 

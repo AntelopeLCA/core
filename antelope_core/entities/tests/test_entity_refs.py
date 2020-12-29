@@ -1,6 +1,6 @@
 import unittest
 from .. import LcFlow, LcQuantity
-from antelope_interface import CatalogRef
+from antelope import CatalogRef
 
 
 q = LcQuantity.new('Dummy quantity', 'dum', origin='test.origin')

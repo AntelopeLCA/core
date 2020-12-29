@@ -1,4 +1,4 @@
-from antelope_interface import comp_dir
+from antelope import comp_dir
 from .contexts import Context, NullContext
 
 

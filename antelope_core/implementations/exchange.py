@@ -1,4 +1,4 @@
-from antelope_interface import ExchangeInterface
+from antelope import ExchangeInterface
 from .basic import BasicImplementation
 
 

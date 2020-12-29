@@ -30,7 +30,7 @@ from ..archives import InterfaceError
 from ..lcia_engine import LciaDb
 
 
-from antelope_interface import CatalogRef, UnknownOrigin
+from antelope import CatalogRef, UnknownOrigin
 from ..catalog_query import CatalogQuery, INTERFACE_TYPES, zap_inventory
 from .lc_resolver import LcCatalogResolver
 from ..lc_resource import LcResource
