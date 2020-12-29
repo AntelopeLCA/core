@@ -92,9 +92,10 @@ class QuantityConversion(object):
 
     @property
     def query(self):
-        if len(self._results) == 0:
-            return self._query
-        return self._results[0].query
+        if self._query is None:
+            if len(self._results) > 0:
+                return self._results[0].query
+        return self._query
 
     @property
     def ref(self):
@@ -393,7 +394,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 return qr_results, qr_geog, qr_mismatch
 
         for cf in self._archive.tm.factors_for_flowable(fb, quantity=qq, context=cx, **kwargs):
-            res = QuantityConversion(cf.query(locale), context=cx)
+            res = QuantityConversion(cf.query(locale), query=qq, context=cx)
             try:
                 qr_results.append(self._ref_qty_conversion(rq, fb, cx, res, locale))
             except ConversionReferenceMismatch:

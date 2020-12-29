@@ -171,6 +171,8 @@ class LcQuantity(LcEntity):
         return self._name
 
     def __eq__(self, other):
+        if other is self:
+            return True
         if isinstance(other, QuantityRef):
             return other.is_canonical(self)
         return super(LcQuantity, self).__eq__(other)
