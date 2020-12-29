@@ -45,6 +45,8 @@ class Characterization(object):
     """
     A characterization is an affiliation of a flow and a quantity. Characterizations are inherently naively spatialized,
     with factors stored in a dict of locations, and the 'GLO' location being used as the default.
+
+    Note: the !only! place a Characterization is created is in TermManager.add_characterization()
     """
 
     entity_type = 'characterization'
