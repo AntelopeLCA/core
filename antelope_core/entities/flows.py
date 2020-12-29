@@ -1,7 +1,7 @@
 from __future__ import print_function, unicode_literals
 import uuid
 
-from antelope_interface import Flow, CONTEXT_STATUS_
+from antelope_interface import Flow, CatalogRef, CONTEXT_STATUS_
 from .entities import LcEntity
 # from lcatools.entities.quantities import LcQuantity
 
@@ -57,6 +57,24 @@ class LcFlow(LcEntity, Flow):
         for k in self._new_fields:
             if k not in self._d:
                 self._d[k] = ''
+        self._chars_seen = dict()
+
+    def make_ref(self, query):
+        if self._query_ref is None:
+            d = dict()
+            for k in self.signature_fields():
+                if k == self._ref_field:
+                    continue
+                if k in self._d:
+                    d[k] = self._d[k]
+            self._query_ref = CatalogRef.from_query(self.external_ref, query, self.entity_type,
+                                                    uuid=self.uuid, **d)
+            self._query_ref.context = self.context
+            for k, v in self._chars_seen.items():
+                self._query_ref.see_char(*k, v)
+
+        return self._query_ref
+
 
     def __str__(self):
         cas = self.get('CasNumber')
@@ -77,123 +95,10 @@ class LcFlow(LcEntity, Flow):
     def cf(self, quantity, **kwargs):
         return quantity.cf(self, **kwargs)
 
-    def chk_char(self, *args):
-        raise KeyError
+    def see_char(self, qq, cx, loc, qrr):
+        self._chars_seen[qq, cx, loc] = qrr
+        if self._query_ref is not None:
+            self._query_ref.see_char(qq, cx, loc, qrr)
 
-    '''
-    def profile(self):
-        print('%s' % self)
-        out = []
-        for cf in self._characterizations.values():
-            print('%2d %s' % (len(out), cf.q_view()))
-            out.append(cf)
-        return out
-
-    def add_characterization(self, quantity, reference=False, value=None, overwrite=False, **kwargs):
-        """
-
-        :param quantity: entity or catalog ref
-        :param reference: [False] should this be made the flow's reference quantity
-        :param value:
-        :param kwargs: location, origin
-        value + location + optional origin make a data tuple
-        :param overwrite: [False] if True, allow values to replace existing characterizations
-        :return:
-        """
-        'x'x'x # we no longer want to be able to add literal characterizations. Just do it explicitly.
-        if isinstance(quantity, Characterization):
-            if quantity.flow.reference_entity != self.reference_entity:
-                adj = self.cf(quantity.flow.reference_entity)
-                if adj == 0:
-                    raise MissingFactor('%s' % quantity.flow.reference_entity)
-            else:
-                adj = 1.0
-
-            for l in quantity.locations():
-                self.add_characterization(quantity.quantity, reference=reference,
-                                          value=quantity[l] / adj, location=l, origin=quantity.origin[l])
-            return
-        'x'x'x
-        if reference:
-            if value is not None and value != 1.0:
-                raise ValueError('Reference quantity always has unit value')
-            value = 1.0
-            self._set_reference(quantity)
-
-        q = quantity.uuid
-        if q in self._characterizations.keys():
-            if value is None:
-                return
-            c = self._characterizations[q]
-        else:
-            c = Characterization(self, quantity)
-            self._characterizations[q] = c
-        if value is not None:
-            if isinstance(value, dict):
-                c.update_values(**value)
-            else:
-                c.add_value(value=value, overwrite=overwrite, **kwargs)
-        try:
-            quantity.register_cf(c)
-        except FlowWithoutContext:
-            pass  # add when the flow is contextualized
-        return c
-
-    def has_characterization(self, quantity, location='GLO'):
-        """
-        A flow keeps track of characterizations by link
-        :param quantity:
-        :param location:
-        :return:
-        """
-        if quantity.uuid in self._characterizations.keys():
-            if location == 'GLO' or location is None:
-                return True
-            if location in self._characterizations[quantity.uuid].locations():
-                return True
-        return False
-
-    def del_characterization(self, quantity):
-        if quantity is self.reference_entity:
-            raise RefQuantityError('Cannot delete reference quantity')
-        c = self._characterizations.pop(quantity.uuid)
-        c.quantity.deregister_cf(c)
-
-    def characterizations(self):
-        for i in self._characterizations.values():
-            yield i
-
-    def factor(self, quantity):
-        if quantity.uuid in self._characterizations:
-            return self._characterizations[quantity.uuid]
-        return Characterization(self, quantity)
-
-    def cf(self, quantity, locale='GLO'):
-        """
-        These are backwards.  cf should return the Characterization ; factor should return the value.  instead, it's
-        the other way around.
-        :param quantity:
-        :param locale: ['GLO']
-        :return: value of quantity per unit of reference, or 0.0
-        """
-        if quantity.uuid in self._characterizations:
-            try:
-                return self._characterizations[quantity.uuid][locale]
-            except KeyError:
-                return self._characterizations[quantity.uuid].value
-        return 0.0
-
-    def convert(self, val, to=None, fr=None, locale='GLO'):
-        """
-        converts the value (in
-        :param val:
-        :param to: to quantity
-        :param fr: from quantity
-        :param locale: cfs are localized to unrestricted strings babee
-        the flow's reference quantity is used if either is unspecified
-        :return: value * self.char(to)[loc] / self.char(fr)[loc]
-        """
-        out = self.cf(to or self.reference_entity, locale=locale)
-        inn = self.cf(fr or self.reference_entity, locale=locale)
-        return val * out / inn
-    '''
+    def chk_char(self, qq, cx, loc):
+        return self._chars_seen[qq, cx, loc]

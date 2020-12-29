@@ -668,8 +668,8 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
         except NoFactorsFound:
             qrr = None
 
-        if not x.flow.is_entity:  # why don't we cache conversions on actual flows? because cfs might change??
-            x.flow.see_char(q, cx, locale, qrr)
+        ## if not x.flow.is_entity:  # why don't we cache conversions on actual flows? because cfs might change??
+        x.flow.see_char(q, cx, locale, qrr)
         return qrr
 
     def do_lcia(self, quantity, inventory, locale='GLO', group=None, dist=2, **kwargs):
@@ -706,7 +706,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
             qrr = self._lookup_x(x, q, locale, dist=dist, **kwargs)
             if isinstance(qrr, QuantityConversion):
                 if qrr.value == 0:
-                    res.add_zero(x, qrr)
+                    res.add_zero(x)
                 else:
                     res.add_score(group(x), x, qrr)
             elif isinstance(qrr, QuantityConversionError):

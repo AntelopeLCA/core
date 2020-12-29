@@ -751,8 +751,8 @@ class LciaResult(object):
         for x in self._errors:
             yield x
 
-    def add_zero(self, x, qr):
-        self._zeros.append(DetailedLciaResult(self, x, qr))
+    def add_zero(self, x):
+        self._zeros.append(x)
 
     def zeros(self):
         for x in self._zeros:
