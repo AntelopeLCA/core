@@ -25,7 +25,6 @@ The required fields should be: external_ref, *signature_fields.  uuid is support
 """
 import os
 import re
-from xlsxwriter import Workbook
 import xlrd
 from synonym_dict.lower_dict import LowerDict
 
@@ -123,6 +122,9 @@ def write_to_excel(filename, entity_iter, overwrite=False):
     if os.path.exists(filename):
         if not overwrite:
             raise FileExistsError('Use overwrite=True')
+
+    from xlsxwriter import Workbook
+
     with Workbook(filename) as w:
         count = 0
         d = dict()

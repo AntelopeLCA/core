@@ -140,6 +140,8 @@ class StaticCatalog(object):
         return os.path.join(self._rootdir, 'local-flowables.json')
 
     def _localize_source(self, source):
+        if source is None:
+            return None
         if source.startswith(self._rootdir):
             return re.sub('^%s' % self._rootdir, '$CAT_ROOT', source)
         return source

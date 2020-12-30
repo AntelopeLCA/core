@@ -1,16 +1,18 @@
 from setuptools import setup, find_packages
 
 requires = [
-    "antelope-interface",
-    "xlrd",
-    "six",
-    "python-magic"
+    "antelope_interface>=0.1.3",
+    "xlrd==1.2.0",
+    "six>=1.15.0",
+    "python-magic>=0.4.18"
 ]
 
 # optional: pylzma
 """
 Version History
 0.1.3 - 2020/12/30 - Move lxml into optional requirements.
+0.1.3rc4           - fix last edit
+0.1.3rc3           - xlrd removes support for xlsx in 2.0; _localize_file(None) return None
 0.1.3rc2           - include data files
 0.1.3rc1           - update requirements
 
@@ -25,7 +27,7 @@ Version History
 0.1.0 - 2020/07/31 - Initial release - JIE paper
 """
 
-VERSION = '0.1.3rc2'
+VERSION = '0.1.3rc4'
 
 setup(
     name="antelope_core",
@@ -35,7 +37,8 @@ setup(
     license="BSD 3-Clause",
     install_requires=requires,
     extras_require={
-        'XML': ['lxml>=1.2.0']
+        'XML': ['lxml>=1.2.0'],
+        'write_to_excel': ['xlsxwriter>=1.3.7']
     },
     include_package_data=True,
     url="https://github.com/AntelopeLCA/core",
