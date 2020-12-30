@@ -470,7 +470,11 @@ class BasicArchive(EntityStore):
                              for f in self.entities_by_type('flow')],
                             key=lambda x: x['externalId'])
         if characterizations:
-            j['termManager'], _, _ = self.tm.serialize(self.ref, values=values)
+            j['termManager'], qqs, rqs = self.tm.serialize(self.ref, values=values)
+            for q in qqs:
+                if self[q] is None:
+                    self.add(self.tm.get_canonical(q))
+
         j['quantities'] = self._serialize_quantities(domesticate=domesticate)
 
         return j

@@ -343,7 +343,13 @@ class XlsxUpdater(object):
         for row in range(1, sh.nrows):
             rowdata = {headers[i]: self._grab_value(k) for i, k in enumerate(sh.row(row))}
             ent = self.ar[rowdata['external_ref']]
-            if ent is None:
+            if etype == 'quantity' and ent is None:
+                try:
+                    ent = self.qi.get_canonical(rowdata['external_ref'])
+                    self.ar.add_entity_and_children(ent)  # this ignores EntityExists
+                except EntityNotFound:
+                    ent = None
+            if ent is None:  # [still]
                 self._new_entity(etype, rowdata)
             else:
                 try:
