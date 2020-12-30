@@ -1,0 +1,7 @@
+include antelope_core/lcia_engine/data/*.json
+include antelope_core/providers/data/*.xlsx
+recursive-include antelope_core/providers/ilcd/tests/data *.xml
+include antelope_core/archives/data/*.json
+include antelope_core/archives/test/test_json.json
+include antelope_core/entities/test/test_archive.json
+exclude *+map_external_refs.py

@@ -21,9 +21,9 @@ class IlcdTest(unittest.TestCase):
 
     def test_flowproperties(self):
         f = self.A.retrieve_or_fetch_entity(test_flow)
-        cfs = [round(cf.value, 4) for cf in f.profile()]
-        self.assertEqual(len(cfs), 4)
-        self.assertSetEqual(set(cfs), {1.0, 0.0204, 0.015})
+        cfs = [round(cf.value, 4) for cf in self.A.tm.factors_for_flowable(f.link)]
+        self.assertEqual(len(cfs), 3)
+        self.assertSetEqual(set(cfs), {0.0204, 0.015})
 
 if __name__ == '__main__':
     unittest.main()
