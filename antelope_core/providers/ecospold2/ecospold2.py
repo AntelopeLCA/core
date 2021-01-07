@@ -12,6 +12,7 @@ from lxml.etree import XMLSyntaxError
 
 from ...characterizations import QRResult
 from ...entities import LcQuantity, LcFlow, LcProcess
+from ...entities.processes import AlreadyAReference
 from ...exchanges import ExchangeValue, DirectionlessExchangeError
 from ...lcia_results import LciaResult
 from ..ecospold import tail
@@ -350,7 +351,9 @@ class EcospoldV2Archive(LcArchive):
         for x in find_tag(o, 'flowData').getchildren():
             if 'intermediate' in x.tag:
                 if x.attrib['intermediateExchangeId'] == rf_uuid:
-                    return self._create_flow(x)
+                    flow = self._create_flow(x)
+                    value = float(x.get('amount'))  # or None if not found
+                    return flow, value
 
         raise KeyError('Noted reference exchange %s not found!' % rf_uuid)
 
@@ -469,15 +472,37 @@ class EcospoldV2Archive(LcArchive):
             self._print('Process %s already has reference %s' % (process_uuid, ref_uuid))
             return p
 
+        '''
         if self._linked:
-            rf = self._grab_reference_flow(o, ref_uuid)
-            p.add_exchange(rf, 'Output')  # this should get overwritten with an ExchangeValue later
-            rx = p.set_reference(rf, 'Output')
+            rf, value = self._grab_reference_flow(o, ref_uuid)
+            rx = p.add_exchange(rf, 'Output', value=value)  # this should get overwritten with an ExchangeValue later
+            p.set_reference(rf, 'Output')
             self._print('# Identified reference exchange\n %s' % rx)
         else:
             rx = None
+        '''
         if exchanges:
-            for exch in self._collect_exchanges(o, ref_uuid):
+            rx = None
+            exchs = self._collect_exchanges(o, ref_uuid)
+            if self._linked:
+                for exch in exchs:
+                    if exch.is_ref and exch.value != 0:
+                        try:
+                            _rx = p.add_exchange(exch.flow, exch.direction, value=exch.value)
+                        except AlreadyAReference:
+                            raise EcospoldV2Error('Already a reference: %s | %s' % (process_uuid, ref_uuid))
+                        p.set_reference(exch.flow, exch.direction)
+                        self._print('# Identified reference exchange\n %s' % _rx)
+                        if len(exch.comment) > 0:
+                            _rx.comment = exch.comment
+                        if exch.flow.external_ref == ref_uuid:
+                            if rx is None:
+                                rx = _rx
+                            else:
+                                raise EcospoldV2Error('Multiple rx found: %s | %s' % (process_uuid, ref_uuid))
+                if rx is None:
+                    raise EcospoldV2Error('No rx found: %s | %s' % (process_uuid, ref_uuid))
+            for exch in exchs:
                 """
                 If the dataset is linked, all we do is load non-zero exchanges, ideally all with terminations.  Spurious
                  terminations in reference exchanges are dropped (deprecated EI linker feature)
@@ -497,12 +522,16 @@ class EcospoldV2Archive(LcArchive):
                 is_ref = exch.is_ref
 
                 if is_ref:
-                    if exch.termination is not None:
+                    if self._linked:  # in new regime, ref exch is already added
+                        '''
                         if self._linked:
                             print('Squashing bad termination in linked reference exchange, %s\nFlow %s Term %s' % (
                                 p.external_ref, exch.flow.external_ref, exch.termination))
                             term = None
-                        else:
+                        '''
+                        continue
+                    else:
+                        if exch.termination is not None:
                             print('Removing reference status from linked reference exchange, %s\nFlow %s Term %s' % (
                                 p.external_ref, exch.flow.external_ref, exch.termination))
                             is_ref = False

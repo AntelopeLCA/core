@@ -1,3 +1,9 @@
+"""
+This is the oldest code in Antelope (and among my first ever pieces of python code).  Please don't judge.
+
+Written to access ILCD and ecospold archives in either zipped or unzipped format and GaBi web databases equally
+"""
+
 from __future__ import print_function, unicode_literals
 
 import os
@@ -36,6 +42,7 @@ class FileStore(object):
     """
     A strictly local archive of files to be used as a repository
     """
+    OK = False
 
     @staticmethod
     def _create_cache_dir(path):
@@ -106,10 +113,8 @@ class FileStore(object):
         self.remote = False
         if not os.path.exists(path):
             print('WARNING: path does not resolve.  FileStore will be non-functional.')
-            self.remote = True
             self.compressed = False
             self._archive = None
-            self.OK = False
             self._internal_subfolders = []
             self.ext = None
             return

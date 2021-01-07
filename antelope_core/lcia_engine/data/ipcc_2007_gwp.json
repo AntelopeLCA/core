@@ -2,10 +2,10 @@
   "@context": "https://bkuczenski.github.io/lca-tools-datafiles/context.jsonld",
   "catalogNames": {
     "local.traci.2.1.spreadsheet": [
-      "/data/LCI/TRACI/traci_2_1_2014_dec_10_0.xlsx"
+      "antelope_core/providers/data/traci_2_1_2014_dec_10_0.xlsx"
     ]
   },
-  "dataSource": "/data/GitHub/lca-tools/lcatools/lcia_engine/data/ipcc_2007_gwp.json",
+  "dataSource": "antelope_core/lcia_engine/data/ipcc_2007_gwp.json",
   "dataSourceType": "BasicArchive",
   "initArgs": {
     "dataReference": "local.traci.2.1.spreadsheet",
