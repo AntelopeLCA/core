@@ -134,6 +134,8 @@ class EcoinventLcia(BasicArchive):
 
     @property
     def _value_tag(self):
+        if float(self._version) >= 3.7:
+            return 'CF'
         return 'CF %s' % self._version
 
     @property
@@ -165,10 +167,14 @@ class EcoinventLcia(BasicArchive):
         if float(self._version) <= 3.2:
             self._create_all_quantities_3_2()
         else:
+            if float(self._version) >= 3.7:
+                rowname = 'unitName'
+            else:
+                rowname = 'impact score unit'
             b = self._xls.sheet_by_name('units')
             qs = self._sheet_to_rows(b)
             for row in qs:
-                row['unit'] = row['impact score unit']
+                row['unit'] = row[rowname]
                 self._create_quantity(row)
 
     def _create_all_quantities_3_2(self):
