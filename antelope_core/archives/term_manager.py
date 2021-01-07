@@ -98,6 +98,7 @@ class TermManager(object):
         :param flowables: optional filename to initialize FlowablesDict
         :param merge_strategy:
            'prune': - on conflict, trim off known synonyms and add the remaining as a new flowable
+           'merge': - not tested, aggressively merge all co-synonymous flowables
         :param quiet:
 
         """
@@ -121,6 +122,13 @@ class TermManager(object):
     '''
     Utilities
     '''
+    def is_context(self, item):
+        try:
+            self._cm.__getitem__(item)
+            return True
+        except KeyError:
+            return False
+
     def __getitem__(self, item):
         """
         TermManager.__getitem__ retrieves a context known to the TermManager, or None if one is not found.
@@ -377,13 +385,16 @@ class TermManager(object):
             self._flow_map[_tf].add(flow)
         return fb
 
-    def add_flow(self, flow, merge_strategy='prune'):
+    def add_flow(self, flow, merge_strategy=None):
         """
         We take a flow from outside and add its known terms. That means
          - adding flow's reference quantity
          - merging any context with the local context tree;
          - adding flowable terms to the flowables list;
          - mapping flow to all flowables (assigning flowable if none is found)
+
+        Note that all flows having null context are forced to be distinct from one another. If you want two flowables
+        to share properties, you must add them having non-null contexts. not sure how I feel about this but it does work.
 
         :param flow:
         :param merge_strategy: overrule default merge strategy
@@ -604,7 +615,10 @@ class TermManager(object):
         """
         This is the method that actually performs the lookup.  Other methods are wrappers for this.
 
-        Core to this is getting a canonical context, which is done by __getitem__
+        If context is None, this is "unspecified". It matches all CFs regardless of context.
+
+        Core to this is getting a canonical context, which is done by __getitem__.  In TermManager, this returns
+        None for contexts that are not known
         :param flowable: a string
         :param quantity: a quantity known to the quantity manager
         :param context: [None] default provide all contexts; must explicitly provide 'none' to filter by null context

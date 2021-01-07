@@ -118,6 +118,7 @@ class CLookup(object):
         :param origin: [None] if present, only return cfs whose origins match the specification
         :return: a list of characterization factors that meet the query criteria, ordered by increasing dist
         """
+        #!TODO: This should be performed by the term manager, not the CLookup (though that is the whole point of CLookup)
         if not isinstance(item, Context):
             return []
 

@@ -105,6 +105,12 @@ class IndexImplementation(BasicImplementation, IndexInterface):
         return self._archive.tm.contexts(**kwargs)
 
     def get_context(self, term, **kwargs):
+        """
+        I think this needs to be moved into the quantity interface
+        :param term:
+        :param kwargs:
+        :return:
+        """
         cx = self._archive.tm[term]
         if cx is None:
             return NullContext

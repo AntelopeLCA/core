@@ -23,7 +23,7 @@ def new_flow(name, ref_quantity, cas_number='', comment='', context=None, compar
 
     if external_ref is None:
         return LcFlow.new(name, ref_quantity, **kwargs)
-    return LcFlow(external_ref, Name=name, ReferenceQuantity=ref_quantity, **kwargs)
+    return LcFlow(external_ref, Name=name, ReferenceQuantity=ref_quantity, context=context, **kwargs)
 
 
 class LcFlow(LcEntity, Flow):
@@ -102,3 +102,6 @@ class LcFlow(LcEntity, Flow):
 
     def chk_char(self, qq, cx, loc):
         return self._chars_seen[qq, cx, loc]
+
+    def pop_char(self, qq, cx, loc):
+        return self._chars_seen.pop((qq, cx, loc), None)
