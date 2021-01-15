@@ -288,11 +288,19 @@ class XlsxUpdater(object):
 
             refunit = rowdata.pop('ref_unit', None)
             if refunit is not None:
-                value *= convert(rq, to=refunit)
+                try:
+                    value *= convert(rq, to=refunit)
+                except KeyError as e:
+                    print(e.args)
+                    continue
 
             unit = rowdata.pop('unit', None)
             if unit is not None:
-                value *= convert(qq, from_unit=unit)
+                try:
+                    value *= convert(qq, from_unit=unit)
+                except KeyError as e:
+                    print(e.args)
+                    continue
 
             if self._merge == 'overwrite':
                 flow.characterize(qq, value=value, context=cx, overwrite=True, origin=self.origin)
