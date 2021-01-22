@@ -85,14 +85,15 @@ class LcFlow(LcEntity, Flow):
         context = '[%s]' % ';'.join(self.context)
         return '%s%s %s' % (self.get('Name'), cas, context)
 
-    def characterize(self, quantity, value, context=None, origin=None, **kwargs):
+    def characterize(self, quantity, value, context=None, origin=None, location='GLO', **kwargs):
         if context is None:
             context = self.context
         flowable = self.name
         if origin is None:
             origin = self.origin
+        self.pop_char(quantity, context, location)
         return quantity.characterize(flowable, self.reference_entity, value, context=context, origin=origin,
-                                     **kwargs)
+                                     location=location, **kwargs)
 
     def cf(self, quantity, **kwargs):
         return quantity.cf(self, **kwargs)

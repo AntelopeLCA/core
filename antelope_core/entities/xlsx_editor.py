@@ -278,6 +278,8 @@ class XlsxUpdater(object):
                 cx = self.get_context(cx)
                 # raise NotImplementedError('TODO contexts!')
 
+            loc = rowdata.pop('location', None) or rowdata.pop('locale', None) or 'GLO'
+
             if value is None:
                 continue
             try:
@@ -303,7 +305,7 @@ class XlsxUpdater(object):
                     continue
 
             if self._merge == 'overwrite':
-                flow.characterize(qq, value=value, context=cx, overwrite=True, origin=self.origin)
+                flow.characterize(qq, value=value, context=cx, overwrite=True, origin=self.origin, location=loc)
                 self._print('Characterizing %s: %g %s / %s' % (flow, value, qq.unit, rq.unit))
             else:
                 try:

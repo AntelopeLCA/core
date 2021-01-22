@@ -414,7 +414,7 @@ class TermManager(object):
         return self._add_flow_terms(flow, merge_strategy=merge_strategy)
 
     def add_characterization(self, flowable, ref_quantity, query_quantity, value, context=None, origin=None,
-                             location='GLO', overwrite=False):
+                             location=None, overwrite=False):
         """
         Replacement for flow-based add_characterization.  THE ONLY place to create Characterization objects.
         Add them to all flowables that match the supplied flow.
@@ -425,7 +425,7 @@ class TermManager(object):
         :param context: the context for which the characterization applies.  Should be a string or tuple.  None means
           the factor applies to all contexts.
         :param overwrite: whether to overwrite an existing value if it already exists (ignored if value is a dict)
-        :param location: ['GLO'] (ignored if value is a dict)
+        :param location: (ignored if value is a dict) 'GLO' used if no location is provided
         :param origin: (optional; origin of value; defaults to quantity.origin)
         :return: created or updated characterization
         """
@@ -453,6 +453,9 @@ class TermManager(object):
             qq = self.add_quantity(query_quantity)
 
         cf = self._find_exact_cf(qq, fb, cx, origin, flowable)
+
+        if location is None:
+            location = 'GLO'
 
         if cf is None:
             # create our new Characterization with the provided flowable, not the detected flowable
