@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 requires = [
-    "antelope_interface>=0.1.3",
+    "antelope_interface>=0.1.4",
     "xlrd==1.2.0",  ## really need to get out of this requirement and into openpyxl or equivalent
     "python-magic>=0.4.18"
 ]
@@ -9,6 +9,7 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.1.4 - 2021/01/29 - background passing
 0.1.3 - 2021/01/29 - Build passing (without bg tested)
 0.1.3rc4           - fix last edit
 0.1.3rc3           - xlrd removes support for xlsx in 2.0; _localize_file(None) return None
@@ -26,7 +27,7 @@ Version History
 0.1.0 - 2020/07/31 - Initial release - JIE paper
 """
 
-VERSION = '0.1.3'
+VERSION = '0.1.4'
 
 setup(
     name="antelope_core",
