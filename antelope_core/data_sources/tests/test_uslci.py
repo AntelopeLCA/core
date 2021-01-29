@@ -100,6 +100,7 @@ class UsLciTestContainer(object):
             rx_vals = set(round(next(p.exchange_values(rx.flow)).value, 6) for rx in p.references())
             self.assertSetEqual(rx_vals, self._petro_rx_values)
 
+        @unittest.skipIf(lci is False, "no background")
         def test_30_bg_gen(self):
             self.assertTrue(self.query.check_bg())
 
