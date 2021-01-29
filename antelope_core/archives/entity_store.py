@@ -17,7 +17,6 @@ from __future__ import print_function, unicode_literals
 import uuid
 import re
 import os
-import six
 from datetime import datetime
 
 from collections import defaultdict
@@ -102,10 +101,7 @@ class EntityStore(object):
             return None
         if isinstance(key, int):
             key = str(key)
-        if six.PY2:
-            return str(uuid.uuid3(self._ns_uuid, key.encode('utf-8')))
-        else:
-            return str(uuid.uuid3(self._ns_uuid, key))
+        return str(uuid.uuid3(self._ns_uuid, key))
 
     def _ref_to_key(self, key):
         """
