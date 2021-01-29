@@ -4,6 +4,11 @@ from antelope import UnknownOrigin
 from .test_aa_local import cat
 from ..local import make_config, check_enabled
 
+try:
+    import antelope_background
+    lci = True
+except ImportError:
+    lci = False
 
 etypes = ('quantity', 'flow', 'process')
 
@@ -98,16 +103,19 @@ class UsLciTestContainer(object):
         def test_30_bg_gen(self):
             self.assertTrue(self.query.check_bg())
 
+        @unittest.skipIf(lci is False, "no background")
         def test_31_bg_length(self):
             self.assertEqual(len([k for k in self.query.background_flows()]), self._bg_len)
             self.assertEqual(len([k for k in self.query.exterior_flows()]), self._ex_len)
 
+        @unittest.skipIf(lci is False, "no background")
         def test_32_lci_fg(self):
             lci = self._get_fg_test_case_lci()
             self.assertEqual(len(lci), 298 - self._bg_len)  # this works because the bg discrepancy shows up as cutoffs
             lead_vals = {1.5e-09, 2.3e-09, 0.0}
             self.assertSetEqual({round(x.value, 10) for x in lci if x.flow.name.startswith('Lead')}, lead_vals)
 
+        @unittest.skipIf(lci is False, "no background")
         def test_40_lcia_fg(self):
             if gwp:
                 lci = self._get_fg_test_case_lci()
