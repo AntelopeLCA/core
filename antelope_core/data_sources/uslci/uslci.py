@@ -16,6 +16,11 @@ INFO = {
             "Output"
           ],
           [
+            "0aaf1e13-5d80-37f9-b7bb-81a6b8965c71",  # activity-as-reference
+            "471bcc19-36f7-3ad8-b3ae-e39d2ab5fe44",
+            "Output"
+          ],
+          [
               '155839ec-d6ab-3ed6-b7c8-45586e676f6d',  # ambiguous termination
               '9dfc9e7c-3c20-3f4d-9d79-d54ec2d8d08b',
               'Output'
