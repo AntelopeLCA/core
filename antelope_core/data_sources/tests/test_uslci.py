@@ -77,7 +77,7 @@ class UsLciTestContainer(object):
             p = next(self.query.processes(Name='^Petroleum refining, at'))
             rx = [x for x in p.references()]
             inv = [x for x in p.inventory()]
-            self.assertEqual(len(rx), 9)
+            self.assertEqual(len(rx), len(self._petro_rx_values))
             self.assertEqual(len(inv), 51)
 
         def _get_fg_test_case_rx(self):
@@ -96,7 +96,7 @@ class UsLciTestContainer(object):
 
         def test_22_petro_allocation(self):
             p = next(self.query.processes(Name='petroleum refining, at refinery'))
-            self.assertEqual(len(p.reference_entity), 9)
+            self.assertEqual(len(p.reference_entity), len(self._petro_rx_values))
             rx_vals = set(round(next(p.exchange_values(rx.flow)).value, 6) for rx in p.references())
             self.assertSetEqual(rx_vals, self._petro_rx_values)
 
