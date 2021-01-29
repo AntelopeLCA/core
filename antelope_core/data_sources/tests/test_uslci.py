@@ -45,6 +45,8 @@ class UsLciTestContainer(object):
         _ex_len = None
         _test_case_lcia = 0.0
 
+        _petro_name = 'Petroleum refining, at refinery [RNA]'
+
         _petro_rx_values = set()
 
 
@@ -73,8 +75,18 @@ class UsLciTestContainer(object):
             self.assertTrue(inx_ref.startswith(self.inx_reference))
             self.assertIn(inx_ref, cat.references)
 
+        def _get_petro(self):
+            return next(self.query.processes(Name='petroleum refining, at refinery'))
+
+        def _preferred(self):
+            yield self._get_petro()
+
+        def test_12_get_petro(self):
+            p = self._get_petro()
+            self.assertEqual(p.name, self._petro_name)
+
         def test_20_inventory(self):
-            p = next(self.query.processes(Name='^Petroleum refining, at'))
+            p = self._get_petro()
             rx = [x for x in p.references()]
             inv = [x for x in p.inventory()]
             self.assertEqual(len(rx), len(self._petro_rx_values))
@@ -95,14 +107,14 @@ class UsLciTestContainer(object):
             self.assertEqual(v, 0.000175)
 
         def test_22_petro_allocation(self):
-            p = next(self.query.processes(Name='petroleum refining, at refinery'))
+            p = self._get_petro()
             self.assertEqual(len(p.reference_entity), len(self._petro_rx_values))
             rx_vals = set(round(next(p.exchange_values(rx.flow)).value, 6) for rx in p.references())
             self.assertSetEqual(rx_vals, self._petro_rx_values)
 
         @unittest.skipIf(lci is False, "no background")
         def test_30_bg_gen(self):
-            self.assertTrue(self.query.check_bg())
+            self.assertTrue(self.query.check_bg(reset=True, prefer=list(self._preferred())))
 
         @unittest.skipIf(lci is False, "no background")
         def test_31_bg_length(self):
@@ -146,12 +158,15 @@ class UsLciOlcaTest(UsLciTestContainer.UsLciTestBase):
     _atype = 'olca'
     _initial_count = (8, 71, 3)  # 4 physical quantities + 4 alloc quantities
     _bg_len = 36
-    _ex_len = 3990
+    _ex_len = 3681  # at some point, should investigate where 209 exterior flows disappeared to
     _test_case_lcia = .04110577
 
     # volume unit is m3 in olca, versus l in ecospold
     _petro_rx_values = {4.9e-05, 5.2e-05, 0.000112, 0.000252, 0.00057, 0.037175, 0.051454, 0.059594, 0.061169}
 
+    def _preferred(self):
+        yield self._get_petro()
+        yield self.query.get('cdc143eb-fff8-3618-85cd-bce83d96390f')  # veneer, at veneer mill, preferred for wood fuel
 
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@ import os
 
 from collections import defaultdict
 
-# from antelope import NoFactorsFound
+from antelope import MultipleReferences
 
 from ..exchanges import AmbiguousReferenceError
 
@@ -302,13 +302,26 @@ class OpenLcaJsonLdArchive(LcArchive):
             try:
                 rx = p.reference(rf)
             except NoExchangeFound:
+                # implicit trickery with schema: reference flows MUST be outputs for products, inputs for wastes
                 try:
-                    rx = next(_x for _x in p.exchange_values(rf) if _x.type in ('context', 'cutoff'))
-                    p.set_reference(rf, rx.direction)
-                    assert rx.is_reference
-                except StopIteration:
+                    ft = rf['flowType']
+                    if ft == 'ELEMENTARY_FLOW':
+                        print('%s: Skipping allocation factor for elementary flow %s' % (p.external_ref, rf.external_ref))
+                        continue
+                except KeyError:
+                    ft = 'PRODUCT_FLOW'  # more common ??
+                dr = {'PRODUCT_FLOW': 'Output',
+                      'WASTE_FLOW': 'Input'}[ft]
+                rx_cands = list(_x for _x in p.exchange_values(rf, direction=dr) if _x.type in ('context', 'cutoff'))
+                if len(rx_cands) == 0:
                     print('%s: Unable to find allocatable exchange for %s' % (p.external_ref, rf.external_ref))
                     continue
+                elif len(rx_cands) > 1:
+                    raise AmbiguousReferenceError('%s: Multiple flows with ID %s' % (p.external_ref, rf.external_ref))
+                else:
+                    rx = rx_cands[0]
+                p.set_reference(rf, dr)
+                assert rx.is_reference
 
             if af['allocationType'] == 'CAUSAL_ALLOCATION':
                 if af['value'] == 0:
