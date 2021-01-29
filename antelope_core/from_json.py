@@ -2,8 +2,6 @@ import re
 import gzip as gz
 import json
 
-import six
-
 
 def from_json(fname):
     """
@@ -13,12 +11,8 @@ def from_json(fname):
     """
     print('Loading JSON data from %s:' % fname)
     if bool(re.search('\.gz$', fname)):
-        if six.PY2:
-            with gz.open(fname, 'r') as fp:
-                j = json.load(fp)
-        else:
-            with gz.open(fname, 'rt') as fp:
-                j = json.load(fp)
+        with gz.open(fname, 'rt') as fp:
+            j = json.load(fp)
     else:
         with open(fname, 'r') as fp:
             j = json.load(fp)

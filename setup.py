@@ -3,7 +3,6 @@ from setuptools import setup, find_packages
 requires = [
     "antelope_interface>=0.1.3",
     "xlrd==1.2.0",
-    "six>=1.15.0",
     "python-magic>=0.4.18"
 ]
 
