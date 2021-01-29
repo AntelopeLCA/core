@@ -309,7 +309,7 @@ class LcProcess(LcEntity):
         candidates = list(_x_gen)
 
         if len(candidates) == 0:
-            raise NoExchangeFound
+            raise NoExchangeFound('%s: %s' % (self.external_ref, spec))
         elif len(candidates) > 1:
             raise MultipleReferencesFound('%d exchanges found; try specifying direction' % len(candidates))
         else:
