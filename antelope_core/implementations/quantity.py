@@ -3,7 +3,7 @@ Each archive now has a TermManager which interprets query arguments as synonyms 
 can also be upgraded to an LciaEngine, which extends the synonymization strategy to quantities as well
 """
 from antelope import (QuantityInterface, NoFactorsFound, ConversionReferenceMismatch, EntityNotFound, FlowInterface,
-                      convert, NoUnitConversionTable, PropertyExists)
+                      convert, NoUnitConversionTable)
 
 from .basic import BasicImplementation
 from ..characterizations import QRResult, LocaleMismatch

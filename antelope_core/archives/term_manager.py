@@ -358,7 +358,10 @@ class TermManager(object):
 
         elif merge_strategy in ('prune', 'distinct'):
             # fb = self._add_distinct_terms(flow, new_terms)
-            fb = self._create_flowable(new_terms.pop(0), prune=True)  # new_terms cannot be 0
+            try:
+                fb = self._create_flowable(new_terms.pop(0), prune=True)  # new_terms cannot be 0
+            except IndexError:
+                fb = self._fm.get(flow.link)  # um, I guess if there are no new terms...
 
         elif len(fb_map) == 1:  # one existing match- graft onto that
             fb = list(fb_map.keys())[0]
