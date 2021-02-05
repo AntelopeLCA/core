@@ -5,7 +5,7 @@ import json
 
 def from_json(fname):
     """
-    Routine to extract the contents of a json file.
+    Routine to extract the contents of a json file.  no longer pretends to support PY2.
     :param fname: json file, optionally gzipped
     :return: a json-derived dict
     """

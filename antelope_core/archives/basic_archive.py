@@ -171,7 +171,7 @@ class BasicArchive(EntityStore):
             raise InterfaceError('Unable to create interface %s' % iface)
 
     def _ensure_valid_refs(self, entity):
-        if self.tm[entity.external_ref] is not None:
+        if self.tm.is_context(entity.external_ref):
             raise ContextCollision('Entity external_ref %s is already known as a context identifier' %
                                    entity.external_ref)
         super(BasicArchive, self)._ensure_valid_refs(entity)

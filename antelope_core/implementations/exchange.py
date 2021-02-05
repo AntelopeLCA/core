@@ -43,6 +43,7 @@ class ExchangeImplementation(BasicImplementation, ExchangeInterface):
 
     def exchange_relation(self, process, ref_flow, exch_flow, direction, termination=None, **kwargs):
         """
+        This certainly should be tested for quantity-based and ecoinvent-style (exhaustive) allocation
 
         :param process:
         :param ref_flow:
@@ -56,11 +57,11 @@ class ExchangeImplementation(BasicImplementation, ExchangeInterface):
         if termination is None:
             xs = [x for x in p.exchange_values(flow=exch_flow, direction=direction)]
             if len(xs) == 1:
-                return xs[0].value / norm.value
+                return xs[0][norm]
             elif len(xs) == 0:
                 return 0.0
             else:
-                return sum([x.value for x in xs]) / norm.value
+                return sum(x[norm] for x in xs)
         else:
             x = p.get_exchange(hash((p.external_ref, exch_flow, direction, termination)))
             return x[norm]

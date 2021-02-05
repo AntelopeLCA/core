@@ -92,12 +92,23 @@ class TermManager(object):
            - third level CLookup maps context to a set of CFs
      _fq_map: reverse-maps flowable canonical name to a set of quantities that characterize it
     """
-    def __init__(self, contexts=None, flowables=None, quantities=None, merge_strategy='prune', quiet=True):
+    def __init__(self, contexts=None, flowables=None, quantities=None, merge_strategy='graft', quiet=True):
         """
         :param contexts: optional filename to initialize CompartmentManager
         :param flowables: optional filename to initialize FlowablesDict
-        :param merge_strategy:
-           'prune': - on conflict, trim off known synonyms and add the remaining as a new flowable
+        :param merge_strategy: (can also be specified at add_flow())
+
+           'graft': - on conflict, follow incoming flow's link or name; add new terms to the existing flowable and
+            discard conflicting terms.  solves many "shared CAS number" problems-- by depriving the new flowable of the
+            CAS identifier
+
+           'prune' or 'distinct': - on conflict, create a new flowable containing only new terms, discard all
+            conflicting terms. This is the default for flows added with no context (so that distinct intermediate
+            flows with the same name e.g. "bolt 10mm" could have different characterizations. If you want to
+            prevent this, give your flow any nonempty context)
+
+           'merge': - aggressively merge all co-synonymous flowables.  not tested.
+
         :param quiet:
 
         """
@@ -121,6 +132,13 @@ class TermManager(object):
     '''
     Utilities
     '''
+    def is_context(self, item):
+        try:
+            self._cm.__getitem__(item)
+            return True
+        except KeyError:
+            return False
+
     def __getitem__(self, item):
         """
         TermManager.__getitem__ retrieves a context known to the TermManager, or None if one is not found.
@@ -244,24 +262,6 @@ class TermManager(object):
             self._fq_map[fb] = set()
         return fb
 
-    def _add_pruned_terms(self, flow, new_terms):
-        s1 = tuple(new_terms)  # unfamiliar terms
-        if len(s1) == 0:
-            fb = self._fm[flow.name]
-            self._print('No unique terms')
-            s2 = set()
-        else:
-            fb = self._create_flowable(*s1, prune=True)
-            s2 = set(self._fm.synonyms(str(fb)))  # known terms synonymous to new object
-            flow.name = str(fb)
-        if not self._quiet:
-            for k in sorted(set(s1).union(s2), key=lambda x: x in s2):
-                if k in s2:
-                    print(k)  # normal
-                else:
-                    print('*%s --> [%s]' % (k, self._fm[k]))  # pruned; maps to
-        return fb
-
     def _merge_terms(self, dominant, *syns):
         """
         Two parts to this: merge the entries in the flowables manager; update local reverse mappings:
@@ -332,58 +332,95 @@ class TermManager(object):
             for f in self._flow_map[fb]:
                 yield f
 
+    def _add_to_existing_flowable(self, fb, new_terms):
+        for term in new_terms:
+            self._fm.add_synonym(str(fb), term)
+
     def _add_flow_terms(self, flow, merge_strategy=None):
         """
         This process takes in an inbound FlowInterface instance, identifies the flowable(s) that match its terms, and
-        returns the local flowable that matches the flow's name [sets the flow's name on prune]
+        adds new terms to the existing or new flowable.  May update a flow's name in case of conflict.
         :param flow:
         :param merge_strategy:
         :return:
         """
         merge_strategy = merge_strategy or self._merge_strategy
-        fb_map = defaultdict(list)
-        for syn in self._flow_terms(flow):
+        fb_map = defaultdict(list)  # list instead of set because sequence matters
+        for syn in self._flow_terms(flow):  # we rely on SynonymSet.terms yielding flow.name first
             # make a list of all the existing flowables that match the incoming flow
             fb_map[self._fm.get(syn)].append(syn)
         new_terms = fb_map.pop(None, [])
+
         if len(fb_map) == 0:  # all new terms
             if len(new_terms) == 0:
                 raise AttributeError('Flow appears to have no terms: %s' % flow)
-            fb = self._create_flowable(flow.name, *new_terms)
-        elif merge_strategy == 'distinct':
-            fb = self._add_pruned_terms(flow, new_terms)
-        elif len(fb_map) == 1:  # one existing match
+            fb = self._create_flowable(flow.name)
+
+        elif merge_strategy in ('prune', 'distinct'):
+            # fb = self._add_distinct_terms(flow, new_terms)
+            try:
+                fb = self._create_flowable(new_terms.pop(0), prune=True)  # new_terms cannot be 0
+            except IndexError:
+                fb = self._fm.get(flow.link)  # um, I guess if there are no new terms...
+
+        elif len(fb_map) == 1:  # one existing match- graft onto that
             fb = list(fb_map.keys())[0]
-            for term in new_terms:
-                self._fm.add_synonym(str(fb), term)
+
         else:  # > 2 matches-- invoke merge strategy
-            if merge_strategy == 'prune':
+            if merge_strategy == 'graft':
+                """
+                We want link to be dominant but name to be preferred. we have 3 cases:
+                 - link is new, name is new: all new flowable with new terms
+                 - link is new, name is old: add new terms to old flowable
+                 - link is old: add only new terms to old flowable, including or excluding name
+                 
+                
+                note that the keys of fb_map are flowables and the values are incoming terms. but anything remaining 
+                in fb_map at this point is a known term so does not need to be added
+                """
                 self._print('\nPruning entry for %s' % flow)
-                fb = self._add_pruned_terms(flow, new_terms)
+                if flow.link in new_terms:
+                    if flow.name in new_terms:
+                        fb = self._create_flowable(flow.name)
+                    else:
+                        fb = self._fm[flow.name]
+                else:
+                    fb = self._fm[flow.link]
 
             elif merge_strategy == 'merge':
-                # this is trivial but
+                # this is trivial but has never been tested, I mean even once
                 self._print('Merging')
                 fb = self._merge_terms(*fb_map.keys())
                 if isinstance(fb, list):
                     raise FactorCollision(fb)
-                for term in new_terms:
-                    self._fm.add_synonym(str(fb), term)
             else:
                 raise ValueError('merge strategy %s' % self._merge_strategy)
+
+        self._add_to_existing_flowable(fb, new_terms)
+
+        # validate that the flow's name looks up proper flowable
+        if self._fm[flow.name] is not fb:
+            try:
+                flow.name = next(k for k in flow.synonyms if self._fm[k] is fb)
+            except StopIteration:
+                raise AttributeError('None of the synonyms map to flowable [%s]: %s' % (fb, flow))
+
         # log the flowables that match the flow
         self._flow_map[fb].add(flow)
         for _tf in fb_map.keys():
-            self._flow_map[_tf].add(flow)
+            self._flow_map[_tf].add(flow)  # all this belongs in a Graph DB
         return fb
 
-    def add_flow(self, flow, merge_strategy='prune'):
+    def add_flow(self, flow, merge_strategy=None):
         """
         We take a flow from outside and add its known terms. That means
          - adding flow's reference quantity
          - merging any context with the local context tree;
          - adding flowable terms to the flowables list;
          - mapping flow to all flowables (assigning flowable if none is found)
+
+        Note that all flows having null context are forced to be distinct from one another. If you want two flowables
+        to share properties, you must add them having non-null contexts. not sure how I feel about this but it does work.
 
         :param flow:
         :param merge_strategy: overrule default merge strategy
@@ -403,7 +440,7 @@ class TermManager(object):
         return self._add_flow_terms(flow, merge_strategy=merge_strategy)
 
     def add_characterization(self, flowable, ref_quantity, query_quantity, value, context=None, origin=None,
-                             location='GLO', overwrite=False):
+                             location=None, overwrite=False):
         """
         Replacement for flow-based add_characterization.  THE ONLY place to create Characterization objects.
         Add them to all flowables that match the supplied flow.
@@ -414,7 +451,7 @@ class TermManager(object):
         :param context: the context for which the characterization applies.  Should be a string or tuple.  None means
           the factor applies to all contexts.
         :param overwrite: whether to overwrite an existing value if it already exists (ignored if value is a dict)
-        :param location: ['GLO'] (ignored if value is a dict)
+        :param location: (ignored if value is a dict) 'GLO' used if no location is provided
         :param origin: (optional; origin of value; defaults to quantity.origin)
         :return: created or updated characterization
         """
@@ -442,6 +479,9 @@ class TermManager(object):
             qq = self.add_quantity(query_quantity)
 
         cf = self._find_exact_cf(qq, fb, cx, origin, flowable)
+
+        if location is None:
+            location = 'GLO'
 
         if cf is None:
             # create our new Characterization with the provided flowable, not the detected flowable
@@ -604,7 +644,10 @@ class TermManager(object):
         """
         This is the method that actually performs the lookup.  Other methods are wrappers for this.
 
-        Core to this is getting a canonical context, which is done by __getitem__
+        If context is None, this is "unspecified". It matches all CFs regardless of context.
+
+        Core to this is getting a canonical context, which is done by __getitem__.  In TermManager, this returns
+        None for contexts that are not known
         :param flowable: a string
         :param quantity: a quantity known to the quantity manager
         :param context: [None] default provide all contexts; must explicitly provide 'none' to filter by null context

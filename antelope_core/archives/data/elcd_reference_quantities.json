@@ -484,7 +484,8 @@
       "entityType": "quantity",
       "externalId": "flowproperties/93a60a56-a3c8-11da-a746-0800200b9a66",
       "origin": "elcd.3.2",
-      "referenceUnit": "kg"
+      "referenceUnit": "kg",
+      "synonyms": ["EcoSpold Quantity kg"]
     },
     {
       "Comment": "Reference Flow Property Data Set of the International Reference Life Cycle Data System (ILCD).",

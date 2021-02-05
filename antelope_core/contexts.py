@@ -302,7 +302,7 @@ class ContextManager(CompartmentManager):
     def find_matching_context(self, context):
         if context.name == context.fullname:
             raise AttributeError('Context origin must be specified')
-        current = None  # current = deepest local match
+        current = NullContext  # current = deepest local match
 
         # first, look for stored auto_names or context_hints to find an anchor point:
         missing = []
@@ -316,7 +316,7 @@ class ContextManager(CompartmentManager):
         # if current is None when we get here, then we haven't found anything, so start over and hunt from bottom up
         while len(missing) > 0:
             this = missing.pop(0)  # this = active foreign match
-            if current is None:
+            if current is NullContext:
                 try:
                     current = next(self._gen_matching_entries(this, None))
                 except StopIteration:
@@ -330,6 +330,6 @@ class ContextManager(CompartmentManager):
                     current = nxt
                 except StopIteration:
                     self.add_synonym(current, this.fullname)
-        if current is not None:
+        if current is not NullContext:
             self.add_synonym(current, context)
         return current

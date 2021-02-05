@@ -23,7 +23,7 @@ def new_flow(name, ref_quantity, cas_number='', comment='', context=None, compar
 
     if external_ref is None:
         return LcFlow.new(name, ref_quantity, **kwargs)
-    return LcFlow(external_ref, Name=name, ReferenceQuantity=ref_quantity, **kwargs)
+    return LcFlow(external_ref, Name=name, ReferenceQuantity=ref_quantity, context=context, **kwargs)
 
 
 class LcFlow(LcEntity, Flow):
@@ -85,12 +85,15 @@ class LcFlow(LcEntity, Flow):
         context = '[%s]' % ';'.join(self.context)
         return '%s%s %s' % (self.get('Name'), cas, context)
 
-    def characterize(self, quantity, value, context=None, **kwargs):
+    def characterize(self, quantity, value, context=None, origin=None, location='GLO', **kwargs):
         if context is None:
             context = self.context
         flowable = self.name
-        return quantity.characterize(flowable, self.reference_entity, value, context=context, origin=self.origin,
-                                     **kwargs)
+        if origin is None:
+            origin = self.origin
+        self.pop_char(quantity, context, location)
+        return quantity.characterize(flowable, self.reference_entity, value, context=context, origin=origin,
+                                     location=location, **kwargs)
 
     def cf(self, quantity, **kwargs):
         return quantity.cf(self, **kwargs)
@@ -102,3 +105,6 @@ class LcFlow(LcEntity, Flow):
 
     def chk_char(self, qq, cx, loc):
         return self._chars_seen[qq, cx, loc]
+
+    def pop_char(self, qq, cx, loc):
+        return self._chars_seen.pop((qq, cx, loc), None)

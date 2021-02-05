@@ -111,7 +111,12 @@ class QuantityConversion(object):
 
     @property
     def context(self):
-        return self._context
+        for qrr in reversed(self._results):
+            if qrr.context is not None:
+                return qrr.context
+        if self._context is not None:
+            return self._context
+        return NullContext
 
     @property
     def locale(self):
@@ -213,9 +218,7 @@ class QuantityConversionError(object):
         return None
 
     def __repr__(self):
-        return '%s(%s/%s [%s] %g %s/%s || %s)' % (self.__class__.__name__, self.flowable, self.context,
-                                                  self._qrr.origin,
-                                                  self._qrr.value, self.query.unit, self._qrr.ref.unit, self.ref.link)
+        return '%s(%s; %s %s =X=> %s)' % (self.__class__.__name__, self.flowable, self.context, self._qrr.ref, self._ref)
 
 
 class NoConversion(Exception):
@@ -360,7 +363,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
         :param fb: a string that is synonymous with a known flowable.
         :param rq: a canonical ref_quantity or None
         :param qq: a canonical query_quantity or None
-        :param cx: a known context
+        :param cx: a known context or None
         :param locale: ['GLO']
         :param kwargs:
          dist: CLookup distance (0=exact 1=subcompartments 2=parent 3=all parents)
@@ -470,7 +473,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
 
         rq = self.get_canonical(ref_quantity)
         cx = self._archive.tm[context]  # will fall back to find_matching_context if tm is an LciaEngine
-        if cx is None and context is not None:
+        if cx is None and context is not None:  # lcia_engine now returns NullContext, but TermManager does not
             cx = NullContext
         return flowable, rq, cx
 
@@ -660,12 +663,15 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 pass
         return n[ix]
 
-    def _lookup_x(self, x, q, locale, **kwargs):
+    def _lookup_x(self, x, q, locale, refresh=False, **kwargs):
         cx = self._archive.tm[x.termination]
-        try:  # look for a cached result
-            return x.flow.chk_char(q, cx, locale)
-        except KeyError:
-            pass
+        if refresh:  # destroy prior matches, even if no new one is found (only overwrite would not truly "refresh")
+            x.flow.pop_char(q, cx, locale)
+        else:
+            try:  # look for a cached result
+                return x.flow.chk_char(q, cx, locale)
+            except KeyError:
+                pass
         try:
             ref_q = self.get_canonical(x.flow.reference_entity)
         except EntityNotFound:

@@ -7,6 +7,7 @@ from ..contexts import Context, NullContext
 from .quelled_cf import QuelledCF
 from .clookup import CLookup, SCLookup
 
+from synonym_dict import TermExists
 from synonym_dict.example_flowables import FlowablesDict
 
 
@@ -123,8 +124,12 @@ class LciaEngine(TermManager):
         LciaEngine.__getitem__ retrieves a canonical context by more intensively searching for matches from a given
         context.  Adds foreign context's full name as synonym if one is affirmatively found.  If one is not found,
         returns the NullContext.
+
+        None is returned as None, to represent 'unspecified' (i.e. accept all) as opposed to 'no context' which isa
+        context (accept only matching). (as tested)
+
         :param item:
-        :return:
+        :return: a matching context or NullContext.
         """
         if item is None:
             return None
@@ -133,7 +138,7 @@ class LciaEngine(TermManager):
         except KeyError:
             if isinstance(item, Context):
                 return self._cm.find_matching_context(item)
-            return None
+            return NullContext
 
     def apply_hints(self, names, hints):
         """
@@ -153,10 +158,16 @@ class LciaEngine(TermManager):
                     self._cm.add_context_hint(org, term, canonical)
             elif hint_type == 'quantity':
                 print('Applying quantity hint %s -> %s' % (term, canonical))
-                self._qm.add_synonym(canonical, term)
+                try:
+                    self._qm.add_synonym(canonical, term)
+                except TermExists:
+                    assert self._qm[canonical] is self._qm[term]
             elif hint_type == 'flowable':
                 print('Applying flowable hint %s -> %s' % (term, canonical))
-                self._fm.add_synonym(canonical, term)
+                try:
+                    self._fm.add_synonym(canonical, term)
+                except TermExists:
+                    assert self._fm[canonical] == self._fm[term]
             else:
                 raise ValueError('Unknown hint type %s' % hint_type)
 
@@ -263,8 +274,8 @@ class LciaEngine(TermManager):
         :param sub: a new subcompartment
         :return:
         """
-        if context is None:
-            return None
+        if context is NullContext or context is None:
+            return context
         cx_sub = tuple(context.as_list() + ['%s-%s' % (prefix, sub)])
 
         try:
@@ -424,6 +435,14 @@ class LciaEngine(TermManager):
                 yield v
 
     def factors_for_flowable(self, flowable, quantity=None, context=None, **kwargs):
+        """
+        Here we deal with water contexts specified as flowables by creating children- this is generalizeable (vs for CO2)
+        :param flowable:
+        :param quantity:
+        :param context:
+        :param kwargs:
+        :return:
+        """
         try:
             fb = self._fm[flowable]
         except KeyError:

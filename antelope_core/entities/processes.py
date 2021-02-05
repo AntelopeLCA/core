@@ -520,6 +520,9 @@ class LcProcess(LcEntity):
         for x in self._exchanges.values():
             x.remove_allocation(reference)
 
+    def unobserved_lci(self, *args, **kwargs):
+        raise NotImplementedError
+
     def add_exchange(self, flow, dirn, reference=None, value=None, termination=None, add_dups=False):
         """
         This is used to create Exchanges and ExchangeValues and AllocatedExchanges.

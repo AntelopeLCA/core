@@ -189,6 +189,9 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
         for x in p.inventory(ref_flow=ref_flow):
             yield x
 
+    def sys_lci(self, node, demand, **kwargs):
+        raise NotImplementedError
+
     def bg_lcia(self, process, query_qty, ref_flow=None, **kwargs):
         p = self._archive.retrieve_or_fetch_entity(process)
         lci = self.lci(p, ref_flow=ref_flow)
