@@ -3,7 +3,8 @@ from setuptools import setup, find_packages
 requires = [
     "antelope_interface>=0.1.4",
     "xlrd==1.2.0",  ## really need to get out of this requirement and into openpyxl or equivalent
-    "python-magic>=0.4.18"
+    "python-magic>=0.4.18",
+    "requests>=2.25"
 ]
 
 # optional: pylzma
