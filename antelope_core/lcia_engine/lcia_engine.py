@@ -274,7 +274,7 @@ class LciaEngine(TermManager):
         :param sub: a new subcompartment
         :return:
         """
-        if context is NullContext or context is None:
+        if context is NullContext or context is None or context == ():
             return context
         cx_sub = tuple(context.as_list() + ['%s-%s' % (prefix, sub)])
 
@@ -352,9 +352,19 @@ class LciaEngine(TermManager):
             raise
 
     def _qassign(self, qq, fb, new_cf, context=None):
+        """
+
+        :param qq:
+        :param fb:
+        :param new_cf:
+        :param context:
+        :return:
+        """
+        ''' # this is done in _find_exact_cf already
         # don't characterize "Water" per se-- give it a subcontext
         if context is not NullContext and fb is self._fm['Water']:
             context = self.add_subcontext(context, 'flow', new_cf.flowable)
+        '''
 
         super(LciaEngine, self)._qassign(qq, fb, new_cf, context)
         self._origins.add(new_cf.origin)
@@ -448,7 +458,10 @@ class LciaEngine(TermManager):
         except KeyError:
             return
         if fb == self._fm['Water']:
-            context = self.add_subcontext(context, 'flow', flowable)
+            try:
+                context = self._cm[flowable]
+            except KeyError:
+                pass
         for k in super(LciaEngine, self).factors_for_flowable(flowable, quantity=quantity, context=context, **kwargs):
             if self._quell_co2(flowable, context):
                 yield QuelledCF.from_cf(k, flowable=self._bio_co2)

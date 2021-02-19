@@ -1,9 +1,10 @@
 import json
 import os
+import re
 
 from collections import defaultdict
 
-from antelope import MultipleReferences
+# from antelope import MultipleReferences
 
 from ..exchanges import AmbiguousReferenceError
 
@@ -12,6 +13,10 @@ from ..entities.processes import NoExchangeFound
 from ..archives import LcArchive
 from .file_store import FileStore
 from .ecospold import parse_math
+
+
+def pull_geog(flow):
+    return geog_tail.search(flow)
 
 
 valid_types = {'processes', 'flows', 'flow_properties'}
@@ -413,11 +418,21 @@ class OpenLcaJsonLdArchive(LcArchive):
                        CategoryDescription=c_desc, Version=ver, **kwargs)
 
         self.add(q)
-        for factor in l_obj['impactFactors']:
+        for factor in l_obj.get('impactFactors', []):
             flow = self._create_flow(factor['flow']['@id'])
+            loc = factor.get('location')
+            if loc is None:
+                try:
+                    loc = geog_tail.search(flow.name).group()
+                except AttributeError:
+                    pass
+
             ref_qty = self._create_quantity(factor['flowProperty']['@id'])
             assert flow.reference_entity == ref_qty
-            self.tm.add_characterization(flow.link, ref_qty, q, factor['value'], context=flow.context, origin=self.ref)
+            # value = factor['value']
+
+            self.tm.add_characterization(flow.link, ref_qty, q, factor['value'], context=flow.context, location=loc,
+                                         origin=self.ref)
 
         return q
 

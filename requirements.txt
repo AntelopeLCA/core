@@ -1,3 +1,4 @@
+synonym_dict>=0.1.5
 antelope_interface>=0.1.4
 lxml>=4.5.2
 xlrd==1.2.0

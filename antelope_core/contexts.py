@@ -182,12 +182,6 @@ class Context(Compartment):
         return self.parent.elementary
 
     @property
-    def seq(self):
-        if self.parent is None:
-            return [self]
-        return self.parent.seq + [self]
-
-    @property
     def external_ref(self):
         return self.name
 

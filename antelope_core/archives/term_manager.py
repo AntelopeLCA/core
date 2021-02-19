@@ -16,13 +16,18 @@ subclass adds canonical lists of flowables and contexts that would be redundant 
 introduces "smart" hierarchical context lookup (CLookup), and adds the ability to quell biogenic CO2 emissions.
 Someday, it might make sense to expose it as a massive, central graph db.
 """
+from collections import namedtuple
+
 from synonym_dict import SynonymDict
 
 from antelope import EntityNotFound
 from ..contexts import ContextManager, Context, NullContext
 from .quantity_manager import QuantityManager
 
-from ..characterizations import Characterization
+from ..characterizations import Characterization, DuplicateCharacterizationError
+
+
+DuplicateCharacterization = namedtuple('DuplicateCharacterization', ('qq_link', 'fb', 'cx_list', 'origin', 'flowable', 'location'))
 
 
 class FactorCollision(Exception):
@@ -125,6 +130,9 @@ class TermManager(object):
         self._flow_map = defaultdict(set)  # maps flowable to flows having that flowable
         self._fq_map = dict()  # maps flowable to quantities characterized by that flowable
 
+        # track duplicates
+        self._dupes = []  #  List[DuplicateCharacterization]
+
         # config
         self._merge_strategy = merge_strategy
         self._quiet = bool(quiet)
@@ -219,6 +227,10 @@ class TermManager(object):
 
     def add_context(self, context, *terms, origin=None):
         """
+        We are using conflict='attach' by default so that 'emissions' and 'resources' can be attached to
+        'Elementary flows' if it exists. It may cause undesirable side-effects if different intermediate categories
+        use similar terms, e.g. ('buildings', 'heat', 'steam') and ('chemical', 'heat', 'process') would result in
+        either
 
         :param context:
         :param origin: apply origin to context if it has none
@@ -226,7 +238,7 @@ class TermManager(object):
         """
         if isinstance(context, str):
             context = (context,)
-        cx = self._cm.add_compartments(tuple(context))
+        cx = self._cm.add_compartments(tuple(context), conflict='attach')
         if origin is not None:
             if cx.fullname == cx.name:
                 cx.add_origin(origin)
@@ -489,6 +501,8 @@ class TermManager(object):
             if isinstance(value, dict):
                 new_cf.update_values(**value)
             else:
+                if value == 0:
+                    self._print('zero CF: %s, %s, %s, %s, %s, %s' % (flowable, rq.link, qq.link, cx, origin, location))
                 new_cf.add_value(value, location=location)
 
             # add our new CF to the lookup tree
@@ -499,17 +513,34 @@ class TermManager(object):
             if cf.ref_quantity != rq:
                 # create a conversion-factor instead:
                 if value == 0:
-                    factor = 0
-                else:
-                    factor = value / cf[location]
+                    # we cannot interpret a 0 as a cf- so we ditch
+                    return cf
 
-                self.add_characterization(fb, rq, cf.ref_quantity, factor, context=cx, origin=origin, location=location)
+                try:
+                    factor = value / cf[location]
+                except ZeroDivisionError:
+                    try:
+                        factor = value / cf.value
+                    except TypeError:  # dict = fail
+                        factor = value
+
+                # this recurses to add a cf between our flow's ref quantity and the ref quantity of the already-seen cf
+                try:
+                    self.add_characterization(fb, rq, cf.ref_quantity, factor, context=cx, origin=origin, location=location)
+                except DuplicateCharacterizationError as e:
+                    print((qq.link, fb, cx.as_list(), origin, flowable, location))
+                    print('recursing to %s %s' % (cf.ref_quantity.name, cf.ref_quantity.uuid))
+                    print('ignoring duplicate characterization %s' % e)
                 return cf
             # update entry in the lookup tree
             elif isinstance(value, dict):
                 cf.update_values(**value)
             else:
-                cf.add_value(value, location=location, overwrite=overwrite)
+                try:
+                    cf.add_value(value, location=location, overwrite=overwrite)
+                except DuplicateCharacterizationError as e:
+                    self._dupes.append(DuplicateCharacterization(qq.link, fb, cx.as_list(), origin, flowable, location))
+                    print('ignoring duplicate characterization %s' % e)
             return cf
 
     '''

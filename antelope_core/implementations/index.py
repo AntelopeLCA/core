@@ -142,3 +142,17 @@ class IndexImplementation(BasicImplementation, IndexInterface):
     def mix(self, flow, direction, **kwargs):
         return self._archive.mix(flow, direction, **kwargs)
     '''
+    def unmatched_flows(self, flows, **kwargs):
+        """
+        Takes in a list of flows (as flow.name) or flowable terms (str) and generates a sublist of flows that were not
+        recognized as synonyms to any local flows.
+
+        :param flows:
+        :param kwargs:
+        :return:
+        """
+        for flow in flows:
+            try:
+                self._archive.tm.get_flowable()
+            except KeyError:
+                yield flow
