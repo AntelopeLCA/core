@@ -15,7 +15,7 @@ class LciaEngineTest(unittest.TestCase):
         cls.lcia = LciaDb.new()
 
     def test_0_init(self):
-        self.assertEqual(len([x for x in self.lcia.query.contexts()]), 37)
+        self.assertEqual(len([x for x in self.lcia.query.contexts()]), 36)  # changed to 37, surely due to synonym_dict/issues/2
         self.assertEqual(len([x for x in self.lcia.query.flowables()]), 4005)
         self.assertEqual(len([x for x in self.lcia.query.quantities()]), 25)
         self.assertEqual(len(self.lcia.tm._q_dict), 3)
@@ -49,11 +49,23 @@ class LciaEngineTest(unittest.TestCase):
         self.assertEqual(self.lcia.tm._fm['1234-56-7'].name, 'test.origin/Dummy Flow')
 
     def test_add_non_matching_context(self):
+        """
+        This test is actually really thorny because 'unspecified', on its own, returns NullContext as a forbidden
+        term, which is different from 'elementary flows', which raises a KeyError.
+        :return:
+        """
         cx = self.lcia.tm['emissions to air']
-        c_out = Context('Elementary Flows',  'Emission to air', 'Emission to air, unspecified')
-        c_out.add_origin('test')
-        self.assertIs(self.lcia.tm[c_out], cx)
+        c0 = Context('Elementary flows')
+        c1 = Context('Emission to air', parent=c0)
+        c2 = Context('unspecified', parent=c1)
+        c2.add_origin('test')
+        self.assertIs(self.lcia.tm[c2], cx)
 
+    def test_add_conflicting_contexts(self):
+        c1 = self.lcia.tm.add_context(('emissions', 'emissions to water'))
+        c2 = self.lcia.tm.add_context(('elementary flows', 'emissions to water'))
+        self.assertIs(c1, c2)
+        self.assertEqual(len(c1.seq), 3)
 
 
 if __name__ == '__main__':

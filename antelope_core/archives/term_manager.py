@@ -225,6 +225,24 @@ class TermManager(object):
             yield c
             c = c.parent
 
+    def _add_compartments(self, comps):
+        """
+        Complicated issue here-- basically, we have to decide on a conflict resolution strategy for
+        ContextManager.add_compartments() -- and that strategy must be different for TermManager and LciaEngine.
+        For TermManager, the most important thing is to not mess up the literal context specifications, because
+        fidelity to source is paramount. Therefore, we should 'rename' contexts and keep them separated.
+
+        Whereas, in LciaEngine the main concern is to harmonize contexts, which means forcing them to play well
+        together. This is why we have hints in LciaEngine but not in TermManager.  That is also why the default is to
+        attach trees together, rather than duplicate them.
+
+        To TEST: try adding ('emissions', 'emissions to water') and ('elementary flows', 'emissions to water')-- the
+        outcome should be different for TermManager and LciaEngine.
+        :param comps:
+        :return:
+        """
+        return self._cm.add_compartments(comps, conflict='rename')
+
     def add_context(self, context, *terms, origin=None):
         """
         We are using conflict='attach' by default so that 'emissions' and 'resources' can be attached to
@@ -238,7 +256,7 @@ class TermManager(object):
         """
         if isinstance(context, str):
             context = (context,)
-        cx = self._cm.add_compartments(tuple(context), conflict='attach')
+        cx = self._add_compartments(tuple(context))
         if origin is not None:
             if cx.fullname == cx.name:
                 cx.add_origin(origin)
@@ -257,7 +275,7 @@ class TermManager(object):
         try:
             _c = self._cm[flow.context]
         except KeyError:
-            _c = self._cm.add_compartments(flow.context)
+            _c = self._add_compartments(flow.context)
         _c.add_origin(flow.origin)
         return _c
 

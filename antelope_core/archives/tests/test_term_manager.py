@@ -61,6 +61,11 @@ class TermManagerTest(unittest.TestCase):
         with self.assertRaises(KeyError):
             self.tm._fm['1234567']
 
+    def test_add_conflicting_contexts(self):
+        c1 = self.tm.add_context(('emissions', 'emissions to water'))
+        c2 = self.tm.add_context(('elementary flows', 'emissions to water'))
+        self.assertIsNot(c1, c2)
+
     def test_add_flow_prune(self):
         pass
 

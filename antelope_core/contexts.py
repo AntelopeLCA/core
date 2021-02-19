@@ -38,6 +38,7 @@ The NullContext should be returned by the context manager
 """
 
 from synonym_dict.example_compartments import Compartment, CompartmentManager
+from synonym_dict.example_compartments.compartment import InvalidSubCompartment
 from antelope import valid_sense
 
 ELEMENTARY = {'elementary flows', 'resource', 'emission', 'resources', 'emissions'}
@@ -47,7 +48,14 @@ PROTECTED = ('air', 'water', 'ground')
 
 class ProtectedTerm(Exception):
     """
-    currently unused
+    currently triggered by the stale contexts file-- leading to an error in which
+    "emissions;to water;low population density, long-term" and
+    "emissions;to air;low population density, long-term"
+    are synonyms in basic TermManagers. Should not present problems in LciaEngines, but the specific case is not tested.
+
+    Solution is to patch the local-contexts.json file to exclude this redundant term for water.  
+    Justification: the canonical contexts should be well-behaved and not contain any inherent conflicts. It is
+    a nomenclature problem for the two contexts to have the same name.
     """
     pass
 
@@ -58,7 +66,7 @@ class InconsistentSense(Exception):
 
 class FrozenElementary(Exception):
     """
-    top-level elementary contexts may not be assigned parents
+    top-level elementary contexts may not be assigned non-elementary parents
     """
     pass
 
@@ -110,9 +118,9 @@ class Context(Compartment):
             yield o
 
     def __init__(self, *args, sense=None, **kwargs):
+        self._sense = None
         super(Context, self).__init__(*args, **kwargs)
         self._origins = set()
-        self._sense = None
         if sense is not None:
             self.sense = sense
 
@@ -142,8 +150,8 @@ class Context(Compartment):
         sense = valid_sense(value)
         self._check_sense(sense)
         self._sense = sense
-        for sub in self.subcompartments:
-            sub.sense = sense
+        #for sub in self.subcompartments:  # do not set subcompartment senses- only set determinative compartments
+        #    sub.sense = sense
 
     @property
     def parent(self):  # duplicating here to override setter
@@ -151,14 +159,18 @@ class Context(Compartment):
 
     @parent.setter
     def parent(self, parent):
-        if self._parent is not None:
-            self._parent.deregister_subcompartment(self)
-        else:
-            if self.elementary and not parent.elementary:
-                raise FrozenElementary
-        self._parent = parent
-        if parent is not None:
-            parent.register_subcompartment(self)
+        if self._parent is None:
+            if parent:
+                if self.elementary and not parent.elementary:
+                    raise FrozenElementary
+            self._elem = None  # reset
+        if parent:
+            if parent.sense is not None:
+                self._check_sense(parent.sense)
+        # print('Setting %s.parent <- %s' % (self, parent))
+        if str(self) in PROTECTED and str(parent) in PROTECTED and str(self) != str(parent):
+            raise ProtectedTerm
+        Compartment.parent.fset(self, parent)
 
     def _is_elem(self):
         for t in self.terms:
@@ -271,7 +283,19 @@ class ContextManager(CompartmentManager):
         if ent.sense is not None:
             existing_entry.sense = ent.sense  # this is essentially an assert w/raises InconsistentSense
 
-        super(CompartmentManager, self)._merge(existing_entry, ent)
+        super(ContextManager, self)._merge(existing_entry, ent)  # yowza, moronic bug
+
+    def add_compartments(self, comps, conflict=None):
+        if conflict is not None:
+            return super(ContextManager, self).add_compartments(comps, conflict=conflict)
+        else:
+            try:
+                return super(ContextManager, self).add_compartments(comps, conflict='attach')
+            except (FrozenElementary, InvalidSubCompartment, InconsistentSense):
+                return super(ContextManager, self).add_compartments(comps, conflict='rename')
+            except ProtectedTerm:
+                print('Protected Term! %s' % comps)
+                return super(ContextManager, self).add_compartments(comps, conflict='rename')
 
     '''
     def add_lineage(self, lineage, parent=None):
@@ -314,6 +338,8 @@ class ContextManager(CompartmentManager):
                 try:
                     current = next(self._gen_matching_entries(this, None))
                 except StopIteration:
+                    continue
+                if current is NullContext:
                     continue
                 self.add_synonym(current, this.fullname)
             else:

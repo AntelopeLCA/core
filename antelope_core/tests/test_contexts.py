@@ -43,6 +43,8 @@ class ContextManagerTest(CompartmentContainer.CompartmentManagerTest):
     def setUp(self):
         self.cm = ContextManager()
 
+    _water_dict_objects = 3  # one higher since we start with both emissions + resources
+
     def test_add_from_dict(self):
         self._add_water_dict()
         self.assertEqual(str(self.cm['to water']), 'water emissions')
@@ -101,9 +103,15 @@ class ContextManagerTest(CompartmentContainer.CompartmentManagerTest):
         self.assertEqual(c.parent.name, 'to water')
 
     def test_inconsistent_lineage(self):
+        """
+        context manager uses attach, then rename to avoid inconsistent lineage problems
+        :return:
+        """
         self._add_water_context()
-        with self.assertRaises(InconsistentLineage):
-            self.cm.add_compartments(['resources', 'water', 'ground-'], conflict=None)
+        with self.assertRaises(InconsistentSense):
+            self.cm.add_compartments(['resources', 'water', 'ground-'], conflict='attach')
+        fix = self.cm.add_compartments(['resources', 'water', 'ground-'], conflict='rename')
+        self.assertEqual(fix.name, 'from water, ground-')
 
     def test_inconsistent_lineage_match(self):
         """
@@ -180,6 +188,19 @@ class DefaultContextsTest(unittest.TestCase):
         tgt = self.cm['to air']
         self.assertIs(self.cm['dummy.test:air'], tgt)
 
+    def test_prepend_elementary(self):
+        """
+        By default, emissions and resources are top-level. but if client data uses 'elementary flows' category,
+        it should be installed above via 'attach'
+        :return:
+        """
+        tw = self.cm.add_compartments(['Emissions', 'to water', 'fresh water'])
+        self.assertEqual(len(tw.seq), 3)
+        ew = self.cm.add_compartments(['Elementary flows', 'fresh water'])
+        self.assertIs(ew, tw)
+        self.assertEqual(ew.top().name, 'Elementary flows')
+
+    '''
     def test_matching_sublineage_alt(self):
         """
         This was originally going to test the disregarded functionality- only to realize that does not get triggered
@@ -194,6 +215,7 @@ class DefaultContextsTest(unittest.TestCase):
         self.assertEqual(fx.name, 'air, unspecified')  # just throwing this in there
         self.assertIs(self.cm.find_matching_context(fx), tgt)
         # self.assertIn('Elementary Flows', self.cm.disregarded_terms)
+    '''
 
     def test_matching_sublineage(self):
         self.cm.add_context_hint('dummy.test', '[resources]', 'Resources')

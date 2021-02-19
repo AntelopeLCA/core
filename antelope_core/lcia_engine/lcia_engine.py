@@ -267,11 +267,22 @@ class LciaEngine(TermManager):
         self._qm.merge(dom, add)
         self.import_cfs(second)
 
+    def _add_compartments(self, comps):
+        """
+        For LciaEngines, we use the default behavior of ContextManager which is to first try 'attach', then fallback
+        to 'rename'
+        :param comps:
+        :return:
+        """
+        return self._cm.add_compartments(comps)
+
     def add_subcontext(self, context, prefix, sub, origin=None):
         """
 
         :param context: a canonical context
+        :param prefix:
         :param sub: a new subcompartment
+        :param origin: [None]
         :return:
         """
         if context is NullContext or context is None or context == ():
