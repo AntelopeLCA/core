@@ -335,7 +335,7 @@ class LciaEngine(TermManager):
         except NoFQEntry:
             return None
         # cfs = ql._context_origin(cx, origin=origin)
-        if fb == self._fm['water']:
+        if fb is self._fm['water']:
             cx = self.add_subcontext(cx, 'flow', flowable)
         cfs = ql.find(cx, dist=0, origin=origin)  # sliiiiightly slower but much better readability
         if len(cfs) > 0:

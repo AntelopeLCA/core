@@ -53,7 +53,7 @@ class ProtectedTerm(Exception):
     "emissions;to air;low population density, long-term"
     are synonyms in basic TermManagers. Should not present problems in LciaEngines, but the specific case is not tested.
 
-    Solution is to patch the local-contexts.json file to exclude this redundant term for water.  
+    Solution is to patch the local-contexts.json file to exclude this redundant term for water.
     Justification: the canonical contexts should be well-behaved and not contain any inherent conflicts. It is
     a nomenclature problem for the two contexts to have the same name.
     """

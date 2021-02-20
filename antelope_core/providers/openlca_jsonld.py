@@ -15,6 +15,8 @@ from .file_store import FileStore
 from .ecospold import parse_math
 
 
+geog_tail = re.compile('[A-Z]+[o-]?[A-Z]*$')  # capture, e.g. 'ZA', 'GLO', 'RoW', 'US-CA' but not 'PET-g'
+
 def pull_geog(flow):
     return geog_tail.search(flow)
 
