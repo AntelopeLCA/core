@@ -15,10 +15,13 @@ from .file_store import FileStore
 from .ecospold import parse_math
 
 
-geog_tail = re.compile('[A-Z]+[o-]?[A-Z]*$')  # capture, e.g. 'ZA', 'GLO', 'RoW', 'US-CA' but not 'PET-g'
+geog_tail = re.compile('\\b[A-Z]+[o-]?[A-Z]*$')  # capture, e.g. 'ZA', 'GLO', 'RoW', 'US-CA' but not 'PET-g'
 
-def pull_geog(flow):
-    return geog_tail.search(flow)
+def pull_geog(flowname):
+    try:
+        return geog_tail.search(flowname).group()
+    except AttributeError:
+        return None
 
 
 valid_types = {'processes', 'flows', 'flow_properties'}
