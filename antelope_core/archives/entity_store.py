@@ -47,12 +47,18 @@ def to_uuid(_in):
         g = None
     if g is not None:
         return g.groups()[0]
-    # no regex match- let's see if uuid.UUID can handle the input
+    '''
+    # no regex match- let's see if uuid.UUID can handle the input  
     try:
         _out = uuid.UUID(_in)
     except ValueError:
         return None
     return str(_out)
+    '''    ## NOTE: This is costly because it requires to instantiate a UUID for EVERY query, especially those that are
+    # already probably not valid UUIDs! There is every reason to expect the input is a string, and our regex already
+    # matches even non-RFC-compliant UUID strings. I'm going to leave it out for now
+    return None
+
 
 
 class SourceAlreadyKnown(Exception):
@@ -142,6 +148,7 @@ class EntityStore(object):
                 return uuid.UUID(ns_uuid)
 
     def __init__(self, source, ref=None, quiet=True, upstream=None, static=False, dataReference=None, ns_uuid=None,
+                 no_validate=None,
                  **kwargs):
         """
         An EntityStore is a provenance structure for a collection of entities.  Ostensibly, an EntityStore has a single
@@ -204,6 +211,7 @@ class EntityStore(object):
         :param static: [False] whether archive is expected to be unchanging.
         :param dataReference: alternative to ref
         :param ns_uuid: required to store entities by common name.  Used to generate uuid3 from string inputs.
+        :param no_validate: if True, skip validation on entity add
         :param kwargs: any other information that should be serialized with the archive
         """
 
@@ -223,6 +231,7 @@ class EntityStore(object):
         self._counter = defaultdict(int)
         self._ents_by_type = defaultdict(set)
         self._upstream = None
+        self._no_validate = no_validate
 
         self._loaded = False
         self._static = static
@@ -520,7 +529,7 @@ class EntityStore(object):
         if entity.entity_type not in self._entity_types:
             raise TypeError('Entity type %s not valid!' % entity.entity_type)
 
-        if entity.is_entity:
+        if entity.is_entity and not self._no_validate:
             if not entity.validate():
                 raise ValueError('Entity fails validation: %s' % repr(entity))
 

@@ -201,8 +201,8 @@ class Context(Compartment):
         if self._first_origin is None:
             self._first_origin = origin
         self._origins.add(origin)
-        if self.parent is not None:
-            self.parent.add_origin(origin)
+        # if self.parent is not None:  # why would we recurse on this?
+        #     self.parent.add_origin(origin)
 
     def has_origin(self, origin, strict=False):
         try:

@@ -42,8 +42,7 @@ class LcFlow(LcEntity, Flow):
         return cls(str(u), Name=name, entity_uuid=u, ReferenceQuantity=ref_qty, **kwargs)
 
     def __setitem__(self, key, value):
-        self._catch_context(key, value)
-        self._catch_flowable(key.lower(), value)
+        self._catch_flowable(key.lower(), value) or self._catch_context(key, value)
         super(LcFlow, self).__setitem__(key, value)
 
     @LcEntity.origin.setter
