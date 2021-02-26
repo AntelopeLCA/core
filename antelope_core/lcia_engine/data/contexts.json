@@ -48,7 +48,9 @@
     },
     {
       "name": "low population density, long-term",
-      "synonyms": [],
+      "synonyms": [
+        "low. pop., long-term"
+      ],
       "parent": "to air"
     },
     {
@@ -71,6 +73,7 @@
       "synonyms": [
         "Emissions to urban air close to ground",
         "high population density",
+	"high. pop.",
         "urban air close to ground"
       ],
       "parent": "to air"
@@ -160,12 +163,16 @@
     },
     {
       "name": "ground-",
-      "synonyms": [],
+      "synonyms": [
+        "groundwater"
+      ],
       "parent": "fresh water"
     },
     {
       "name": "ground-, long-term",
-      "synonyms": [],
+      "synonyms": [
+        "groundwater, long-term"
+      ],
       "parent": "fresh water"
     },
     {
@@ -175,6 +182,11 @@
     },
     {
       "name": "river",
+      "synonyms": [],
+      "parent": "fresh water"
+    },
+    {
+      "name": "river, long-term",
       "synonyms": [],
       "parent": "fresh water"
     },
