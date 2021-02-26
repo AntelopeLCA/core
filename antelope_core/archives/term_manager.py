@@ -431,7 +431,7 @@ class TermManager(object):
         # validate that the flow's name looks up proper flowable
         if self._fm[flow.name] is not fb:
             try:
-                flow.name = next(k for k in flow.synonyms if self._fm[k] is fb)
+                flow.name = next(k for k in self._flow_terms(flow) if self._fm[k] is fb)
             except StopIteration:
                 raise AttributeError('None of the synonyms map to flowable [%s]: %s' % (fb, flow))
 

@@ -147,12 +147,17 @@ class IndexImplementation(BasicImplementation, IndexInterface):
         Takes in a list of flows (as flow.name) or flowable terms (str) and generates a sublist of flows that were not
         recognized as synonyms to any local flows.
 
+        Note: This could be made more robust by checking all of a flow's synonyms instead of just its name
+
         :param flows:
         :param kwargs:
         :return:
         """
         for flow in flows:
             try:
-                self._archive.tm.get_flowable()
+                if hasattr(flow, 'name'):
+                    self._archive.tm.get_flowable(flow.name)
+                else:
+                    self._archive.tm.get_flowable(flow)
             except KeyError:
                 yield flow

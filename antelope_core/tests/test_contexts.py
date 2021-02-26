@@ -217,17 +217,28 @@ class DefaultContextsTest(unittest.TestCase):
         # self.assertIn('Elementary Flows', self.cm.disregarded_terms)
     '''
 
-    def test_matching_sublineage(self):
-        self.cm.add_context_hint('dummy.test', '[resources]', 'Resources')
+    def test_matching_sublineage_with_hint(self):
         tgt = self.cm['from ground']
-        self.assertIs(self.cm['dummy.test:[resources]'], tgt.parent)
+
         foreign_cm = ContextManager()
         fx = foreign_cm.add_compartments(('Elementary Flows', 'NETL Coal Elementary Flows', 'NETL Elementary Flows',
                                           ' [Resources] ', 'ground'))
         # context gets its origin added when used in a Characterization or an Exchange- for now we do it manually
         fx.add_origin('dummy.test')
+
+        self.assertIs(self.cm.find_matching_context(fx), self.cm._null_entry)
+
+        self.cm.add_context_hint('dummy.test', '[resources]', 'Resources')
+        self.assertIs(self.cm['dummy.test:[resources]'], tgt.parent)
+
         self.assertIs(self.cm.find_matching_context(fx), tgt)
         self.assertIs(self.cm['dummy.test:ground'], tgt)
+
+    def test_match_tuple(self):
+        res = self.cm['Resources']
+        ing = self.cm['in ground']  # the true name is 'from ground'; 'in ground' is a synonym
+        self.assertIs(ing.parent, res)
+        self.assertIs(self.cm['Resources', 'in ground'], ing)
 
 
 if __name__ == '__main__':
