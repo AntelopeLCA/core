@@ -144,10 +144,10 @@ class IndexImplementation(BasicImplementation, IndexInterface):
     '''
     def unmatched_flows(self, flows, **kwargs):
         """
-        Takes in a list of flows (as flow.name) or flowable terms (str) and generates a sublist of flows that were not
-        recognized as synonyms to any local flows.
+        Takes in a list of flows and generates a sublist of flows that were not recognized as synonyms to any local
+        flows.
 
-        Note: This could be made more robust by checking all of a flow's synonyms instead of just its name
+        Uses TermManager.get_flowable which tries the best of flow.synonyms, flow.name, str(flow)
 
         :param flows:
         :param kwargs:
@@ -155,9 +155,6 @@ class IndexImplementation(BasicImplementation, IndexInterface):
         """
         for flow in flows:
             try:
-                if hasattr(flow, 'name'):
-                    self._archive.tm.get_flowable(flow.name)
-                else:
-                    self._archive.tm.get_flowable(flow)
+                self._archive.tm.get_flowable(flow)
             except KeyError:
                 yield flow

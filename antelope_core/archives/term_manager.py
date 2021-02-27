@@ -19,6 +19,7 @@ Someday, it might make sense to expose it as a massive, central graph db.
 from collections import namedtuple
 
 from synonym_dict import SynonymDict
+from synonym_dict.example_compartments.compartment_manager import InconsistentLineage
 
 from antelope import EntityNotFound
 from ..contexts import ContextManager, Context, NullContext
@@ -274,7 +275,7 @@ class TermManager(object):
             return NullContext
         try:
             _c = self._cm[flow.context]
-        except KeyError:
+        except (KeyError, InconsistentLineage):
             _c = self._add_compartments(flow.context)
         _c.add_origin(flow.origin)
         return _c
@@ -735,12 +736,29 @@ class TermManager(object):
                     yield k
 
     def get_flowable(self, term):
-        return self._fm[term]
+        """
+        Input is a Flow or str
+        :param term:
+        :return:
+        """
+        if hasattr(term, 'synonyms'):
+            terms = list(term.synonyms)
+        elif hasattr(term, 'name'):
+            terms = [term.name]
+        else:
+            terms = [str(term)]
+        for t in terms:
+            try:
+                return self._fm[t]
+            except KeyError:
+                continue
+        raise KeyError(term)
 
     def flowables(self, search=None, origin=None, quantity=None):
         """
         :param origin: used in subclass
         :param search:
+        :param quantity:
         :return:
         """
         if quantity is None:
@@ -783,6 +801,8 @@ class TermManager(object):
         The somewhat awkward structure here is because of the dynamics of returning generators-- using
         try: return self._cm.synonyms(term) except KeyError: ... the KeyError was not getting caught because the
         generator was already returned before iterating.
+
+        contexts are searched first, then quantities, then flowables
         :param term:
         :return:
         """
@@ -791,12 +811,12 @@ class TermManager(object):
             it = self._cm.synonyms(obj)
         except KeyError:
             try:
-                obj = self._fm[term]
-                it = self._fm.synonyms(obj)
+                obj = self._qm[term]
+                it = self._qm.synonyms(obj)
             except KeyError:
                 try:
-                    obj = self._qm[term]
-                    it = self._qm.synonyms(obj)
+                    obj = self._fm[term]
+                    it = self._fm.synonyms(obj)
                 except KeyError:
                     it = ()
         for k in it:
