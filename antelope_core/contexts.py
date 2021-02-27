@@ -39,6 +39,7 @@ The NullContext should be returned by the context manager
 
 from synonym_dict.example_compartments import Compartment, CompartmentManager
 from synonym_dict.example_compartments.compartment import InvalidSubCompartment
+from synonym_dict.example_compartments.compartment_manager import NonSpecificCompartment
 from antelope import valid_sense
 
 ELEMENTARY = {'elementary flows', 'resource', 'emission', 'resources', 'emissions'}
@@ -355,3 +356,9 @@ class ContextManager(CompartmentManager):
         if current is not NullContext:
             self.add_synonym(current, context)
         return current
+
+    def __getitem__(self, item):
+        try:
+            return super(ContextManager, self).__getitem__(item)
+        except NonSpecificCompartment:
+            return NullContext

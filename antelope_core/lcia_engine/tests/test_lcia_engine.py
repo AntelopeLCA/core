@@ -6,6 +6,7 @@ Change Log
 import unittest
 
 from .. import LciaDb
+from ..lcia_engine import NUM_DEFAULT_CONTEXTS
 from ...entities import LcQuantity, LcFlow
 from ...contexts import Context
 
@@ -15,7 +16,7 @@ class LciaEngineTest(unittest.TestCase):
         cls.lcia = LciaDb.new()
 
     def test_0_init(self):
-        self.assertEqual(len([x for x in self.lcia.query.contexts()]), 36)  # changed to 37, surely due to synonym_dict/issues/2
+        self.assertEqual(len([x for x in self.lcia.query.contexts()]), NUM_DEFAULT_CONTEXTS + 1)  # add Intermediate Flows
         self.assertEqual(len([x for x in self.lcia.query.flowables()]), 4005)
         self.assertEqual(len([x for x in self.lcia.query.quantities()]), 25)
         self.assertEqual(len(self.lcia.tm._q_dict), 3)

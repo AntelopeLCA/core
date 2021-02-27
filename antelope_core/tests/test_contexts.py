@@ -2,7 +2,7 @@ import unittest
 from synonym_dict.example_compartments.test_compartments import CompartmentContainer, InconsistentLineage
 from ..contexts import Context, ContextManager, InconsistentSense
 from antelope.interfaces.iindex import InvalidSense
-from ..lcia_engine.lcia_engine import DEFAULT_CONTEXTS
+from ..lcia_engine.lcia_engine import DEFAULT_CONTEXTS, NUM_DEFAULT_CONTEXTS
 
 
 class ContextTest(CompartmentContainer.CompartmentTest):
@@ -99,8 +99,17 @@ class ContextManagerTest(CompartmentContainer.CompartmentManagerTest):
 
     def test_unspecified(self):
         c = self.cm.add_compartments(['emissions', 'water', 'unspecified'])
-        self.assertEqual(c.name, 'to water, unspecified')
-        self.assertEqual(c.parent.name, 'to water')
+        self.assertEqual(c.name, 'to water')
+        self.assertIs(self.cm['to water, unspecified'], c)
+
+    def test_retrieve_nonspecific(self):
+        self.assertIs(self.cm.__getitem__('undefined'), self.cm._null_entry)
+        self.assertIs(self.cm[None], self.cm._null_entry)
+
+    def test_distinct_lineage(self):
+        fc = self.cm.add_compartments(['fuels', 'coal', 'bituminous'])
+        hc = self.cm.add_compartments(['heat', 'coal', 'pulverized'])  #  conflict='attach' is default
+        self.assertIs(fc.parent, hc.parent)  # in a context manager, ambiguous specification can screw you up; 'rename' would avoid this
 
     def test_inconsistent_lineage(self):
         """
@@ -146,6 +155,15 @@ class ContextManagerTest(CompartmentContainer.CompartmentManagerTest):
         self.assertIn(self.cm['Emissions'], self.cm['Elementary flows'].subcompartments)
         self.assertEqual(len(list(self.cm.objects)), 5)
 
+    def test_skip_nonspecific_spec(self):
+        ew = self.cm.add_compartments(['household items', 'furniture'])
+        dw = self.cm.add_compartments(['furniture', 'unspecified', 'droll'])
+        self.assertIs(dw.parent, ew)
+        fw = self.cm.add_compartments(['furniture', 'unspecified', 'serious'])
+        self.assertIs(dw.parent, fw.parent)
+        self.assertIs(self.cm['furniture, unspecified'], ew)
+        self.assertIs(self.cm.__getitem__('unspecified'), self.cm._null_entry)
+
     def test_protected(self):
         """
         Protected terms are 'air', 'water', and 'ground'- if these are added as subcompartments to compartments with
@@ -170,7 +188,7 @@ class DefaultContextsTest(unittest.TestCase):
         self.cm = ContextManager(source_file=DEFAULT_CONTEXTS)
 
     def test_load(self):
-        self.assertEqual(len(self.cm), 35)
+        self.assertEqual(len(self.cm), NUM_DEFAULT_CONTEXTS)
         self.assertSetEqual({k.name for k in self.cm.top_level_compartments}, {'Emissions', 'Resources'})
 
     def test_matching_compartment(self):

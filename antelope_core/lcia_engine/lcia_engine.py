@@ -23,6 +23,8 @@ biogenic = re.compile('(biotic|biogenic|non-fossil|in air)', flags=re.IGNORECASE
 
 
 DEFAULT_CONTEXTS = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data', 'contexts.json'))
+NUM_DEFAULT_CONTEXTS = 36  # added river, long-term
+
 DEFAULT_FLOWABLES = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data', 'flowables.json'))
 
 class QuantityMasqueradeError(Exception):
