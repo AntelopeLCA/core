@@ -136,13 +136,15 @@ class OpenLcaJsonLdArchive(LcArchive):
         """
         returns an olca id for a name or a list of hierarchical names, if one exists
         :param name_or_full_list:
-        :return:
+        :return: either a known context or raise KeyError
         """
-        cx = self.tm[name_or_full_list]
-        if cx is not None:
-            # this will be a Context
+        try:
+            return self._cat_lookup[tuple(name_or_full_list)]
+        except KeyError:
+            cx = self.tm[name_or_full_list]
+            if cx is None:
+                raise KeyError
             return self._cat_lookup[tuple(cx.as_list())]
-        return self._cat_lookup[tuple(name_or_full_list)]
 
     @property
     def openlca_categories(self):
