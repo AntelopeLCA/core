@@ -224,10 +224,19 @@ class EcospoldV1Archive(LcArchive):
             flowlist.append((f, d, v, c))
         return rf, flowlist
 
+    def _try_exts(self, basename):
+        exts = ('.xml', '.XML', '.spold', '.SPOLD')
+        for e in exts:
+            try:
+                return self._get_objectified_entity(basename + e)
+            except FileNotFoundError:
+                pass
+        raise KeyError(basename)
+
     def _create_process(self, ext_ref):
         """
         Extract dataset object from XML file
-        :param ext_ref:
+        :param ext_ref: filename.  various extensions .xml .XML .spold .SPOLD are tried if the supplied name fails.
         :return:
         """
         try_p = self[ext_ref]
@@ -235,7 +244,10 @@ class EcospoldV1Archive(LcArchive):
             p = try_p
             assert p.entity_type == 'process', "Expected process, found %s" % p.entity_type
             return p
-        o = self._get_objectified_entity(ext_ref + '.xml')
+        try:
+            o = self._get_objectified_entity(ext_ref)
+        except FileNotFoundError:
+            o = self._try_exts(ext_ref)
 
         p_meta = o.dataset.metaInformation.processInformation
         n = p_meta.referenceFunction.get('name')
@@ -293,7 +305,7 @@ class EcospoldV1Archive(LcArchive):
             if bool(re.search('Natural gas, combusted in industrial equipment', x)):
                 self.retrieve_or_fetch_entity('Natural gas, combusted in industrial equipment')
         for k in self.list_datasets():
-            self._create_process(os.path.splitext(k)[0])
+            self._create_process(k)
         self.check_counter('quantity')
         self.check_counter('flow')
         self.check_counter('process')
