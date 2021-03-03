@@ -139,18 +139,38 @@ class StaticCatalog(object):
     def _flowables(self):
         return os.path.join(self._rootdir, 'local-flowables.json')
 
-    def _localize_source(self, source):
-        if source is None:
-            return None
-        if source.startswith(self._rootdir):
-            return re.sub('^%s' % self._rootdir, '$CAT_ROOT', source)
-        return source
+    def _localize_source(self, inpath):
+        """
+        Recursive functions are never wrong.
+        :param inpath:
+        :return:
+        """
+        dn, bn = os.path.split(inpath)
+        if dn == inpath:
+            return inpath
+        elif dn == self._rootdir:
+            up = '$CAT_ROOT'
+        else:
+            up = self._localize_source(dn)
+
+        return os.path.join(up, bn)
+
+    def _delocalize_source(self, catpath):
+        dn, bn = os.path.split(catpath)
+        if dn == catpath:
+            return catpath
+        elif dn == '$CAT_ROOT':
+            up = self._rootdir
+        else:
+            up = self._delocalize_source(dn)
+
+        return os.path.join(up, bn)
 
     def abs_path(self, rel_path):
         if os.path.isabs(rel_path):
             return rel_path
-        elif rel_path.startswith('$CAT_ROOT'):
-            return re.sub('^\$CAT_ROOT', self.root, rel_path)
+        elif rel_path.startswith('$CAT_ROOT/'):
+            return self._delocalize_source(rel_path)
         return os.path.join(self.root, rel_path)
 
     @property

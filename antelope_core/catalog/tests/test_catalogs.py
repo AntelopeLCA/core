@@ -73,6 +73,19 @@ class LcCatalogFixture(unittest.TestCase):
         """
         pass
 
+    def test_localize_path(self):
+        """
+        this is not platform-independent, probably
+        :return:
+        """
+        k = os.path.join(self._cat.root, 'blort', 'smog')
+        y = self._cat._localize_source(k)
+        self.assertEqual(y, os.path.join('$CAT_ROOT', 'blort', 'smog'))
+        self.assertEqual(self._cat.abs_path(y), k)
+        ringer = 'c:\\documents and settings\\antelope'
+        self.assertEqual(self._cat._localize_source(ringer), ringer)
+        self.assertEqual(self._cat.abs_path(ringer), os.path.join(self._cat.root, ringer))  # os-dependent behavior is unobservable
+
     def test_add_delete_resource_1(self):
         """
         This adds a resource
