@@ -1,5 +1,5 @@
 import unittest
-from synonym_dict.example_compartments.test_compartments import CompartmentContainer, InconsistentLineage
+from synonym_dict.compartments.test_compartments import CompartmentContainer
 from ..contexts import Context, ContextManager, InconsistentSense
 from antelope.interfaces.iindex import InvalidSense
 from ..lcia_engine.lcia_engine import DEFAULT_CONTEXTS, NUM_DEFAULT_CONTEXTS

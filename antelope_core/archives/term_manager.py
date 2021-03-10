@@ -18,8 +18,7 @@ Someday, it might make sense to expose it as a massive, central graph db.
 """
 from collections import namedtuple
 
-from synonym_dict import SynonymDict
-from synonym_dict.example_compartments.compartment_manager import InconsistentLineage
+from synonym_dict import SynonymDict, InconsistentLineage
 
 from antelope import EntityNotFound
 from ..contexts import ContextManager, Context, NullContext
