@@ -7,8 +7,7 @@ from ..contexts import Context, NullContext
 from .quelled_cf import QuelledCF
 from .clookup import CLookup, SCLookup
 
-from synonym_dict import TermExists
-from synonym_dict.example_flowables import FlowablesDict
+from synonym_dict import FlowablesDict, TermExists  # , InconsistentLineage  # this is not needed
 
 
 '''
