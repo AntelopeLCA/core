@@ -2,7 +2,7 @@ from __future__ import print_function, unicode_literals
 import uuid
 
 from synonym_dict import LowerDict
-from antelope import QuantityRef, convert
+from antelope import QuantityRef, convert, EntityNotFound
 
 from .entities import LcEntity
 
@@ -174,7 +174,10 @@ class LcQuantity(LcEntity):
         if other is self:
             return True
         if isinstance(other, QuantityRef):
-            return other.is_canonical(self)
+            try:
+                return other.is_canonical(self)
+            except EntityNotFound:
+                pass  # other TM doesn't know us: fall through
         return super(LcQuantity, self).__eq__(other)
 
     def __ne__(self, other):

@@ -1,7 +1,9 @@
 from setuptools import setup, find_packages
 
+VERSION = '0.1.6-1'
+
 requires = [
-    "synonym_dict>=0.1.6",
+    "synonym_dict>=0.2.0",
     "antelope_interface>=0.1.4",
     "xlrd==1.2.0",  ## really need to get out of this requirement and into openpyxl or equivalent
     "python-magic>=0.4.18",
@@ -11,6 +13,8 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.1.6 - 2021-03-10 - update to handle new synonym_dict 0.2.0, along with OLCA reference flow matching, ecoinvent 2.2,
+                     a range of other improvements in performance and context handling
 0.1.5 - 2021-02-05 - Updates to NullContext handling, flow term matching, fixed faulty requirements (add requests) 
 0.1.4 - 2021/01/29 - background passing
 0.1.3 - 2021/01/29 - Build passing (without bg tested)
@@ -29,8 +33,6 @@ Version History
 
 0.1.0 - 2020/07/31 - Initial release - JIE paper
 """
-
-VERSION = '0.1.5'
 
 setup(
     name="antelope_core",

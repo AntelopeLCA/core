@@ -27,6 +27,45 @@ E_CFG = {'hints': [  # cover elementary contexts that need directional hints, pl
 ]}  # omitted: kBq, EUR2005, m3*year
 
 
+class Ecoinvent2Base(DataSource):
+
+    _ds_type = 'EcospoldV1Archive'
+
+    def __init__(self, data_root, version, **kwargs):
+        super(Ecoinvent2Base, self).__init__(data_root=data_root, **kwargs)
+        self._version = version
+
+    @property
+    def references(self):
+        """
+        Generates a list of semantic references the DataSource knows how to instantiate
+        :return:
+        """
+        yield 'local.ecoinvent.%s' % self._version
+
+    def interfaces(self, ref):
+        """
+        Generates a list of interfaces known for the given reference. the reference must be in the list of references.
+        :param ref:
+        :return:
+        """
+        for k in ('exchange', 'quantity'):
+            yield k
+
+    @property
+    def source(self):
+        return os.path.join(self.root, self._version, 'datasets')
+
+    def make_resources(self, ref):
+        """
+        Generates an exhaustive sequence of LcResource objects for a given reference.
+        :param ref:
+        :return:
+        """
+        ref = next(self.references)
+        yield self._make_resource(ref, self.source, interfaces=tuple(self.interfaces(ref)), config=E_CFG)
+
+
 class Ecoinvent3Base(DataSource):
 
     _ds_type = 'EcospoldV2Archive'
@@ -55,17 +94,17 @@ class Ecoinvent3Base(DataSource):
             yield x
 
     def interfaces(self, ref):
-        yield 'inventory'
+        yield 'exchange'
 
     def make_resources(self, ref):
         if ref in self._lci_ref:
-            yield self._make_resource(ref, self.lci_source, interfaces='inventory', prefix='datasets', config=E_CFG)
+            yield self._make_resource(ref, self.lci_source, interfaces='exchange', prefix='datasets', config=E_CFG)
         elif ref in self._inv_ref:
             if self._model == 'undefined':
-                yield self._make_resource(ref, self.inv_source, interfaces='inventory', prefix='datasets - public',
+                yield self._make_resource(ref, self.inv_source, interfaces='exchange', prefix='datasets - public',
                                           linked=False, config=E_CFG)
             else:
-                yield self._make_resource(ref, self.inv_source, interfaces='inventory', prefix='datasets', config=E_CFG)
+                yield self._make_resource(ref, self.inv_source, interfaces='exchange', prefix='datasets', config=E_CFG)
 
     def _fname(self, ftype=None):
         precheck = os.path.join(self.root, self._model)
@@ -145,6 +184,8 @@ class EcoinventConfig(DataCollection):
                 for ver, filename in EI_LCIA_SPREADSHEETS.items():
                     if os.path.exists(os.path.join(lcia_path, filename)):
                         yield EcoinventLciaConfig(lcia_path, version=ver)
+            elif v.startswith('2'):
+                yield Ecoinvent2Base(data_root, v, **kwargs)
             else:
                 for m in ECOINVENT_SYS_MODELS:
                     yield Ecoinvent3Base(data_root, v, m, **kwargs)

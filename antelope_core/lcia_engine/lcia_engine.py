@@ -7,8 +7,8 @@ from ..contexts import Context, NullContext
 from .quelled_cf import QuelledCF
 from .clookup import CLookup, SCLookup
 
-from synonym_dict import TermExists
-from synonym_dict.example_flowables import FlowablesDict
+from synonym_dict import TermExists, FlowablesDict
+# from synonym_dict.example_compartments.compartment_manager import InconsistentLineage  # this is not needed
 
 
 '''
@@ -23,6 +23,8 @@ biogenic = re.compile('(biotic|biogenic|non-fossil|in air)', flags=re.IGNORECASE
 
 
 DEFAULT_CONTEXTS = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data', 'contexts.json'))
+NUM_DEFAULT_CONTEXTS = 36  # added river, long-term
+
 DEFAULT_FLOWABLES = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data', 'flowables.json'))
 
 class QuantityMasqueradeError(Exception):
@@ -276,6 +278,7 @@ class LciaEngine(TermManager):
         """
         return self._cm.add_compartments(comps)
 
+    '''  # This doesn't do anything useful
     def add_subcontext(self, context, prefix, sub, origin=None):
         """
 
@@ -291,9 +294,10 @@ class LciaEngine(TermManager):
 
         try:
             cx = self._cm[cx_sub]
-        except KeyError:
+        except (KeyError, InconsistentLineage):
             cx = self.add_context(cx_sub, origin=origin)
         return cx
+    '''
 
     def import_cfs(self, quantity):
         """
@@ -335,8 +339,8 @@ class LciaEngine(TermManager):
         except NoFQEntry:
             return None
         # cfs = ql._context_origin(cx, origin=origin)
-        if fb is self._fm['water']:
-            cx = self.add_subcontext(cx, 'flow', flowable)
+        # if fb is self._fm['water']:  # this is not how to handle this
+        #     cx = self.add_subcontext(cx, 'flow', flowable)
         cfs = ql.find(cx, dist=0, origin=origin)  # sliiiiightly slower but much better readability
         if len(cfs) > 0:
             if len(cfs) > 1:  # can only happen if qq's origin is None ??
@@ -468,11 +472,13 @@ class LciaEngine(TermManager):
             fb = self._fm[flowable]
         except KeyError:
             return
+        '''  # this does not do anything helpful
         if fb == self._fm['Water']:
             try:
-                context = self._cm[flowable]
+                context = self._cm['flow-%s' % flowable]
             except KeyError:
                 pass
+        '''
         for k in super(LciaEngine, self).factors_for_flowable(flowable, quantity=quantity, context=context, **kwargs):
             if self._quell_co2(flowable, context):
                 yield QuelledCF.from_cf(k, flowable=self._bio_co2)

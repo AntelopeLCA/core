@@ -71,7 +71,7 @@ class UsLciTestContainer(object):
                 self.assertEqual(ar.count_by_type(k), self._initial_count[i])
 
         def test_10_index(self):
-            inx_ref = cat.index_ref(self.reference)
+            inx_ref = cat.index_ref(self.reference, force=True)
             self.assertTrue(inx_ref.startswith(self.inx_reference))
             self.assertIn(inx_ref, cat.references)
 

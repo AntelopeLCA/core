@@ -137,8 +137,10 @@
       "parent": "Emissions"
     },
     {
-      "name": "Emissions to water, unspecified (long-term)",
-      "synonyms": [],
+      "name": "to water, long-term",
+      "synonyms": [
+        "Emissions to water, unspecified (long-term)"
+      ],
       "parent": "to water"
     },
     {
@@ -152,7 +154,8 @@
         "Other emissions to fresh water",
         "Particles to fresh water",
         "Radioactive emissions to fresh water",
-        "freshwater"
+        "freshwater",
+        "to fresh water"
       ],
       "parent": "to water"
     },
@@ -164,14 +167,18 @@
     {
       "name": "ground-",
       "synonyms": [
-        "groundwater"
+        "groundwater",
+        "ground water"
       ],
       "parent": "fresh water"
     },
     {
       "name": "ground-, long-term",
       "synonyms": [
-        "groundwater, long-term"
+        "groundwater, long-term",
+        "groundwater, long term",
+        "ground water, long-term",
+        "ground water, long term"
       ],
       "parent": "fresh water"
     },
@@ -187,7 +194,9 @@
     },
     {
       "name": "river, long-term",
-      "synonyms": [],
+      "synonyms": [
+        "river, long term"
+      ],
       "parent": "fresh water"
     },
     {
