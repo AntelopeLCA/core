@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 requires = [
-    "synonym_dict>=0.1.6",
+    "synonym_dict>=0.2.0",
     "antelope_interface>=0.1.4",
     "xlrd==1.2.0",  ## really need to get out of this requirement and into openpyxl or equivalent
     "python-magic>=0.4.18",
