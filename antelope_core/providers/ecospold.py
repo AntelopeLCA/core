@@ -225,7 +225,7 @@ class EcospoldV1Archive(LcArchive):
         return rf, flowlist
 
     def _try_exts(self, basename):
-        exts = ('.xml', '.XML', '.spold', '.SPOLD')
+        exts = ('', '.xml', '.XML', '.spold', '.SPOLD')
         for e in exts:
             try:
                 return self._get_objectified_entity(basename + e)
@@ -233,21 +233,24 @@ class EcospoldV1Archive(LcArchive):
                 pass
         raise KeyError(basename)
 
-    def _create_process(self, ext_ref):
+    def _create_process(self, filename):
         """
         Extract dataset object from XML file
-        :param ext_ref: filename.  various extensions .xml .XML .spold .SPOLD are tried if the supplied name fails.
+        :param filename: filename with or without extension.  various extensions .xml .XML .spold .SPOLD are tried
+        if the supplied name fails.
+        external_ref should not have file extension.
         :return:
         """
+        '''
+        first sanitize the input
+        '''
+        ext_ref, _x = os.path.splitext(filename)
         try_p = self[ext_ref]
         if try_p is not None:
             p = try_p
             assert p.entity_type == 'process', "Expected process, found %s" % p.entity_type
             return p
-        try:
-            o = self._get_objectified_entity(ext_ref)
-        except FileNotFoundError:
-            o = self._try_exts(ext_ref)
+        o = self._try_exts(filename)
 
         p_meta = o.dataset.metaInformation.processInformation
         n = p_meta.referenceFunction.get('name')
