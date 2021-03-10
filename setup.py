@@ -1,5 +1,7 @@
 from setuptools import setup, find_packages
 
+VERSION = '0.1.6'
+
 requires = [
     "synonym_dict>=0.2.0",
     "antelope_interface>=0.1.4",
@@ -29,8 +31,6 @@ Version History
 
 0.1.0 - 2020/07/31 - Initial release - JIE paper
 """
-
-VERSION = '0.1.5'
 
 setup(
     name="antelope_core",
