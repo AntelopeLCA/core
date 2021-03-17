@@ -94,6 +94,9 @@ class LcFlow(LcEntity, Flow):
         return quantity.characterize(flowable, self.reference_entity, value, context=context, origin=origin,
                                      location=location, **kwargs)
 
+    def get_context(self):
+        return self.context
+
     def cf(self, quantity, **kwargs):
         return quantity.cf(self, **kwargs)
 

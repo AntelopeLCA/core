@@ -140,6 +140,8 @@ class LciaEngine(TermManager):
         except KeyError:
             if isinstance(item, Context):
                 return self._cm.find_matching_context(item)
+            elif isinstance(item, tuple) and len(item) > 1:
+                return self.__getitem__(item[1:])
             return NullContext
 
     def apply_hints(self, names, hints):

@@ -273,7 +273,7 @@ class TermManager(object):
         if not hasattr(flow, 'context'):
             return NullContext
         try:
-            _c = self._cm[flow.context]
+            _c = self._cm[flow.get_context()]
         except (KeyError, InconsistentLineage):
             _c = self._add_compartments(flow.context)
         _c.add_origin(flow.origin)
