@@ -185,7 +185,7 @@ class LciaEngine(TermManager):
         synonym = str(synonym).strip()
         try:
             ent = self._fm[existing_term]
-            self._fm.add_synonym(ent, synonym)
+            self._add_to_existing_flowable(ent, (synonym,))
         except KeyError:
             try:
                 ent = self._qm[existing_term]
@@ -203,6 +203,19 @@ class LciaEngine(TermManager):
         :return:
         """
         return flow.synonyms
+
+    def _add_to_existing_flowable(self, fb, new_terms):
+        """
+        Harvest biogenic co2 synonyms (not worth correcting for other biogenic substances??)
+        :param fb:
+        :param new_terms:
+        :return:
+        """
+        biog = ('124-38-9' in fb)
+        for term in new_terms:
+            self._fm.add_synonym(fb, term)
+            if biog and bool(biogenic.search(term)):
+                self._bio_co2.add_term(term)  # ensure that bio term is a biogenic synonym
 
     def _add_flow_terms(self, flow, merge_strategy=None):
         """
@@ -224,7 +237,6 @@ class LciaEngine(TermManager):
             except StopIteration:
                 # no biogenic terms
                 return fb
-            self._bio_co2.add_term(bio)  # ensure that bio term is a biogenic synonym
             flow.name = bio  # ensure that flow's name shows up with that term
             self._fb_by_origin[flow.origin].add(bio)
         return fb
