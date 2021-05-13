@@ -651,18 +651,17 @@ class LciaResult(object):
                         totals[d.factor, d.exchange.direction, d.exchange.termination].append(d.exchange)
 
         for k, l in totals.items():
-            if len(l) == 0:
-                continue
             factor, dirn, term = k
-            name = '; '.join([factor.flowable, str(term or factor.context)])
-            flat.add_component(name)
-            exch = ExchangeValue(l[0].process, l[0].flow, dirn,
-                                 value=sum(x.value for x in l) * _apply_scale,
-                                 termination=term)
-            flat.add_score(name, exch, factor)
+            for x in l:
+                name = '; '.join([x.flow.name, str(term or factor.context)])
+                flat.add_component(name)
+                exch = ExchangeValue(x.process, x.flow, dirn,
+                                     value=x.value * _apply_scale,
+                                     termination=term)
+                flat.add_score(name, exch, factor)
 
         scaled_total = self.total() * _apply_scale
-        if not isclose(scaled_total, flat.total(), rel_tol=1e-10):
+        if not isclose(scaled_total, flat.total(), rel_tol=1e-10):  # this is in lieu of testing, obviously
             print(' LciaResult: %10.4g' % scaled_total)
             print('Flat result: %10.4g' % flat.total())
             print('Difference: %10.4g @ %10.4g' % (flat.total() - scaled_total, _apply_scale))
