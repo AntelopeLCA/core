@@ -1,10 +1,21 @@
+try:
+    import xlrd
+except ImportError:
+    xlrd = False
+
+try:
+    import openpyxl
+except ImportError:
+    openpyxl = False
+
+
 class XlDict(object):
     """
     wrapper class for xlrd that exposes a simple pandas-like interface to access tabular spreadsheet data with iterrows.
     """
     @classmethod
-    def from_sheetname(cls, workbook, sheetname):
-        return cls(workbook.sheet_by_name(sheetname))
+    def from_sheetname(cls, workbook, sheetname, **kwargs):
+        return cls(workbook.sheet_by_name(sheetname), **kwargs)
 
     def __init__(self, sheet, nulls=None):
         """
@@ -32,13 +43,20 @@ class XlDict(object):
     def nulls(self, value):
         self._nulls = value
 
+    def _row_gen(self):
+        """
+        A method that generates rows as iterables
+        :return:
+        """
+        return self._sheet.get_rows()
+
     def iterrows(self):
         """
         Using the first row as a list of headers, yields a dict for each subsequent row using the header names as keys.
         returning index, row for pandas compatibility
         :return:
         """
-        _gen = self._sheet.get_rows()
+        _gen = self._row_gen()
         # grab first row
         d = dict((v.value, k) for k, v in enumerate(next(_gen)))
         index = 0
@@ -62,3 +80,37 @@ class XlDict(object):
         for index, row in self.iterrows():
             units.add(row[unitname])
         return units
+
+
+class XlsxDict(XlDict):
+    """
+    Compatibility adapter to use openpyxl spreadsheets instead
+
+    """
+    @classmethod
+    def from_sheetname(cls, workbook, sheetname, **kwargs):
+        return cls(workbook[sheetname], **kwargs)
+
+    def _row_gen(self):
+        return self._sheet.iter_rows()
+
+
+def xl_dict(file, sheetname, **kwargs):
+    f = []
+    if xlrd:
+        try:
+            wb = xlrd.open_workbook(file)
+            return XlDict.from_sheetname(wb, sheetname, **kwargs)
+        except AttributeError:
+            f.append('xlrd')
+    if openpyxl:
+        try:
+            wb = openpyxl.load_workbook(file)
+            return XlsxDict.from_sheetname(wb, sheetname, **kwargs)
+        except TypeError:
+            f.append('openpyxl')
+    if len(f) == 0:
+        raise ImportError('Unable to import any excel file readers')
+    else:
+        raise TypeError('%s failed to open file' % ', '.join(f))
+

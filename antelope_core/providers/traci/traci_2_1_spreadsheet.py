@@ -12,8 +12,7 @@ On that topic, it is simply foolhardy to try to build a version-agnostic provide
 versions (as is the case with TRACI)
 """
 
-import xlrd
-from ..xl_dict import XlDict
+from ..xl_dict import xl_dict
 from ...archives import BasicArchive
 from ...entities import LcQuantity, LcFlow
 from ...characterizations import DuplicateCharacterizationError
@@ -27,6 +26,10 @@ def transform_string_cas(string_cas):
     return int(''.join([x for x in filter(lambda y: y != '-', string_cas)]))
 
 
+class EmptyRow(Exception):
+    pass
+
+
 class Traci21Factors(BasicArchive):
     _ns_uuid_required = True
 
@@ -36,11 +39,9 @@ class Traci21Factors(BasicArchive):
         super(Traci21Factors, self).__init__(source, ref=ref, ns_uuid=ns_uuid, **kwargs)
 
         print('Loading workbook %s' % self.source)
-        self._xl = xlrd.open_workbook(self.source)
-
         self._serialize_dict['sheet_name'] = sheet_name
 
-        self._rows = XlDict.from_sheetname(self._xl, sheet_name)
+        self._rows = xl_dict(self.source, sheet_name)
 
         self._methods = dict()  # store column-to-method mapping
         self._l_f = set()  # track which flows are loaded
@@ -91,7 +92,12 @@ class Traci21Factors(BasicArchive):
         return None
 
     def _create_flow(self, row):
-        ext_ref = row['Substance Name'].lower()  # self._flow_key(flowable, compartment)
+        try:
+            ext_ref = row['Substance Name'].lower()  # self._flow_key(flowable, compartment)
+        except AttributeError:
+            raise EmptyRow
+        if ext_ref == '':
+            raise EmptyRow
         f = self[ext_ref]
         if f is None:
             cas = transform_numeric_cas(row['Formatted CAS #'])
@@ -101,7 +107,10 @@ class Traci21Factors(BasicArchive):
         return f
 
     def _add_flowable(self, row):
-        flow = self._create_flow(row)
+        try:
+            flow = self._create_flow(row)
+        except EmptyRow:
+            return
         if flow.name in self._l_f:
             return
 
@@ -109,7 +118,7 @@ class Traci21Factors(BasicArchive):
             q = self.check_methods(col)
             try:
                 cf = float(row[col])
-            except ValueError:
+            except (ValueError, TypeError):
                 continue
             if cf == 0.0:
                 continue
@@ -127,11 +136,14 @@ class Traci21Factors(BasicArchive):
                 cf = row[col]
                 try:
                     cf = float(cf)
-                except ValueError:
+                except (ValueError, TypeError):
                     continue
                 if cf == 0.0:
                     continue
-                flow = self._create_flow(row)
+                try:
+                    flow = self._create_flow(row)
+                except EmptyRow:
+                    continue
                 self._char_from_flow_compartment_method(flow, comp, method, cf)
         self._l_c.add(col)
 
