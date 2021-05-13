@@ -72,8 +72,10 @@ class FrozenElementary(Exception):
 
 
 def _dir_mod(arg, sense):
-    mod = {'Source': 'from ', 'Sink': 'to ', None: ''}[sense]
     if arg.lower() in PROTECTED:
+        if sense is None:
+            raise ProtectedTerm(arg)
+        mod = {'Source': 'from ', 'Sink': 'to '}[sense]
         arg = '%s%s' % (mod, arg)
     return arg
 
@@ -295,9 +297,11 @@ class ContextManager(CompartmentManager):
                 return super(ContextManager, self).add_compartments(comps, conflict='attach')
             except (FrozenElementary, InvalidSubCompartment, InconsistentSense):
                 return super(ContextManager, self).add_compartments(comps, conflict='rename')
+            """
             except ProtectedTerm:
                 print('Protected Term! %s' % comps)
                 return super(ContextManager, self).add_compartments(comps, conflict='rename')
+            """
 
     '''
     def add_lineage(self, lineage, parent=None):
@@ -318,6 +322,11 @@ class ContextManager(CompartmentManager):
             parent = new
         return new
     '''
+
+    def _add_but_not_protected(self, entry, context):
+        self.add_synonym(entry, context.fullname)
+        if context.name.lower() not in PROTECTED:
+            self.add_synonym(entry, context.name)
 
     def find_matching_context(self, context):
         if context.name == context.fullname:
@@ -341,23 +350,30 @@ class ContextManager(CompartmentManager):
                     current = next(self._gen_matching_entries(this, None))
                 except StopIteration:
                     continue
+                except ProtectedTerm:
+                    continue
                 if current is NullContext:
                     continue
-                self.add_synonym(current, this.fullname)
+                self._add_but_not_protected(current, this)
             else:
                 try:
                     nxt = next(k for k in self._gen_matching_entries(this, current.sense)
                                if k.is_subcompartment(current))
-                    self.add_synonym(nxt, this.fullname)
+                    self._add_but_not_protected(nxt, this)
                     current = nxt
                 except StopIteration:
-                    self.add_synonym(current, this.fullname)
+                    self._add_but_not_protected(current, this)
         if current is not NullContext:
-            self.add_synonym(current, context)
+            self._add_but_not_protected(current, context)
         return current
 
     def __getitem__(self, item):
         try:
+            if isinstance(item, Context):
+                try:
+                    return super(ContextManager, self).__getitem__(item.fullname)
+                except (NonSpecificCompartment, KeyError):
+                    pass
             return super(ContextManager, self).__getitem__(item)
         except NonSpecificCompartment:
             return NullContext

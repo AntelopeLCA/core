@@ -1,6 +1,6 @@
 import unittest
 from synonym_dict.compartments.test_compartments import CompartmentContainer
-from ..contexts import Context, ContextManager, InconsistentSense
+from ..contexts import Context, ContextManager, InconsistentSense, ProtectedTerm
 from antelope.interfaces.iindex import InvalidSense
 from ..lcia_engine.lcia_engine import DEFAULT_CONTEXTS, NUM_DEFAULT_CONTEXTS
 
@@ -168,9 +168,24 @@ class ContextManagerTest(CompartmentContainer.CompartmentManagerTest):
         """
         Protected terms are 'air', 'water', and 'ground'- if these are added as subcompartments to compartments with
         non-None sense, they are modified to e.g. 'to air' or 'from air' appropriate to the sense.
+
+        We cannot actually enforce ProtectedTerm because it breaks all data sources- but we should not add protected
+        synonyms to existing contexts. thus they will be directionless- unless a hint is supplied
+        Really these are disallowed on *Public Query* so they should not be used but do not need to be prevented
         :return:
         """
-        pass
+        # with self.assertRaises(ProtectedTerm):
+        #     self.cm.add_compartments(['air'])
+        k = self.cm.add_compartments(('emissions', 'to air'))
+        self.cm.add_synonym(k, 'secret.data:air')
+        g = Context('air')
+        with self.assertRaises(KeyError):  # or ProtectedTerm??
+            self.cm.__getitem__(g)
+        g.add_origin('secret.data')
+        self.assertIs(self.cm.find_matching_context(g), k)
+        self.assertIs(self.cm[g], k)
+        with self.assertRaises(KeyError):
+            self.cm.__getitem__('air')
 
     def test_as_list(self):
         r_l = ['elementary flows', 'resources', 'water', 'subterranean']
