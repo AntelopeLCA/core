@@ -1,7 +1,7 @@
 import re
 
 from .basic import BasicImplementation
-from antelope import BackgroundInterface, ProductFlow, ExteriorFlow, EntityNotFound, comp_dir
+from antelope import BackgroundInterface, ExteriorFlow, EntityNotFound, comp_dir  # , ProductFlow
 from antelope_core.contexts import Context
 
 
@@ -70,7 +70,7 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
             for rx in p.references():
                 if search_skip(p, search):
                     continue
-                yield ProductFlow(self._archive.ref, rx.flow, rx.direction, p, None)
+                yield rx  # ProductFlow(self._archive.ref, rx.flow, rx.direction, p, None) don't need this
 
     def exterior_flows(self, direction=None, search=None, **kwargs):
         """

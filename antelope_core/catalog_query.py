@@ -28,6 +28,10 @@ class BackgroundSetup(Exception):
     pass
 
 
+class BadInterfaceSpec(Exception):
+    pass
+
+
 class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface): # , ForegroundInterface):
     """
     A CatalogQuery is a class that performs any supported query against a supplied catalog.
@@ -46,6 +50,18 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
     All queries accept the "strict=" keyword: set to True to only accept exact matches.
     """
     _recursing = False
+    _dbg = False
+
+    def on_debug(self):
+        self._dbg = True
+
+    def off_debug(self):
+        self._dbg = False
+
+    def _debug(self, *args):
+        if self._dbg:
+            print(*args)
+
     def __init__(self, origin, catalog=None, debug=False):
         self._origin = origin
         self._catalog = catalog
@@ -108,6 +124,25 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             self._iface_cache[itype] = i  # only cache the most recent iface
             yield i
 
+    def _perform_query(self, itype, attrname, exc, *args, strict=False, **kwargs):
+        if itype is None:
+            raise BadInterfaceSpec(itype, attrname)  # itype = 'basic'  # fetch, get properties, uuid, reference
+
+        self._debug('Performing %s query, iface %s' % (attrname, itype))
+        try:
+            for iface in self._iface(itype, strict=strict):
+                try:
+                    self._debug('Attempting %s query on iface %s' % (attrname, iface))
+                    result = getattr(iface, attrname)(*args, **kwargs)
+                except exc:  # allow nonimplementations to pass silently
+                    continue
+                if result is not None:  #successful query must return something
+                    return result
+        except NotImplementedError:
+            pass
+
+        raise exc('itype %s required for attribute %s | %s' % (itype, attrname, args))
+
     def resolve(self, itype=INTERFACE_TYPES, strict=False):
         """
         Secure access to all known resources but do not answer any query
@@ -125,7 +160,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         :return:
         """
         if eid not in self._entity_cache:
-            entity = self._perform_query(None, 'get', EntityNotFound, eid,
+            entity = self._perform_query('basic', 'get', EntityNotFound, eid,
                                          **kwargs)
             self._entity_cache[eid] = self.make_ref(entity)
         return self._entity_cache[eid]
@@ -133,7 +168,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
     def get_reference(self, external_ref):
         k = (external_ref, True)
         if k not in self._entity_cache:
-            ref = self._perform_query(None, 'get_reference', EntityNotFound, external_ref)
+            ref = self._perform_query('basic', 'get_reference', EntityNotFound, external_ref)
             # quantity: unit
             # flow: quantity
             # process: list

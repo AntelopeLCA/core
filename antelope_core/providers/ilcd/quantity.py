@@ -13,15 +13,6 @@ class IlcdQuantityImplementation(QuantityImplementation):
         u = uuid_regex.search(quantity).groups()[0]
         return self._archive.load_lcia_method(u, load_all_flows=False)
 
-    def synonyms(self, item, **kwargs):
-        """
-        Return a list of synonyms for the object -- quantity, flowable, or compartment
-
-        :param item:
-        :return: list of strings
-        """
-        pass
-
     def flowables(self, quantity=None, compartment=None, **kwargs):
         """
         Return a list of flowable strings. Use quantity and compartment parameters to narrow the result
