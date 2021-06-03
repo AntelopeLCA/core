@@ -18,6 +18,8 @@ conflict_file = '/dummy/conflict/file'
 test_ref = 'test.basic'
 test_conflict = 'test.conflict'
 
+test_elaborated_ref = 'test.basic.my.sub.version'
+
 archive_json = {
   "@context": "https://bkuczenski.github.io/lca-tools-datafiles/context.jsonld",
   "catalogNames": {
@@ -66,16 +68,29 @@ class BasicArchiveTestCase(unittest.TestCase):
     def test_conflicting_ref(self):
         """
         It's an error to instantiate an existing source with a new reference (why? because the source should know its
-        own reference).  If it is desired to load a source without knowing its reference, use BasicArchive.from_file()
+        own reference?).  If it is desired to load a source without knowing its reference, use BasicArchive.from_file()
         :return:
         """
         a = BasicArchive(WORKING_FILE, ref=test_conflict)
         with self.assertRaises(SourceAlreadyKnown):
             a.load_from_dict(archive_json)
 
+    def test_generic_ref(self):
+        """
+        If a static resource is created with a fully-qualified ref, (base.ref.index.YYYYMMDD) and then it is later
+        instantiated with a less-specific ref (base.ref), that escalation should be permitted (i.e. when the source
+        file with the embedded ref is loaded, the more specific ref should be ignored)
+        :return:
+        """
+        a = BasicArchive(WORKING_FILE, ref=test_ref)
+        with self.assertRaises(SourceAlreadyKnown):
+            a.add_new_source(test_conflict, WORKING_FILE)
+        a.add_new_source(test_elaborated_ref, WORKING_FILE)
+
     def test_conflicting_src(self):
         """
         On the other hand, one ref is allowed to have multiple sources so this should not cause any issues
+        why are we allowed to mix sources in the same ref? because a ref is a data synthesis.
         :return:
         """
         a = BasicArchive(conflict_file, ref=test_ref)

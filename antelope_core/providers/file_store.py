@@ -1,7 +1,10 @@
 """
 This is the oldest code in Antelope (and among my first ever pieces of python code).  Please don't judge.
 
-Written to access ILCD and ecospold archives in either zipped or unzipped format and GaBi web databases equally
+Written to access ILCD and ecospold archives in either zipped or unzipped or 7z format and GaBi web databases equally
+
+Unfortunately, the 7z format has some kind of bug where time per read grows linearly with the number of reads.
+I should report it.
 """
 
 from __future__ import print_function, unicode_literals

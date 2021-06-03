@@ -1,3 +1,4 @@
+from antelope import IndexRequired
 from .catalog import StaticCatalog
 from ..archives import REF_QTYS, archive_from_json
 from ..lc_resource import LcResource, download_file
@@ -223,8 +224,12 @@ class LcCatalog(StaticCatalog):
         :param strict: [True] whether to be strict
         :return:
         """
-        source = self._find_single_source(origin, interface, source=source, strict=strict)
-        return self._index_source(source, priority, force=force)
+        try:
+            ix = next(self.gen_interfaces(origin, itype='index', strict=False))
+            return ix.origin
+        except StopIteration:
+            source = self._find_single_source(origin, interface, source=source, strict=strict)
+            return self._index_source(source, priority, force=force)
 
     def cache_ref(self, origin, interface=None, source=None, static=False):
         source = self._find_single_source(origin, interface, source=source)
