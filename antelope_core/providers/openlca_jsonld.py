@@ -31,6 +31,10 @@ class OpenLcaException(Exception):
     pass
 
 
+class _NotAnRx(Exception):
+    pass
+
+
 SKIP_DURING_INDEX = ('context.json', 'meta.info')
 
 
@@ -273,10 +277,15 @@ class OpenLcaJsonLdArchive(LcArchive):
         is_ref = ex.pop('quantitativeReference', False)
         if is_ref:
             term = None
-        elif 'defaultProvider' in ex:
-            term = ex['defaultProvider']['@id']
         else:
-            term = self.tm[flow.context]
+            cx = self.tm[flow.context]
+            if cx.elementary:
+                term = cx
+            else:
+                if 'defaultProvider' in ex:
+                    term = ex['defaultProvider']['@id']
+                else:
+                    term = cx
 
         exch = p.add_exchange(flow, dirn, value=value, termination=term, add_dups=True)
         if is_ref:
@@ -286,6 +295,33 @@ class OpenLcaJsonLdArchive(LcArchive):
             exch.comment = ex['description']
 
         return exch
+
+    def _get_rx(self, p, flow_ref):
+        rf = self.retrieve_or_fetch_entity(flow_ref)
+        try:
+            ft = rf['flowType']
+            if ft == 'ELEMENTARY_FLOW':
+                print('%s: Skipping allocation factor for elementary flow %s' % (p.external_ref, rf.external_ref))
+                raise _NotAnRx
+        except KeyError:
+            ft = 'PRODUCT_FLOW'  # more common ??
+        dr = {'PRODUCT_FLOW': 'Output',
+              'WASTE_FLOW': 'Input'}[ft]
+        try:
+            rx = p.reference(rf)
+        except NoExchangeFound:
+            # implicit trickery with schema: reference flows MUST be outputs for products, inputs for wastes
+            rx_cands = list(_x for _x in p.exchange_values(rf, direction=dr) if _x.type in ('context', 'cutoff'))
+            if len(rx_cands) == 0:
+                print('%s: Unable to find allocatable exchange for %s' % (p.external_ref, rf.external_ref))
+                raise _NotAnRx
+            elif len(rx_cands) > 1:
+                raise AmbiguousReferenceError('%s: Multiple flows with ID %s' % (p.external_ref, rf.external_ref))
+            else:
+                rx = rx_cands[0]
+            p.set_reference(rx.flow, rx.direction)
+
+        return rx
 
     def _apply_olca_allocation(self, p, alloc=None):
         """
@@ -310,31 +346,10 @@ class OpenLcaJsonLdArchive(LcArchive):
         _causal_msg = True
         stored_alloc = []
         for af in alloc:
-            rf = self.retrieve_or_fetch_entity(af['product']['@id'])
             try:
-                rx = p.reference(rf)
-            except NoExchangeFound:
-                # implicit trickery with schema: reference flows MUST be outputs for products, inputs for wastes
-                try:
-                    ft = rf['flowType']
-                    if ft == 'ELEMENTARY_FLOW':
-                        print('%s: Skipping allocation factor for elementary flow %s' % (p.external_ref, rf.external_ref))
-                        continue
-                except KeyError:
-                    ft = 'PRODUCT_FLOW'  # more common ??
-                dr = {'PRODUCT_FLOW': 'Output',
-                      'WASTE_FLOW': 'Input'}[ft]
-                rx_cands = list(_x for _x in p.exchange_values(rf, direction=dr) if _x.type in ('context', 'cutoff'))
-                if len(rx_cands) == 0:
-                    print('%s: Unable to find allocatable exchange for %s' % (p.external_ref, rf.external_ref))
-                    continue
-                elif len(rx_cands) > 1:
-                    raise AmbiguousReferenceError('%s: Multiple flows with ID %s' % (p.external_ref, rf.external_ref))
-                else:
-                    rx = rx_cands[0]
-                p.set_reference(rf, dr)
-                assert rx.is_reference
-
+                rx = self._get_rx(p, af['product']['@id'])
+            except _NotAnRx:
+                continue
             if af['allocationType'] == 'CAUSAL_ALLOCATION':
                 if af['value'] == 0:
                     # Keep 0-allocation factors for non-causal
@@ -365,7 +380,12 @@ class OpenLcaJsonLdArchive(LcArchive):
                 v = af['value'] / rx.value
                 stored_alloc.append(af)
 
-                self.tm.add_characterization(rf.link, rf.reference_entity, q, v, context=rf.context, origin=self.ref)
+                if v != 0:
+                    if not rx.is_reference:
+                        p.set_reference(rx.flow, rx.direction)
+
+                self.tm.add_characterization(rx.flow.link, rx.flow.reference_entity, q, v,
+                                             context=rx.flow.context, origin=self.ref)
                 #f.add_characterization(q, value=v)
 
         if dm != 'NO_ALLOCATION':

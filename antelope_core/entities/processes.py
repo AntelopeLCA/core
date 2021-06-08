@@ -12,6 +12,10 @@ from .entities import LcEntity
 from ..exchanges import ExchangeValue, DuplicateExchangeError, AmbiguousReferenceError
 
 
+class ZeroAllocation(Exception):
+    pass
+
+
 class MissingAllocation(Exception):
     pass
 
@@ -433,8 +437,7 @@ class LcProcess(LcEntity):
 
         total = sum([v for v in mags.values()])
         if total == 0:
-            print('%s: zero total found; not setting allocation by qty %s' % (self.external_ref, quantity))
-            return
+            raise ZeroAllocation('%s: zero total found; not setting allocation by qty %s' % (self.external_ref, quantity))
 
         self._alloc_by_quantity = quantity
         self._alloc_sum = total

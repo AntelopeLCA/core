@@ -6,7 +6,7 @@ from __future__ import print_function, unicode_literals
 
 from antelope import LcQuery
 
-from ..entities import LcProcess
+from ..entities import LcProcess, ZeroAllocation
 from ..implementations import ExchangeImplementation, BackgroundImplementation, LcConfigureImplementation
 from .basic_archive import BasicArchive, BASIC_ENTITY_TYPES
 
@@ -121,7 +121,11 @@ class LcArchive(BasicArchive):
 
         if a_b_q is not None:
             alloc_q = self[a_b_q['externalId']]  # allocation quantity must be locally present
-            process.allocate_by_quantity(alloc_q)
+            if alloc_q is not None:
+                try:
+                    process.allocate_by_quantity(alloc_q)
+                except ZeroAllocation:
+                    pass
 
         return process
 

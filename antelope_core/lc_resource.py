@@ -386,14 +386,21 @@ class LcResource(object):
             j[k] = sorted([list(g) for g in v], key=lambda x: x[0])
         return j
 
-    def serialize(self):
-        j = {
-            "dataSource": self.source,
-            "dataSourceType": self.ds_type,
-            "interfaces": sorted([k for k in self.interfaces]),
-            "priority": self.priority,
-            "static": self.static
-        }
+    def export_config(self):
+        return self._serialize_config()
+
+    def serialize(self, stripped=False):
+        if stripped:
+            j = {"static": self.static,
+                 "priority": self.priority}
+        else:
+            j = {
+                "dataSource": self.source,
+                "dataSourceType": self.ds_type,
+                "interfaces": sorted([k for k in self.interfaces]),
+                "priority": self.priority,
+                "static": self.static
+            }
         j.update(self._args)
         if self.internal:
             j['_internal'] = True
