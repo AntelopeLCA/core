@@ -353,10 +353,14 @@ class LcResource(object):
 
     @config.setter
     def config(self, config_dict):
-        cf = self.archive.make_interface('configure')
-        for cfg, cfgs in config_dict.items():
-            for args in cfgs:
-                cf.check_config(cfg, args)
+        if self.archive is not None:
+            try:
+                cf = self.archive.make_interface('configure')
+                for cfg, cfgs in config_dict.items():
+                    for args in cfgs:
+                        cf.check_config(cfg, args)
+            except InterfaceError:
+                pass
         self._config = config_dict
 
     def satisfies(self, ifaces):
