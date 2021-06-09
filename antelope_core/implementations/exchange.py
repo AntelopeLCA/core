@@ -1,4 +1,4 @@
-from antelope import ExchangeInterface
+from antelope import ExchangeInterface, EntityNotFound
 from .basic import BasicImplementation
 
 
@@ -30,6 +30,8 @@ class ExchangeImplementation(BasicImplementation, ExchangeInterface):
 
     def inventory(self, process, ref_flow=None, scenario=None, **kwargs):
         p = self._archive.retrieve_or_fetch_entity(process)
+        if p is None:
+            raise EntityNotFound(process)
         if p.entity_type == 'process':
             '''
             for x in sorted(p.inventory(ref_flow=ref_flow),

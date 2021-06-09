@@ -38,7 +38,7 @@ uslci_bg = LcResource('test.uslci.allocated', '/data/GitHub/lca-tools-datafiles/
 
 
 test_resource = LcResource('test.basic', basic_archive_src, 'json',
-                           interfaces=READONLY_INTERFACE_TYPES)
+                           interfaces=('basic', 'exchange'))
 
 
 class LcCatalogFixture(unittest.TestCase):

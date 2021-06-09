@@ -244,13 +244,17 @@ class EcospoldV1Archive(LcArchive):
         '''
         first sanitize the input
         '''
-        ext_ref, _x = os.path.splitext(filename)
+        if filename.lower().endswith('.xml') or filename.lower().endswith('.spold'):
+            ext_ref, ext = os.path.splitext(filename)
+        else:
+            ext_ref = filename
         try_p = self[ext_ref]
         if try_p is not None:
             p = try_p
             assert p.entity_type == 'process', "Expected process, found %s" % p.entity_type
             return p
-        o = self._try_exts(filename)
+
+        o = self._try_exts(ext_ref)
 
         p_meta = o.dataset.metaInformation.processInformation
         n = p_meta.referenceFunction.get('name')
