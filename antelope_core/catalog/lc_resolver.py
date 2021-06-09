@@ -12,7 +12,7 @@ class ResourceNotFound(Exception):
 
 class LcCatalogResolver(object):
     """
-    The resolver maintains a collection of resources, and translates semantic references into physical archives.
+    The resolver maintains a collection of resources, and translates semantic origins into physical archives.
     The Catalog supplies a request and a level requirement
      It also acts as a factory for those resources, so when a request is provided, it is answered with a live archive.
 
@@ -30,9 +30,9 @@ class LcCatalogResolver(object):
         self.index_resources()
 
     @property
-    def references(self):
+    def origins(self):
         """
-        Generates pairs: reference, list of supported interfaces
+        Generates pairs: origin, list of supported interfaces
         :return:
         """
         for k, v in self._resources.items():
@@ -51,19 +51,19 @@ class LcCatalogResolver(object):
                     seen.add(res.source)
                     yield res.source
 
-    def _update_semantic_ref(self, ref):
-        path = os.path.join(self._resource_dir, ref)
+    def _update_semantic_ref(self, org):
+        path = os.path.join(self._resource_dir, org)
         try:
             resources = LcResource.from_json(path)
         except json.JSONDecodeError:
             print('Skipping Invalid resource file %s' % path)
             # os.remove(path)
             return
-        self._resources[ref] = resources
+        self._resources[org] = resources
 
     def index_resources(self):
-        for res in os.listdir(self._resource_dir):
-            self._update_semantic_ref(res)
+        for org in os.listdir(self._resource_dir):
+            self._update_semantic_ref(org)
 
     def add_resource(self, resource, store=True):
         """
@@ -78,11 +78,11 @@ class LcCatalogResolver(object):
             return
         if store:
             resource.write_to_file(self._resource_dir)
-        self._resources[resource.reference].append(resource)
+        self._resources[resource.origin].append(resource)
 
     def has_resource(self, resource):
         s = resource.serialize()
-        return any(k.matches(s) for k in self._resources[resource.reference])
+        return any(k.matches(s) for k in self._resources[resource.origin])
 
     def new_resource(self, ref, source, ds_type, store=True, **kwargs):
         new_res = LcResource(ref, source, ds_type, **kwargs)
@@ -90,14 +90,14 @@ class LcCatalogResolver(object):
         return new_res
 
     def delete_resource(self, resource):
-        ref = resource.reference
-        res = self._resources[ref]
+        org = resource.origin
+        res = self._resources[org]
         if resource not in res:
-            raise ResourceNotFound('(ref: %s)' % ref)
+            raise ResourceNotFound('(ref: %s)' % org)
         res.remove(resource)
-        self._write_or_delete_resource_file(ref, res)
+        self._write_or_delete_resource_file(org, res)
         if len(res) == 0:
-            self._resources.pop(ref)
+            self._resources.pop(org)
 
     def known_source(self, source):
         try:
@@ -117,7 +117,7 @@ class LcCatalogResolver(object):
 
     def resolve(self, req, interfaces=None, strict=False):
         """
-        Fuzzy resolver returns all references that match the request and have equal or greater specificity.
+        Fuzzy resolver returns all resources that match the request and have equal or greater specificity.
         'uslci.clean' will match queries for 'uslci' but not for 'uslci.original' or 'uslci.clean.allocated'.
         However, 'uslci.clean.allocated' will match a query for 'uslci.clean'
         :param req:

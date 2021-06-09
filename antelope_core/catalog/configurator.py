@@ -126,7 +126,7 @@ class Configurator(object):
             catalog_root = self.catalog_root
         resource_root = os.path.join(catalog_root, 'resources')
         if assign_ref is None:
-            assign_ref = self._resource.reference
+            assign_ref = self._resource.origin
         self._resource.write_to_file(resource_root, assign_ref, apply_config=self._config)
 
     def check_contexts(self):

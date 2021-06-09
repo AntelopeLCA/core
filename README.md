@@ -248,7 +248,7 @@ After that, you can setup ecoinvent in your catalog from within python:
 
     >>> from antelope_core.data_sources.ecoinvent import EcoinventConfig
     >>> ec = EcoinventConfig('/path/to/Ecoinvent')
-    >>> _=enum(ec.references)
+    >>> _=enum(ec.origins)
      [00] local.ecoinvent.3.7.1.cutoff
      
     >>> ec.register_all_resources(cat)

@@ -14,7 +14,7 @@ class GwpIpcc2007(DataSource):
     _ds_type = 'json'
 
     @property
-    def references(self):
+    def origins(self):
         """
         There's a precedence issue here, becaue the class MUST yield the same reference name as what's encoded in
         the JSON file, but it is wasteful to load the JSON file just to learn the canonical ref.  The "proper" way to
@@ -31,5 +31,5 @@ class GwpIpcc2007(DataSource):
             yield i
 
     def make_resources(self, ref=IPCC_2007_TRACI_REF):
-        if ref in self.references:
+        if ref in self.origins:
             yield self._make_resource(ref, info=gwp_ipcc_2007, interfaces=self.interfaces(), static=True)

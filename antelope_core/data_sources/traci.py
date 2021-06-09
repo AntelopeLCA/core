@@ -26,12 +26,12 @@ class TraciConfig(DataSource):
     _ifaces = ('index', 'quantity')
 
     @property
-    def references(self):
+    def origins(self):
         for k in TRACI_VERSIONS.keys():
             yield '.'.join([self._prefix, k])
 
     def interfaces(self, ref):
-        if ref in self.references:
+        if ref in self.origins:
             for k in self._ifaces:
                 yield k
 

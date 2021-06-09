@@ -38,21 +38,21 @@ class DataSource(object):
         return LcResource(ref, source, ds_type, **kwargs)
 
     def register_all_resources(self, cat):
-        for ref in self.references:
+        for ref in self.origins:
             for res in self.make_resources(ref):
                 cat.add_resource(res)
 
     @property
-    def references(self):
+    def origins(self):
         """
-        Generates a list of semantic references the DataSource knows how to instantiate
+        Generates a list of semantic origins the DataSource knows how to instantiate
         :return:
         """
         raise NotImplementedError
 
     def interfaces(self, ref):
         """
-        Generates a list of interfaces known for the given reference. the reference must be in the list of references.
+        Generates a list of interfaces known for the given reference. the reference must be in the list of origins.
         :param ref:
         :return:
         """
@@ -111,13 +111,13 @@ class DataCollection(DataSource):
         super(DataCollection, self).__init__(data_root, **kwargs)
         self._sources = dict()
         for b in self.factory(data_root, **kwargs):
-            for r in b.references:
+            for r in b.origins:
                 if r in self._sources:
                     raise KeyError('Duplicate reference %s' % r)
                 self._sources[r] = b
 
     @property
-    def references(self):
+    def origins(self):
         for s in self._sources.keys():
             yield s
 

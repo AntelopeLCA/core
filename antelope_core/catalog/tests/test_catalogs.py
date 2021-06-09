@@ -50,7 +50,7 @@ class LcCatalogFixture(unittest.TestCase):
         cls._cat.add_resource(test_resource)
 
     def test_resolver_index(self):
-        self.assertSetEqual({r for r in self._cat.references}, {'local.qdb', 'test.uslci', 'test.uslci.allocated',
+        self.assertSetEqual({r for r in self._cat.origins}, {'local.qdb', 'test.uslci', 'test.uslci.allocated',
                                                                 'test.basic'})
     @unittest.skip  # this doesn't work at all-- priority (and resolver generally) still need to be tested
     def test_priority(self):
@@ -80,8 +80,8 @@ class LcCatalogFixture(unittest.TestCase):
         """
         r = self._cat.new_resource('test.my.dummy', '/dev/null', 'LcArchive')
         self.assertIn('basic', r.interfaces)
-        self.assertIn('test.my.dummy', self._cat.references)
-        self.assertNotIn('test.my.doofus', self._cat.references)
+        self.assertIn('test.my.dummy', self._cat.origins)
+        self.assertNotIn('test.my.doofus', self._cat.origins)
 
     def test_add_delete_resource_2(self):
         """
@@ -91,8 +91,8 @@ class LcCatalogFixture(unittest.TestCase):
         r = self._cat.get_resource('test.my.dummy')
         self.assertEqual(r.source, '/dev/null')
         self._cat.delete_resource(r)
-        self.assertNotIn('test.my.dummy', self._cat.references)
-        self.assertFalse(os.path.exists(os.path.join(self._cat.resource_dir, r.reference)))
+        self.assertNotIn('test.my.dummy', self._cat.origins)
+        self.assertFalse(os.path.exists(os.path.join(self._cat.resource_dir, r.origin)))
 
     def test_has_resource(self):
         """
@@ -107,8 +107,8 @@ class LcCatalogFixture(unittest.TestCase):
         Tests the procedure of generating and deleting internal resources
         :return:
         """
-        inx = self._cat.index_ref(test_resource.reference)
-        self.assertIn(inx, self._cat.references)  # index ref is known
+        inx = self._cat.index_ref(test_resource.origin)
+        self.assertIn(inx, self._cat.origins)  # index ref is known
         res = self._cat.get_resource(inx)
         self.assertTrue(self._cat.has_resource(res))  # index resource is present
         self.assertTrue(res.source.startswith('$CAT_ROOT'))  # index resource has relative source path

@@ -192,10 +192,10 @@ class EntityStore(object):
         uslci.ecospold/Acetic acid, at plant
 
         Note that the inclusion of embedded whitespace, commas, and other characters indicate that these semantic
-        references are not proper URIs.
+        origins are not proper URIs.
 
         It is hoped that the user community will help develop and maintain a consistent and easily interpreted
-        namespace for semantic references.  If this is done, it should be possible to identify any published entity
+        namespace for semantic origins.  If this is done, it should be possible to identify any published entity
         with a concise reference.
 
         When an entity is first added to an archive, it is assigned that archive's *reference* as its origin, following
@@ -241,7 +241,7 @@ class EntityStore(object):
         if upstream is not None:
             self.set_upstream(upstream)
 
-        self._catalog_names = defaultdict(set)  # this is a place to map semantic references to data sources
+        self._catalog_names = defaultdict(set)  # this is a place to map semantic origins to data sources
         self._add_name(ref, source)
         self._serialize_dict['dataReference'] = ref
 
@@ -251,7 +251,7 @@ class EntityStore(object):
 
     def _add_name(self, ref, source, rewrite=False):
         """
-        A source is not allowed to provide multiple semantic references
+        A source is not allowed to provide multiple semantic origins
         a ref must match the regexp ([A-Za-z0-9_]+(\.[A-Za-z0-9_])*)
         :param ref:
         :param source:
@@ -324,8 +324,8 @@ class EntityStore(object):
         Return a mapping of data source to semantic reference, based on the catalog_names property.  This is used by
         a catalog interface to convert entity origins from physical to semantic.
 
-        If a single data source has multiple semantic references, only the most-downstream one will be kept.  If there
-        are multiple semantic references for the same data source in the same archive, one will be kept at random.
+        If a single data source has multiple semantic origins, only the most-downstream one will be kept.  If there
+        are multiple semantic origins for the same data source in the same archive, one will be kept at random.
         This should be avoided and I should probably test for it when setting catalog_names.
         :return:
         """

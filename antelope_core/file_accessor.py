@@ -1,9 +1,17 @@
 """
+FileAccessor, for standardizing access to antelope files on a filesystem having the following structure:
+
+{DATA ROOT}/[origin]/[interface]/[ds_type]/[source_file]  - source
+{DATA ROOT}/[origin]/[interface]/[ds_type]/config.json    - configuration
+
+A filesystem having this structure will enable automatic registration of resources, taking origin, interface, and
+ds_type from the directory structure and the source file as-discovered.
 
 """
+
 import os
 import json
-from antelope_core import LcResource
+from .lc_resource import LcResource
 
 
 DEFAULT_PRIORITIES = {
@@ -13,7 +21,7 @@ DEFAULT_PRIORITIES = {
 }
 
 
-class AwsFileAccessor(object):
+class FileAccessor(object):
 
     def __init__(self, load_path):
         self._path = os.path.abspath(load_path)  # this has the benefits of collapsing '..' and trimming trailing '/'

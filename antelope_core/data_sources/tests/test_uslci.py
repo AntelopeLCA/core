@@ -63,7 +63,7 @@ class UsLciTestContainer(object):
             return cat.query(self.reference)
 
         def test_00_resources_exist(self):
-            self.assertIn(self.reference, cat.references)
+            self.assertIn(self.reference, cat.origins)
 
         def test_01_initial_count(self):
             ar = cat.get_archive(self.reference, strict=True)
@@ -73,7 +73,7 @@ class UsLciTestContainer(object):
         def test_10_index(self):
             inx_ref = cat.index_ref(self.reference, force=True)
             self.assertTrue(inx_ref.startswith(self.inx_reference))
-            self.assertIn(inx_ref, cat.references)
+            self.assertIn(inx_ref, cat.origins)
 
         def _get_petro(self):
             return next(self.query.processes(Name='petroleum refining, at refinery'))

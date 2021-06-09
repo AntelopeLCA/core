@@ -60,7 +60,7 @@ class LocalCatalog(unittest.TestCase):
         self.assertTrue(os.path.exists(os.path.join(CATALOG_ROOT, 'reference-quantities.json')))
 
     def _check_reference(self, ref):
-        return ref in self._cat.references
+        return ref in self._cat.origins
 
     def _check_interface(self, ref, iface):
         return ':'.join([ref, iface]) in self._cat.interfaces
@@ -75,7 +75,7 @@ class LocalCatalog(unittest.TestCase):
         """
         # k is resource signifier, s is DataSource subclass
         for k, s in self._configs.items():
-            for ref in s.references:
+            for ref in s.origins:
                 if not self._check_reference(ref):
                     for res in s.make_resources(ref):
                         self._cat.add_resource(res)
@@ -87,7 +87,7 @@ class LocalCatalog(unittest.TestCase):
         """
         # k is resource signifier, s is DataSource subclass
         for k, s in self._configs.items():
-            for ref in s.references:
+            for ref in s.origins:
                 nres = len([i for i in s.make_resources(ref)])
                 with open(os.path.join(resource_dir, ref), 'r') as fp:
                     xres = len(json.load(fp)[ref])
@@ -99,7 +99,7 @@ class LocalCatalog(unittest.TestCase):
         :return:
         """
         for k, s in self._configs.items():
-            for ref in s.references:
+            for ref in s.origins:
                 for iface in s.interfaces(ref):
                     iface = zap_inventory(iface, warn=False)
                     res = self._cat.get_resource(ref, iface, strict=True)

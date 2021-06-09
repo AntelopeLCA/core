@@ -182,7 +182,7 @@ class LcCatalog(StaticCatalog):
                 print('Not overwriting existing index. force=True to override.')
                 try:
                     ex_res = next(r for r in self._resolver.resources_with_source(inx_local))
-                    return ex_res.reference
+                    return ex_res.origin
                 except StopIteration:
                     # index file exists, but no matching resource
                     inx = archive_from_json(inx_file)
@@ -198,7 +198,7 @@ class LcCatalog(StaticCatalog):
             for stale in stale_res:
                 # this should be postponed to after creation of new, but that fails in case of naming collision (bc YYYYMMDD)
                 # so golly gee we just delete-first.
-                print('deleting %s' % stale.reference)
+                print('deleting %s' % stale.origin)
                 self._resolver.delete_resource(stale)
 
         the_index = res.make_index(inx_file, force=force)
