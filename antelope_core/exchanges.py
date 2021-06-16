@@ -203,14 +203,17 @@ class Exchange(object):
             return 'reference'
         elif self.termination is not None:
             if isinstance(self.termination, Context):
-                if self.termination.elementary:
-                    return 'elementary'
                 return 'context'
             elif self.termination == self.process.external_ref:
                 return 'self'
             else:
                 return 'node'
         return 'cutoff'
+
+    @property
+    def elementary(self):
+        if isinstance(self.termination, Context):
+            return self.termination.elementary
 
     @property
     def term_ref(self):
@@ -232,14 +235,16 @@ class Exchange(object):
          '(#)' - terminated to other node
         :return:
         """
-        tmark = {
+        if self.elementary:
+            tmark = '(=)'
+        else:
+            tmark = {
             'reference': '{*} ',
             'cutoff': '    ',
             'self': '(o) ',
-            'elementary': '(=) ',
             'context': '(-) ',
             'node': '(#) '
-        }[self.type]
+            }[self.type]
         return tmark + str(self.flow)
 
     def __str__(self):
@@ -366,6 +371,17 @@ class ExchangeValue(Exchange):
             raise DuplicateExchangeError('Unallocated exchange value already set to %g (new: %g)' % (self._value,
                                                                                                      exch_val))
         self._value = exch_val
+
+    @property
+    def values(self):
+        """
+        Some Good Question here about what to use for the key part- can't go wrong with str
+        :return:
+        """
+        rtn = {k.flow.external_ref: v for k, v in self._value_dict.items()}
+        if self._value is not None:
+            rtn[None] = self._value
+        return rtn
 
     def is_allocated(self, key):
         """

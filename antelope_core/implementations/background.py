@@ -75,8 +75,9 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
     def exterior_flows(self, direction=None, search=None, **kwargs):
         """
         Exterior flows are all flows that do not have interior terminations (i.e. not found in the index targets)
-        Since contexts are still in limbo, we need a default directionality (or some way to establish directionality
-        for compartments..) but for now let's just use default 'output' for all exterior flows
+        Elementary contexts have a sense, but intermediate contexts do not [necessarily]- so we need some way to
+        determine their directionality.  This whole implementation is just a stand-in anyway- the important thing
+        is that this is handled correctly in tarjan
         :param direction:
         :param search:
         :param kwargs:
@@ -90,14 +91,14 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
                 next(self._index.targets(f.external_ref, direction=direction))
             except StopIteration:
                 cx = self._index.get_context(f.context)
-                dir = comp_dir(cx.sense)
+                dirn = comp_dir(cx.sense)  # this is already w.r.t. interior
                 '''
                 if self.is_elementary(f):
                     yield ExteriorFlow(self._archive.ref, f, 'Output', f['Compartment'])
                 else:
                     yield ExteriorFlow(self._archive.ref, f, 'Output', None)
                 '''
-                yield ExteriorFlow(self._archive.ref, f, dir, cx)
+                yield ExteriorFlow(self._archive.ref, f, dirn, cx)
 
     def consumers(self, process, ref_flow=None, **kwargs):
         """
