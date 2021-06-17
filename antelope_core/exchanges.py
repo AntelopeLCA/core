@@ -211,9 +211,11 @@ class Exchange(object):
         return 'cutoff'
 
     @property
-    def elementary(self):
+    def is_elementary(self):
         if isinstance(self.termination, Context):
             return self.termination.elementary
+        else:
+            return False
 
     @property
     def term_ref(self):

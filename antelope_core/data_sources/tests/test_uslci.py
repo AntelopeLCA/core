@@ -109,7 +109,7 @@ class UsLciTestContainer(object):
         def test_22_petro_allocation(self):
             p = self._get_petro()
             self.assertEqual(len(p.reference_entity), len(self._petro_rx_values))
-            rx_vals = set(round(next(p.exchange_values(rx.flow)).value, 6) for rx in p.references())
+            rx_vals = set(round(p.reference_value(rx.flow), 6) for rx in p.references())
             self.assertSetEqual(rx_vals, self._petro_rx_values)
 
         @unittest.skipIf(lci is False, "no background")

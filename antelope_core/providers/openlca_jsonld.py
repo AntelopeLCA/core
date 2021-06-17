@@ -305,12 +305,12 @@ class OpenLcaJsonLdArchive(LcArchive):
                 raise _NotAnRx
         except KeyError:
             ft = 'PRODUCT_FLOW'  # more common ??
-        dr = {'PRODUCT_FLOW': 'Output',
-              'WASTE_FLOW': 'Input'}[ft]
         try:
             rx = p.reference(rf)
         except NoExchangeFound:
             # implicit trickery with schema: reference flows MUST be outputs for products, inputs for wastes
+            dr = {'PRODUCT_FLOW': 'Output',
+                  'WASTE_FLOW': 'Input'}[ft]
             rx_cands = list(_x for _x in p.exchange_values(rf, direction=dr) if _x.type in ('context', 'cutoff'))
             if len(rx_cands) == 0:
                 print('%s: Unable to find allocatable exchange for %s' % (p.external_ref, rf.external_ref))
