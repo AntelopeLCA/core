@@ -145,6 +145,9 @@ class LcQuantity(LcEntity):
     def convert(self, from_unit=None, to=None):
         return convert(self, from_unit, to)
 
+    def quantity_relation(self, ref_quantity, flowable, context, locale='GLO', **kwargs):
+        return self._qi.quantity_relation(flowable, ref_quantity, self, context, locale=locale, **kwargs)
+
     """
     Interior utility functions
     These are not exactly exposed by the quantity interface and maybe should be retired

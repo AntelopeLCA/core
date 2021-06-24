@@ -1,11 +1,17 @@
 """
-FileAccessor, for standardizing access to antelope files on a filesystem having the following structure:
+FileAccessor, for standardizing access to antelope resources on a filesystem having the following structure:
 
 {DATA ROOT}/[origin]/[interface]/[ds_type]/[source_file]  - source
 {DATA ROOT}/[origin]/[interface]/[ds_type]/config.json    - configuration
 
 A filesystem having this structure will enable automatic registration of resources, taking origin, interface, and
-ds_type from the directory structure and the source file as-discovered.
+ds_type from the directory structure and the source+config files as-discovered by traversing the filesystem.
+
+Should probably alter gen_sources to only return the one "best" source per path, instead of generating all of them.
+[One] problem with that is that, for instance, for Tarjan background I would need to ignore files that end with
+ORDERING_SUFFIX, but I can't import anything from antelope_background without creating a dependency loop.
+
+For now, generating the sources is probably fine.
 
 """
 

@@ -221,6 +221,50 @@ class QuantityConversionError(object):
         return '%s(%s; %s %s =X=> %s)' % (self.__class__.__name__, self.flowable, self.context, self._qrr.ref, self._ref)
 
 
+def do_lcia(quantity, inventory, locale='GLO', group=None, dist=2, **kwargs):
+    """
+    Successively implement the quantity relation over an iterable of exchanges.
+
+    man, WHAT is the qdb DOING with all those LOC? (ans: seemingly a lot)
+
+    :param quantity:
+    :param inventory: An iterable of exchange-like entries, having flow, direction, value, termination.  Currently
+      also uses process.external_ref for hashing purposes, but that could conceivably be abandoned.
+    :param locale: ['GLO']
+    :param group: How to group scores.  Should be a lambda that operates on inventory items. Default x -> x.process
+    :param dist: [2] controls how strictly to interpret exchange context.
+      0 - exact context matches only;
+      1 - match child contexts (code default)
+      2 - match parent contexts [this default]
+      3 - match any ancestor context, including NullContext
+    :param kwargs:
+    :return:
+    """
+    res = LciaResult(quantity)
+    if group is None:
+        group = lambda _x: _x.process
+    for x in inventory:
+        xt = x.type
+        if xt in ('cutoff', 'reference'):
+            res.add_cutoff(x)
+            continue
+        elif xt == 'self':
+            continue
+        qrr = x.flow.lookup_cf(quantity, x.termination, locale, dist=dist, **kwargs)
+        if isinstance(qrr, QuantityConversion):
+            if qrr.value == 0:
+                res.add_zero(x)
+            else:
+                res.add_score(group(x), x, qrr)
+        elif isinstance(qrr, QuantityConversionError):
+            res.add_error(x, qrr)
+        elif qrr is None:
+            res.add_cutoff(x)
+        else:
+            raise TypeError('Unknown qrr type %s' % qrr)
+    return res
+
+
 class NoConversion(Exception):
     pass
 
@@ -590,7 +634,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                                                                                         rq, rq.link))
                 '''
 
-                raise ConversionReferenceMismatch
+                raise ConversionReferenceMismatch(mismatch[0])
 
             else:
                 raise AssertionError('Something went wrong')
@@ -663,44 +707,11 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 pass
         return n[ix]
 
-    def _lookup_x(self, x, q, locale, refresh=False, **kwargs):
-        cx = self._archive.tm[x.termination]
-        if refresh:  # destroy prior matches, even if no new one is found (only overwrite would not truly "refresh")
-            x.flow.pop_char(q, cx, locale)
-        else:
-            try:  # look for a cached result
-                return x.flow.chk_char(q, cx, locale)
-            except KeyError:
-                pass
-        try:
-            ref_q = self.get_canonical(x.flow.reference_entity)
-        except EntityNotFound:
-            ref_q = self._archive.tm.add_quantity(x.flow.reference_entity)
-        try:
-            qr, mis = self._quantity_relation(x.flow.name, ref_q, q, cx, locale=locale,
-                                              **kwargs)
-            if qr is None and len(mis) > 0:
-                qrr = mis[0]
-                if q.is_lcia_method:
-                    print('Conversion error %s' % x)
-                    if len(mis) > 1:
-                        print('omitting mismatches:')
-                        for k in mis[1:]:
-                            print(k)
-            else:
-                qrr = qr
-        except NoFactorsFound:
-            qrr = None
-
-        ## if not x.flow.is_entity:  # why don't we cache conversions on actual flows? because cfs might change??
-        x.flow.see_char(q, cx, locale, qrr)
-        return qrr
-
     def do_lcia(self, quantity, inventory, locale='GLO', group=None, dist=2, **kwargs):
         """
-        Successively implement the quantity relation over an iterable of exchanges.
+        This is *almost* static. Could be moved into interface, except that it requires LciaResult (which is core).
 
-        man, WHAT is the qdb DOING with all those LOC? (ans: seemingly a lot)
+        Successively implement the quantity relation over an iterable of exchanges.
 
         :param quantity:
         :param inventory: An iterable of exchange-like entries, having flow, direction, value, termination.  Currently
@@ -712,34 +723,11 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
           1 - match child contexts (code default)
           2 - match parent contexts [this default]
           3 - match any ancestor context, including Null
-         exchange context; 3 - match any ancestor of exch
         :param kwargs:
         :return:
         """
         q = self.get_canonical(quantity)
-        res = LciaResult(q)
-        if group is None:
-            group = lambda _x: _x.process
-        for x in inventory:
-            xt = x.type
-            if xt in ('cutoff', 'reference'):
-                res.add_cutoff(x)
-                continue
-            elif xt == 'self':
-                continue
-            qrr = self._lookup_x(x, q, locale, dist=dist, **kwargs)
-            if isinstance(qrr, QuantityConversion):
-                if qrr.value == 0:
-                    res.add_zero(x)
-                else:
-                    res.add_score(group(x), x, qrr)
-            elif isinstance(qrr, QuantityConversionError):
-                res.add_error(x, qrr)
-            elif qrr is None:
-                res.add_cutoff(x)
-            else:
-                raise TypeError('Unknown qrr type %s' % qrr)
-        return res
+        return do_lcia(q, inventory, locale=locale, group=group, dist=dist, **kwargs)
 
     def lcia(self, process, ref_flow, quantity_ref, **kwargs):
         """
@@ -751,10 +739,9 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
         :return:
         """
         p = self._archive.retrieve_or_fetch_entity(process)
-        return quantity_ref.do_lcia(p.inventory(ref_flow=ref_flow),
-                                    locale=p['SpatialScope'])
+        return do_lcia(quantity_ref, p.inventory(ref_flow=ref_flow),
+                       locale=p['SpatialScope'])
 
     def fragment_lcia(self, fragment, quantity_ref, scenario=None, refresh=False, **kwargs):
         frag = self._archive.retrieve_or_fetch_entity(fragment)
         return frag.top().fragment_lcia(quantity_ref, scenario=scenario, refresh=refresh, **kwargs)
-

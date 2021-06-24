@@ -56,7 +56,6 @@ class LcFlow(LcEntity, Flow):
         for k in self._new_fields:
             if k not in self._d:
                 self._d[k] = ''
-        self._chars_seen = dict()
 
     def make_ref(self, query):
         if self._query_ref is None:
@@ -100,6 +99,8 @@ class LcFlow(LcEntity, Flow):
     def cf(self, quantity, **kwargs):
         return quantity.cf(self, **kwargs)
 
+    '''
+    This is now done in Flow interface
     def see_char(self, qq, cx, loc, qrr):
         self._chars_seen[qq, cx, loc] = qrr
         if self._query_ref is not None:
@@ -110,3 +111,4 @@ class LcFlow(LcEntity, Flow):
 
     def pop_char(self, qq, cx, loc):
         return self._chars_seen.pop((qq, cx, loc), None)
+    '''
