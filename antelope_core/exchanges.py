@@ -237,7 +237,7 @@ class Exchange(object):
          '(#)' - terminated to other node
         :return:
         """
-        if self.elementary:
+        if self.is_elementary:
             tmark = '(=)'
         else:
             tmark = {
