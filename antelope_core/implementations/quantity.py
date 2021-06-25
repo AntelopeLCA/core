@@ -221,7 +221,7 @@ class QuantityConversionError(object):
         return '%s(%s; %s %s =X=> %s)' % (self.__class__.__name__, self.flowable, self.context, self._qrr.ref, self._ref)
 
 
-def do_lcia(quantity, inventory, locale='GLO', group=None, dist=2, **kwargs):
+def do_lcia(quantity, inventory, locale=None, group=None, dist=2, **kwargs):
     """
     Successively implement the quantity relation over an iterable of exchanges.
 

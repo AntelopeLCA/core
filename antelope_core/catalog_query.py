@@ -78,6 +78,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
     def _tm(self):
         return self._catalog.lcia_engine
 
+    '''
     def is_elementary(self, context):
         """
         Stopgap used to expose access to a catalog's Qdb; in the future, flows will no longer exist and is_elementary
@@ -86,7 +87,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         :return: bool
         """
         return self._tm[context.fullname].elementary
-
+    '''
 
     def cascade(self, origin):
         """
