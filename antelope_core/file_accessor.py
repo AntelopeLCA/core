@@ -22,6 +22,7 @@ from .lc_resource import LcResource
 
 DEFAULT_PRIORITIES = {
     'exchange': 20,
+    'quantity': 20,
     'index': 50,
     'background': 80
 }
@@ -52,6 +53,23 @@ class FileAccessor(object):
             config = dict()
         return config
 
+    @staticmethod
+    def write_config(source, **kwargs):
+        """
+        Note: use the config argument 'add_quantity_interface' to allow a resource to implement the quantity interface.
+        :param source:
+        :param kwargs:
+        :return:
+        """
+        cfg = os.path.join(os.path.dirname(source), 'config.json')
+        with open(cfg, 'w') as fp:
+            json.dump(kwargs, fp, indent=2)
+
+    def update_config(self, source, **updates):
+        existing_cfg = self.read_config(source)
+        existing_cfg.update(updates)
+        self.write_config(source, **existing_cfg)
+
     def clear_configs(self, origin):
         opath = os.path.join(self.path, origin)
         for iface in os.listdir(opath):
@@ -81,6 +99,12 @@ class FileAccessor(object):
             raise ValueError('Path not contained within our filespace')
         rel_source = source[len(self._path)+1:]
         org, iface, ds_type, fn = rel_source.split(os.path.sep)  # note os.pathsep is totally different
+
         cfg = self.read_config(source)
         priority = cfg.pop('priority', DEFAULT_PRIORITIES[iface])
+
+        # do this last
+        if cfg.pop('add_quantity_interface', False) and iface != 'quantity':
+            iface = (iface, 'quantity')
+
         return LcResource(org, source, ds_type, interfaces=iface, priority=priority, **cfg)
