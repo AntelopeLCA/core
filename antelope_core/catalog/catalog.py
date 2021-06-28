@@ -286,7 +286,17 @@ class StaticCatalog(object):
     '''
     def _sorted_resources(self, origin, interfaces, strict):
         for res in sorted(self._resolver.resolve(origin, interfaces, strict=strict),
-                          key=lambda x: (not (x.is_loaded and x.static), x.priority, x.origin != origin)):
+                          key=lambda x: (x.priority, len(x.origin))): #
+            '''
+            sort key was formerly: (not (x.is_loaded and x.static), x.priority, x.origin != origin)):
+            What were we thinking overriding priority with whether a static resource was loaded?
+            
+            ans: bad logic. The bad logic was: if we already have the (static JSON) index loaded, we should just use
+            it because it's easier / possibly more reliable (?) than accessing the exchange interface.
+            
+            But this is properly managed by data owners with priorities. Any source-specific optimizations are 
+            just that.  
+            '''
             yield res
 
     def gen_interfaces(self, origin, itype=None, strict=False):

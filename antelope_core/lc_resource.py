@@ -135,7 +135,9 @@ class LcResource(object):
         else:
             if self.ds_type.lower() == 'ecoinventlcia':
                 # this is a GIANT HACK
-                # we need to bring along a local ecoinvent archive to lookup flow reference qtys
+                # we need to bring along a local ecoinvent archive to lookup flow reference qtys-
+                # Partial solution to the hack: reference entity is QUERYABLE from a basic query which the catalog
+                # can provide- still need to specify
                 ei_ref = '.'.join(['local', 'ecoinvent', kwargs['version']])
                 try:
                     res = catalog.get_resource(ei_ref, iface='exchange', strict=False)
@@ -155,12 +157,11 @@ class LcResource(object):
             update_archive(self._archive, catalog.cache_file(self.source))
         self._static |= self._archive.static
         if self.static and self.ds_type.lower() != 'json':
-            self._archive.load_all()  # static json archives are by convention saved in complete form
-
+            self._archive.load_all()  # static json archives are loaded on open- load_all() would be redundant
 
     @property
     def is_loaded(self):
-        return self._archive is not None
+        return self._archive is not None  # and self._archive._loaded ??
 
     def remove_archive(self):
         self._archive = None

@@ -232,6 +232,8 @@ class LcEntity(BaseEntity):
                 continue
             if v is None:
                 continue
+            elif isinstance(v, tuple):
+                j[k] = list(v)
             elif isinstance(v, list):
                 j[k] = v
             elif isinstance(v, set):
@@ -240,13 +242,14 @@ class LcEntity(BaseEntity):
                 j[k] = v
             elif isinstance(v, bool):
                 j[k] = v
-            elif isinstance(v, LcEntity):
+            elif isinstance(v, BaseEntity):
                 j[k] = {"origin": v.origin,
                         "externalId": v.external_ref,
                         "entity_type": v.entity_type}
             elif isinstance(v, dict):
                 j[k] = v
             else:
+                # this is a .. robust if dangerous default
                 j[k] = str(v)
         return j
 

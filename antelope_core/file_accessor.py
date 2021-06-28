@@ -17,7 +17,7 @@ For now, generating the sources is probably fine.
 
 import os
 import json
-from .lc_resource import LcResource
+from .lc_resource import LcResource, INTERFACE_TYPES
 
 
 DEFAULT_PRIORITIES = {
@@ -56,7 +56,7 @@ class FileAccessor(object):
     @staticmethod
     def write_config(source, **kwargs):
         """
-        Note: use the config argument 'add_quantity_interface' to allow a resource to implement the quantity interface.
+        Note: use the config argument add_interfaces=[list] to allow a resource to implement additional interfaces.
         :param source:
         :param kwargs:
         :return:
@@ -104,7 +104,9 @@ class FileAccessor(object):
         priority = cfg.pop('priority', DEFAULT_PRIORITIES[iface])
 
         # do this last
-        if cfg.pop('add_quantity_interface', False) and iface != 'quantity':
-            iface = (iface, 'quantity')
+        iface = (iface,)
+        for ad in cfg.pop('add_interfaces', ()):
+            if ad in INTERFACE_TYPES:
+                iface += (ad, )
 
         return LcResource(org, source, ds_type, interfaces=iface, priority=priority, **cfg)
