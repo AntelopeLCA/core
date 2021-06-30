@@ -67,7 +67,6 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         self._catalog = catalog
         self._dbg = debug
 
-        self._entity_cache = dict()
         self._iface_cache = dict()
 
     @property
@@ -160,31 +159,26 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         :param eid: an external Id
         :return:
         """
-        if eid not in self._entity_cache:
-            entity = self._perform_query('basic', 'get', EntityNotFound, eid,
-                                         **kwargs)
-            self._entity_cache[eid] = self.make_ref(entity)
-        return self._entity_cache[eid]
+        entity = self._perform_query('basic', 'get', EntityNotFound, eid,
+                                     **kwargs)
+        return self.make_ref(entity)
 
     def get_reference(self, external_ref):
-        k = (external_ref, True)
-        if k not in self._entity_cache:
-            ref = self._perform_query('basic', 'get_reference', EntityNotFound, external_ref)
-            # quantity: unit
-            # flow: quantity
-            # process: list
-            # fragment: fragment
-            #[context: context]
-            if ref is None:
-                deref = None
-            elif isinstance(ref, list):
-                deref = [RxRef(self.make_ref(x.process), self.make_ref(x.flow), x.direction, x.comment) for x in ref]
-            elif ref.entity_type == 'unit':
-                deref = ref.unitstring
-            else:
-                deref = self.make_ref(ref)
-            self._entity_cache[k] = deref
-        return self._entity_cache[k]
+        ref = self._perform_query('basic', 'get_reference', EntityNotFound, external_ref)
+        # quantity: unit
+        # flow: quantity
+        # process: list
+        # fragment: fragment
+        #[context: context]
+        if ref is None:
+            deref = None
+        elif isinstance(ref, list):
+            deref = [RxRef(self.make_ref(x.process), self.make_ref(x.flow), x.direction, x.comment) for x in ref]
+        elif ref.entity_type == 'unit':
+            deref = ref.unitstring
+        else:
+            deref = self.make_ref(ref)
+        return deref
 
     '''
     LCIA Support
