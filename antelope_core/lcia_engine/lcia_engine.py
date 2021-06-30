@@ -45,6 +45,7 @@ class LciaEngine(TermManager):
      * quell biogenic CO2 in quantity relation lookups
     """
     _quell_biogenic = None
+    is_lcia_engine = True
 
     def _configure_flowables(self, flowables):
         """

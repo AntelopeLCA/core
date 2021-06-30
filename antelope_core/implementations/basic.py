@@ -122,6 +122,14 @@ class BasicImplementation(object):
                 return e
         raise EntityNotFound(external_ref)
 
+    def is_lcia_engine(self, **kwargs):
+        """
+        suggests expansion to a graph-based TM
+        :param kwargs:
+        :return:
+        """
+        return self._archive.tm.is_lcia_engine
+
     def synonyms(self, item, **kwargs):
         return self._archive.tm.synonyms(item)
 

@@ -111,6 +111,9 @@ class LcQuantity(LcEntity):
     Quantity entities use the quantity interface provided by the parent archive; this emulates the operation of 
     quantity refs, which have access to the catalog.
     """
+    def has_lcia_engine(self):
+        return self._qi.is_lcia_engine()
+
     def cf(self, flow, locale='GLO', **kwargs):
         """
         The semantics here may be confusing, but cf is flow-centered. It converts reports the amount in self that

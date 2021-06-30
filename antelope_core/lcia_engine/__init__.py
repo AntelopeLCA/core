@@ -93,10 +93,21 @@ class LciaDb(Qdb):
                 q_masq = QuantityRef(entity.external_ref, self.query, entity.reference_entity,
                                      Name=entity['Name'], Indicator=ind)
                 entity.set_qi(self.make_interface('quantity'))
-            else:  # ref -- masquerade
-                # print('LciaDb: Adding qty ref %s' % entity)
-                q_masq = QuantityRef(entity.external_ref, self.query, entity.reference_entity, masquerade=entity.origin,
-                                     Name=entity['Name'], Indicator=ind)
+            else:
+                if entity.has_lcia_engine():  # ready to go
+                    """
+                    These quantities will not be managed by the local LciaDb-- neither will access the other's value.
+                    It seems like we may still want to override whether a particular quantity gets masqueraded
+                    it's easy enough to do by giving the entity a property, but that is obviously sloppy. TBD.
+                    """
+                    self.tm.add_quantity(entity)
+                    return
+
+                else: # ref -- masquerade
+                    # print('LciaDb: Adding qty ref %s' % entity)
+                    q_masq = QuantityRef(entity.external_ref, self.query, entity.reference_entity,
+                                         masquerade=entity.origin,
+                                         Name=entity['Name'], Indicator=ind)
 
             for k in entity.properties():  # local only for ref
                 q_masq[k] = entity[k]
