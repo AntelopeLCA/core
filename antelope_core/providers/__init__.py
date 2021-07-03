@@ -13,9 +13,13 @@ from .ecospold import EcospoldV1Archive
 from .ecoinvent_lcia import EcoinventLcia
 from .openlca_jsonld import OpenLcaJsonLdArchive
 from .traci import Traci21Factors
+from .xdb_client import XdbClient
 
+
+# These get discovered by _find_providers in the root folder of the package
 PROVIDERS = ['IlcdArchive', 'IlcdLcia', 'EcospoldV2Archive', 'EcospoldV1Archive',
-             'EcoinventLcia', 'OpenLcaJsonLdArchive', 'Traci21Factors']
+             'EcoinventLcia', 'OpenLcaJsonLdArchive', 'Traci21Factors',
+             'XdbClient']
 
 ''' # this has all been folded into archive.__init__
 class ArchiveError(Exception):

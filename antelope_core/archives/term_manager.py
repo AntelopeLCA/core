@@ -15,13 +15,45 @@ LciaEngine is designed to handle information from multiple origins to operate as
 subclass adds canonical lists of flowables and contexts that would be redundant if loaded into individual archives,
 introduces "smart" hierarchical context lookup (CLookup), and adds the ability to quell biogenic CO2 emissions.
 Someday, it might make sense to expose it as a massive, central graph db.
+
+INTERFACE
+---------
+The TermManager is assumed to implement the following interface:
+Required for external operability:
+ - is_lcia_engine: [bool] whether the term manager performs flow and context matching
+ - is_context(obj): [bool] whether the supplied object maps to a known Context;;; hmm, this was implemented twice
+ - __getitem__(obj): retrieve a context or None **note: this is because archives all return None for failed __getitem__,
+    which I know is bad but I haven't been moved to change it yet)
+ - get_canonical(qty): return the best-fit quantity, or raise EntityNotFou
+ - synonyms()  # currently required by BasicImplementation
+
+Required by the default implementation:
+Post data:
+ - add_quantity()
+ - add_context()
+ - add_flow()
+ - add_characterization()
+ - add_from_json()
+
+retrieve data:
+ - serialize()
+ - flows_for_flowable()
+ - factors_for_flowable()
+ - factors_for_quantity()
+ - get_flowable()
+ - flowables()
+ - quantities()
+ - contexts()
+
+
+
 """
 from collections import namedtuple
 
 from synonym_dict import SynonymDict, InconsistentLineage
 
 from antelope import EntityNotFound
-from ..contexts import ContextManager, Context, NullContext
+from ..contexts import ContextManager, NullContext
 from .quantity_manager import QuantityManager
 
 from ..characterizations import Characterization, DuplicateCharacterizationError
@@ -173,9 +205,11 @@ class TermManager(object):
              'quantity': self._qm.new_entry}[term_type]
         d(*terms, **kwargs)
 
+    ''' # OOPS
     @staticmethod
     def is_context(cx):
         return isinstance(cx, Context)
+    '''
 
     @property
     def quiet(self):
