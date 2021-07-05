@@ -152,6 +152,7 @@ class ReferenceValue(ReferenceExchange):
 class ExchangeValue(Exchange):
     """
     dict mapping reference flows to allocated value
+    This should really be called ExchangeValues- in fact the method is already called exchangeValues!
     """
     values: Dict
     uncertainty: Optional[Dict]
