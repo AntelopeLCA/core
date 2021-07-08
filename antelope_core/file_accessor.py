@@ -79,6 +79,15 @@ class FileAccessor(object):
                 if os.path.exists(dc):
                     os.remove(dc)
 
+    def source(self, org, iface):
+        """
+        Return the "best" (right now: first) single source
+        :param org:
+        :param iface:
+        :return:
+        """
+        return next(self.gen_sources(org, iface))
+
     def gen_sources(self, org, iface):
         iface_path = os.path.join(self._path, org, iface)
         if not os.path.exists(iface_path):

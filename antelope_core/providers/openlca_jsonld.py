@@ -8,7 +8,7 @@ from collections import defaultdict
 
 from ..exchanges import AmbiguousReferenceError
 
-from ..entities import *
+from ..entities import LcQuantity, LcFlow, LcProcess, LcUnit, MetaQuantityUnit
 from ..entities.processes import NoExchangeFound
 from ..archives import LcArchive
 from .file_store import FileStore
@@ -471,20 +471,28 @@ class OpenLcaJsonLdArchive(LcArchive):
         :return:
         """
         if c_id in self._lm_index:
-            try:
-                q = next(t for t in self._create_lcia_method(self._lm_index[c_id], c_id) if t.uuid == c_id)
-            except StopIteration:
+            self._create_lcia_method(self._lm_index[c_id])
+            q = self[c_id]
+            if q is None:
                 raise OpenLcaException('Specified LCIA category does not match the one found')
             return q
         raise KeyError('Specified key is not an LCIA Category: %s' % c_id)
 
-    def _create_lcia_method(self, m_id, *categories):
+    def _create_lcia_method(self, m_id):
         """
         Note: in OLCA archives, an "LCIA Method" is really a methodology with a collection of category indicators, which
         is what we colloquially call "methods". So every method includes zero or more distinct quantities.
+
+        We create an LciaMethod "meta-quantity" which is NOT an lcia_method in antelope parlance (because it doesn't
+        have an indicator) but which does contain pointers to its constituent lcia-methods (which are actually lcia
+        categories, in OpenLCA parlance)
         :param m_id:
         :return:
         """
+        lm = self[m_id]
+        if lm is not None:
+            return lm
+
         m_obj, method, cats = self._clean_object('lcia_methods', m_id)
         m_desc = m_obj.pop('description', None)
 
@@ -503,19 +511,17 @@ class OpenLcaJsonLdArchive(LcArchive):
         qs = []
 
         for imp in m_obj.pop('impactCategories', []):
-            if len(categories) > 0:
-                # if the user specifies certain categories to load, then skip the ones that aren't specified
-                if imp['@id'] not in categories:
-                    continue
             q = self._create_lcia_quantity(imp, method, MethodDescription=m_desc)
             norm = norms[q.external_ref]
             if len(norm) > 0:
                 q['normalisationFactors'] = norm
                 q['normSets'] = sets
                 q['weightingFactors'] = weights[q.external_ref]
-            qs.append(q)
+            qs.append(q.external_ref)
 
-        return qs
+        m = LcQuantity(m_id, Name=method, ReferenceUnit=MetaQuantityUnit, Method=method, Description=m_desc, LciaCategories=qs)
+        self.add(m)
+
 
     def _fetch(self, key, typ=None, **kwargs):
         if typ is None:

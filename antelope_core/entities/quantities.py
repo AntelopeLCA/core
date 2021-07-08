@@ -233,3 +233,6 @@ class LcUnit(object):
     def reset_unitstring(self, ustring):
         self._external_ref = ustring
         self._unitstring = ustring
+
+
+MetaQuantityUnit = LcUnit("0")  # singleton unit for non-quantities (i.e. LCIA Methodologies) that contain quantities
