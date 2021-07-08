@@ -149,7 +149,7 @@ class ReferenceValue(ReferenceExchange):
         return cls.from_exchange(x, value=x.value)
 
 
-class ExchangeValue(Exchange):
+class ExchangeValues(Exchange):
     """
     dict mapping reference flows to allocated value
     This should really be called ExchangeValues- in fact the method is already called exchangeValues!
@@ -162,7 +162,23 @@ class ExchangeValue(Exchange):
         return cls.from_exchange(x, values=x.values)
 
 
+class UnallocatedExchange(Exchange):
+    is_reference: bool=False
+    value: float
+    uncertainty: Optional[Dict]
+
+    @classmethod
+    def from_inv(cls, x):
+        """
+        This works for ExchangeRefs as well as exchanges
+        :param x:
+        :return:
+        """
+        return cls.from_exchange(x, value=x.value, is_reference=x.is_reference)
+
+
 class AllocatedExchange(Exchange):
+    # is_reference = False  ## not sure we want this
     ref_flow: str
     value: float
     uncertainty: Optional[Dict]
@@ -258,7 +274,7 @@ class Characterization(ResponseModel):
     @classmethod
     def from_cf(cls, cf):
         ch = cls.null(cf)
-        for loc in cf.locations:
+        for loc in cf.locations():
             ch.value[loc] = cf[loc]
         return ch
 
@@ -266,7 +282,7 @@ class Characterization(ResponseModel):
     def null(cls, cf):
         ch =  cls(origin=cf.origin, flowable=cf.flowable,
                   ref_quantity=cf.ref_quantity.external_ref, ref_unit=cf.ref_quantity.unit,
-                  query_quantity=cf.quantity.external_ef, query_unit=cf.quantity.unit,
+                  query_quantity=cf.quantity.external_ref, query_unit=cf.quantity.unit,
                   context=list(cf.context), value=dict())
         return ch
 
