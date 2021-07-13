@@ -267,7 +267,7 @@ class BasicArchive(EntityStore):
         return LcFlow(ext_ref, referenceQuantity=ref_q, **entity_j)
 
     def _add_char(self, flow, q, v):
-        self.tm.add_characterization(flow.link, flow.reference_entity, q, v, context=flow.context,
+        self.tm.add_characterization(flow.name, flow.reference_entity, q, v, context=flow.context,
                                      origin=flow.origin)
 
     def _add_chars(self, flow, chars):

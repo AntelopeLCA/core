@@ -239,7 +239,7 @@ class OpenLcaJsonLdArchive(LcArchive):
         self.add(f)  # context gets matched inside tm.add_flow().  NONSPECIFIC entries are automatically prepended with parent name in CompartmentManager.new_entry()
 
         for i, q in enumerate(qs):
-            self.tm.add_characterization(f.link, ref_q, q, facs[i], context=f.context, location=loc)
+            self.tm.add_characterization(f.name, ref_q, q, facs[i], context=f.context, location=loc)
 
         return f
 
@@ -458,7 +458,7 @@ class OpenLcaJsonLdArchive(LcArchive):
             assert flow.reference_entity == ref_qty
             # value = factor['value']
 
-            self.tm.add_characterization(flow.link, ref_qty, q, factor['value'], context=flow.context, location=loc,
+            self.tm.add_characterization(flow.name, ref_qty, q, factor['value'], context=flow.context, location=loc,
                                          origin=self.ref)
 
         return q
