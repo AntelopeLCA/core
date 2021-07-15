@@ -38,10 +38,11 @@ class Entity(ResponseModel):
                   entity_type=entity.entity_type,
                   properties=dict())
 
-        obj.properties['name'] = entity.name
-
         for key, val in kwargs.items():
             obj.properties[key] = entity[key]
+
+        obj.properties['name'] = entity.name
+
         if entity.entity_type == 'quantity':
             obj.properties['unit'] = entity.unit
             obj.properties['is_lcia_method'] = entity.is_lcia_method

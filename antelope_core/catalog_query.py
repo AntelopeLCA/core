@@ -216,6 +216,9 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         else:
             e_ref = entity  # already a ref
         if entity.entity_type == 'quantity':
+            ''' # astonishingly, we don't want this - register but not return
             # print('Going canonical')
             return self.get_canonical(e_ref)
+            '''
+            _ = self.get_canonical(e_ref)
         return e_ref
