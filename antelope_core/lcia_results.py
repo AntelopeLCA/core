@@ -911,4 +911,4 @@ class LciaResult(object):
             return results, balance
 
     def serialize_components(self, detailed=False):
-        return [c.serialize(detailed=detailed) for c in self.components()]
+        return [c.serialize(detailed=detailed) for c in sorted(self.components(), key=lambda x: x.result, reverse=True)]

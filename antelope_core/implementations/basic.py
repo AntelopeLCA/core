@@ -91,7 +91,7 @@ class BasicImplementation(object):
             return self._archive[external_ref]
         try:
             return self._archive.retrieve_or_fetch_entity(external_ref, **kwargs)
-        except NotImplementedError:
+        except (KeyError, NotImplementedError):
             return None
 
     '''

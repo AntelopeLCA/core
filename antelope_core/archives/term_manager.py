@@ -868,15 +868,15 @@ class TermManager(object):
                     yield cx
 
     def quantities(self, search=None, origin=None):
-        for q in self._qm.objects:
+        for q in self._qm.entries:
             if origin is not None:
-                if not q.origin.startswith(origin):
+                if not q.object.origin.startswith(origin):
                     continue
             if search is None:
-                yield q
+                yield q.object
             else:
-                if q.contains_string(search):
-                    yield q
+                if q.contains_string(search, ignore_case=True):
+                    yield q.object
 
     '''
     De/Serialization

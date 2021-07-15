@@ -8,21 +8,6 @@ class ResponseModel(BaseModel):
     pass
 
 
-class ServerMeta(ResponseModel):
-    title: str
-    version: str
-    description: str
-    origins: List[str]
-
-    @classmethod
-    def from_app(cls, app):
-        obj = cls(title=app.title,
-                  version=app.version,
-                  description=app.description,
-                  origins=list())
-        return obj
-
-
 class OriginMeta(ResponseModel):
     origin: str
     is_lcia_engine: bool
@@ -57,6 +42,9 @@ class Entity(ResponseModel):
 
         for key, val in kwargs.items():
             obj.properties[key] = entity[key]
+        if entity.entity_type == 'quantity':
+            obj.properties['unit'] = entity.unit
+            obj.properties['is_lcia_method'] = entity.is_lcia_method
         return obj
 
 
@@ -378,7 +366,7 @@ class FlowSpec(ResponseModel):
 
 
 class SummaryLciaResult(ResponseModel):
-    scenario: str
+    scenario: Optional[str]
     object: str
     quantity: Entity
     scale: float
@@ -386,7 +374,7 @@ class SummaryLciaResult(ResponseModel):
 
     @classmethod
     def from_lcia_result(cls, object, res):
-        return cls(scenario=res.scenario, object=object, quantity=Entity.from_entity(res.quantity), scale=res.scale,
+        return cls(scenario=res.scenario, object=object.name, quantity=Entity.from_entity(res.quantity), scale=res.scale,
                    total=res.total())
 
 
@@ -406,8 +394,12 @@ class DisaggregatedLciaScore(AggregatedLciaScore):
 
     @classmethod
     def from_component(cls, c):
-        obj = cls(component=c.entity, result=c.cumulative_result, details=[])
-        for d in c.LciaDetails:
+        if hasattr(c.entity, 'name'):
+            component = c.entity.name
+        else:
+            component = str(c.entity)
+        obj = cls(component=component, result=c.cumulative_result, details=[])
+        for d in sorted(c.LciaDetails, key=lambda x: x.result, reverse=True):
             obj.details.append(LciaDetail(exchange=FlowSpec.from_exchange(d.exchange, locale=d.factor.locale),
                                           factor=QuantityConversion.from_qrresult(d.factor),
                                           result=d.result))
@@ -419,7 +411,7 @@ class LciaResult(SummaryLciaResult):
 
     @classmethod
     def from_lcia_result(cls, object, res):
-        return cls(scenario=res.scenario, object=object, quantity=Entity.from_entity(res.quantity), scale=res.scale,
+        return cls(scenario=res.scenario, object=object.name, quantity=Entity.from_entity(res.quantity), scale=res.scale,
                    total=res.total(), components=res.serialize_components(detailed=False))
 
 
@@ -428,7 +420,8 @@ class DetailedLciaResult(SummaryLciaResult):
 
     @classmethod
     def from_lcia_result(cls, object, res):
-        obj = cls(scenario=res.scenario, object=object, quantity=Entity.from_entity(res.quantity), scale=res.scale,
+        obj = cls(scenario=res.scenario, object=object.name, quantity=Entity.from_entity(res.quantity), scale=res.scale,
                   total=res.total(), components=[])
-        for c in res.components:
+        for c in res.components():
             obj.components.append(DisaggregatedLciaScore.from_component(c))
+        return obj
