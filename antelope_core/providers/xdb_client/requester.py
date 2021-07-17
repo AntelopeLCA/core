@@ -26,8 +26,9 @@ class XdbRequester(object):
         if api_root[-1] == '/':
             api_root = api_root[:-1]
 
-        self._root = '/'.join([api_root, origin])
-        self._orgs = sorted((OriginMeta(**k) for k in self._get_endpoint()), key=lambda x: len(x.origin))
+        self._org = '/'.join([api_root, origin])
+        self._qdb = '/'.join([api_root, 'qdb'])
+        self._origins = sorted((OriginMeta(**k) for k in self._get_endpoint()), key=lambda x: len(x.origin))
 
         self._origin = origin
 
@@ -41,12 +42,12 @@ class XdbRequester(object):
         Returns OriginMeta data-- this should probably include config information !
         :return:
         """
-        for org in self._orgs:
+        for org in self._origins:
             yield org
 
     def _get_endpoint(self, *args, **params):
-        url = '/'.join([self._root, *args])
-        self._print('Fetching %s' % url, cont=True)
+        url = '/'.join([self._org, *args])
+        self._print('GET %s' % url, cont=True)
         t = time()
         resp = self._s.get(url, params=params)
         el = time() - t
@@ -66,3 +67,27 @@ class XdbRequester(object):
             return [model(**k) for k in self._get_endpoint(*args, **kwargs)]
         else:
             return [model(k) for k in self._get_endpoint(*args, **kwargs)]
+
+    def _post_qdb(self, postdata, *args, **params):
+        url = '/'.join([self._qdb, *args])
+        self._print('POST %s', cont=True)
+        t = time()
+        resp = self._s.post(url, postdata, params=params)
+        el = time() - t
+        self._print('%d [%.2f sec]' % (resp.status_code, el))
+        if resp.status_code >= 400:
+            raise HttpError(resp.status_code, resp.content)
+        return json.loads(resp.content)
+
+    def post_return_one(self, postdata, model, *args, **kwargs):
+        if issubclass(model, ResponseModel):
+            return model(**self._post_qdb(postdata, *args, **kwargs))
+        else:
+            return model(self._post_qdb(postdata, *args, **kwargs))
+
+    def post_return_many(self, postdata, model, *args, **kwargs):
+        if issubclass(model, ResponseModel):
+            return [model(**k) for k in self._post_qdb(postdata, *args, **kwargs)]
+        else:
+            return [model(k) for k in self._post_qdb(postdata, *args, **kwargs)]
+

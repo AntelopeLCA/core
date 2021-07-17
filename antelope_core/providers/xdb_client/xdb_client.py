@@ -13,6 +13,7 @@ from antelope_core.contexts import NullContext, Context as CoreContext
 
 from .requester import XdbRequester, HttpError
 from .implementation import XdbImplementation
+from .xdb_entities import XdbEntity
 
 class XdbTermManager(object):
     def __init__(self, requester):
@@ -28,6 +29,8 @@ class XdbTermManager(object):
         """
         self._requester = requester
         self._contexts = dict()
+        self._flows = set()
+        self._quantities = set()
 
     @property
     def is_lcia_engine(self, org=None):
@@ -40,14 +43,23 @@ class XdbTermManager(object):
         return self._requester.get_one(ContextModel, 'contexts', item)
 
     def _build_context(self, context_model):
-        if context_model.parent is None or context_model.parent == '':
-            parent = None
+        if context_model.name == 'None':
+            c_actual = NullContext  # maintain singleton status of NullContext
         else:
-            parent = self.get_context(context_model.parent)
-        c_actual = CoreContext(context_model.name, sense=context_model.sense, parent=parent)
-        c_actual.add_origin(self._requester.origin)  # here we are masquerading all origins back to the requester origin
+            if context_model.parent is None or context_model.parent == '':
+                parent = None
+            else:
+                parent = self.get_context(context_model.parent)
+            c_actual = CoreContext(context_model.name, sense=context_model.sense, parent=parent)
+            c_actual.add_origin(self._requester.origin)  # here we are masquerading all origins back to the requester origin
         self._contexts[c_actual.name] = c_actual
         return c_actual
+
+    def add_flow(self, flow, **kwargs):
+        self._flows.add(flow)
+
+    def add_quantity(self, quantity):
+        self._quantities.add(quantity)
 
     def __getitem__(self, item):
         try:
@@ -66,7 +78,12 @@ class XdbTermManager(object):
             return c_actual
 
     def is_context(self, item):
-        if self.__getitem__(item):
+        cx = self.__getitem__(item)
+        if cx is NullContext:
+            return False
+        elif cx is None:
+            return False
+        elif isinstance(cx, CoreContext):
             return True
         return False
 
@@ -100,9 +117,9 @@ class XdbTermManager(object):
 
 
 class XdbClient(LcArchive):
-    def __init__(self, source, origin):
-        self._requester = XdbRequester(source, origin)
-        super(XdbClient, self).__init__(source, ref=origin, term_manager=XdbTermManager(self._requester))
+    def __init__(self, source, ref):
+        self._requester = XdbRequester(source, ref)
+        super(XdbClient, self).__init__(source, ref=ref, term_manager=XdbTermManager(self._requester))
 
     @property
     def r(self):
@@ -114,4 +131,4 @@ class XdbClient(LcArchive):
         raise InterfaceError(iface)
 
     def _fetch(self, entity, **kwargs):
-        return self[entity] or self._requester.get_one(Entity, entity)
+        return self[entity] or XdbEntity(self._requester.get_one(Entity, entity), self)

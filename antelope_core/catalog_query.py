@@ -174,6 +174,8 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             deref = None
         elif isinstance(ref, list):
             deref = [RxRef(self.make_ref(x.process), self.make_ref(x.flow), x.direction, x.comment) for x in ref]
+        elif isinstance(ref, str):
+            deref = ref
         elif ref.entity_type == 'unit':
             deref = ref.unitstring
         else:
@@ -191,7 +193,6 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             # print('Gone canonical')
             q_can = self._tm.get_canonical(quantity)
         except EntityNotFound:
-            quantity = self.get(quantity)
             if hasattr(quantity, 'entity_type') and quantity.entity_type == 'quantity':
                 print('Missing canonical quantity-- adding to LciaDb')
                 self._catalog.register_quantity_ref(quantity)

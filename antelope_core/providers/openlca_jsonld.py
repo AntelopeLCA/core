@@ -519,7 +519,7 @@ class OpenLcaJsonLdArchive(LcArchive):
                 q['weightingFactors'] = weights[q.external_ref]
             qs.append(q.external_ref)
 
-        m = LcQuantity(m_id, Name=method, ReferenceUnit=MetaQuantityUnit, Method=method, Description=m_desc, LciaCategories=qs)
+        m = LcQuantity(m_id, Name=method, ReferenceUnit=MetaQuantityUnit, Method=method, Description=m_desc, ImpactCategories=qs)
         self.add(m)
 
 

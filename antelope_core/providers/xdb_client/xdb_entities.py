@@ -19,7 +19,7 @@ class XdbEntity(BaseEntity):
         :param model:
         :param local:
         """
-        assert issubclass(model, Entity), 'model is not a Pydantic Entity (%s)' % type(model)
+        assert issubclass(type(model), Entity), 'model is not a Pydantic Entity (%s)' % type(model)
         self._model = model
         self._local = local
 
@@ -46,6 +46,6 @@ class XdbEntity(BaseEntity):
     def make_ref(self, query):
         if self._local[self.external_ref]:
             return self._local[self.external_ref]
-        ref = CatalogRef.from_query(self.external_ref, self.entity_type, **self._model.properties)
+        ref = CatalogRef.from_query(self.external_ref, query, self.entity_type, **self._model.properties)
         self._local.add(ref)
         return ref
