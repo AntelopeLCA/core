@@ -191,6 +191,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             # print('Gone canonical')
             q_can = self._tm.get_canonical(quantity)
         except EntityNotFound:
+            quantity = self.get(quantity)
             if hasattr(quantity, 'entity_type') and quantity.entity_type == 'quantity':
                 print('Missing canonical quantity-- adding to LciaDb')
                 self._catalog.register_quantity_ref(quantity)

@@ -339,7 +339,7 @@ def _context_to_str(cx):
 
 
 class FlowSpec(ResponseModel):
-    flow: Optional[str]
+    flow_id: str
     flowable: str
     ref_quantity: str
     context: Optional[str]
@@ -348,7 +348,7 @@ class FlowSpec(ResponseModel):
     @classmethod
     def from_flow(cls, flow):
         context = _context_to_str(flow.context)
-        return cls(flow=flow.external_ref, flowable=flow.name, ref_quantity=flow.reference_entity.external_ref,
+        return cls(flow_id=flow.external_ref, flowable=flow.name, ref_quantity=flow.reference_entity.name,
                    context=context, locale=flow.locale)
 
     @classmethod
@@ -362,11 +362,11 @@ class FlowSpec(ResponseModel):
         else:
             raise TypeError('%s\nUnknown exchange type %s' % (x, x.type))
         loc = locale or x.flow.locale
-        return cls(flow=x.flow.external_ref, flowable=x.flow.name, ref_quantity=x.flow.reference_entity.external_ref,
+        return cls(flow_id=x.flow.external_ref, flowable=x.flow.name, ref_quantity=x.flow.reference_entity.external_ref,
                    context=cx, locale=loc)
 
 
-class SummaryLciaResult(ResponseModel):
+class LciaResult(ResponseModel):
     scenario: Optional[str]
     object: str
     quantity: Entity
@@ -390,6 +390,20 @@ class AggregatedLciaScore(ResponseModel):
     result: float
 
 
+class SummaryLciaScore(AggregatedLciaScore):
+    node_weight: Optional[float]
+    unit_score: Optional[float]
+
+
+class SummaryLciaResult(LciaResult):
+    components: List[SummaryLciaScore]
+
+    @classmethod
+    def from_lcia_result(cls, object, res):
+        return cls(scenario=res.scenario, object=object.name, quantity=Entity.from_entity(res.quantity), scale=res.scale,
+                   total=res.total(), components=res.serialize_components(detailed=False))
+
+
 class DisaggregatedLciaScore(AggregatedLciaScore):
     details: List[LciaDetail]
 
@@ -407,16 +421,7 @@ class DisaggregatedLciaScore(AggregatedLciaScore):
         return obj
 
 
-class LciaResult(SummaryLciaResult):
-    components: List[AggregatedLciaScore]
-
-    @classmethod
-    def from_lcia_result(cls, object, res):
-        return cls(scenario=res.scenario, object=object.name, quantity=Entity.from_entity(res.quantity), scale=res.scale,
-                   total=res.total(), components=res.serialize_components(detailed=False))
-
-
-class DetailedLciaResult(SummaryLciaResult):
+class DetailedLciaResult(LciaResult):
     components: List[DisaggregatedLciaScore]
 
     @classmethod
