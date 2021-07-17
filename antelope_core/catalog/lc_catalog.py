@@ -34,6 +34,13 @@ class LcCatalog(StaticCatalog):
                 return local_file
 
         download_file(url, local_file, md5sum)
+
+        import magic
+        if magic.from_file(local_file).startswith('Microsoft Excel 20'):
+            new_file = local_file + '.xlsx'
+            os.rename(local_file, new_file)  # openpyxl refuses to open files without an extension
+            local_file = new_file
+
         if localize:
             return self._localize_source(local_file)
         return local_file
