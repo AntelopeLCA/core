@@ -63,6 +63,7 @@ class BasicArchive(EntityStore):
     _drop_fields = defaultdict(list)  # dict mapping entity type to fields that should be omitted from serialization
 
     _skip_msg = set()
+    _query = None
 
     @classmethod
     def from_file(cls, filename, ref=None, **init_args):
@@ -119,10 +120,14 @@ class BasicArchive(EntityStore):
     def __init__(self, *args, contexts=None, flowables=None, term_manager=None, **kwargs):
         super(BasicArchive, self).__init__(*args, **kwargs)
         self._tm = term_manager or TermManager(contexts=contexts, flowables=flowables)
+        self._set_query()
+
+    def _set_query(self):
+        self._query = BasicQuery(self)
 
     @property
     def query(self):
-        return BasicQuery(self)
+        return self._query
 
     @property
     def tm(self):

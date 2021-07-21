@@ -23,9 +23,8 @@ class LcArchive(BasicArchive):
     """
     _entity_types = LC_ENTITY_TYPES
 
-    @property
-    def query(self):
-        return LcQuery(self)
+    def _set_query(self):
+        self._query = LcQuery(self)
 
     def make_interface(self, iface):
         if iface == 'inventory' or iface == 'exchange':

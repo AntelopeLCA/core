@@ -293,7 +293,7 @@ class LcEntity(BaseEntity):
                     self[k] = other[k]
 
     def show(self):
-        print('%s Entity (ref %s)' % (self.entity_type.title(), self.external_ref))
+        print('%s Entity (ref %s)' % (self.__class__.__name__, self.external_ref))
         print('origin: %s' % self.origin)
         if self.entity_type == 'process':
             for i in self.reference_entity:
