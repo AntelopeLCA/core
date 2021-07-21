@@ -4,6 +4,7 @@ Client for the xdb Antelope server
 The concept here is to pass received requests straight into the Pydantic models, and then use those for easy
 (though manual) deserialization into EntityRefs.
 """
+from synonym_dict import LowerDict
 
 from antelope import EntityNotFound
 from antelope_core.archives import LcArchive, InterfaceError
@@ -28,7 +29,7 @@ class XdbTermManager(object):
         :param requester:
         """
         self._requester = requester
-        self._contexts = dict()
+        self._contexts = LowerDict()
         self._flows = set()
         self._quantities = set()
 
@@ -78,14 +79,20 @@ class XdbTermManager(object):
             return c_actual
 
     def is_context(self, item):
-        cx = self.__getitem__(item)
-        if cx is NullContext:
+        """
+        The only place this is used is in collision checking- therefore this only needs to check if the name is
+        known *locally* as a context (why do an http query for literally every new entity?)
+        :param item:
+        :return:
+        """
+        try:
+            cx = self._contexts[item]
+            if cx is not None:
+                return True
+            else:
+                return False
+        except KeyError:
             return False
-        elif cx is None:
-            return False
-        elif isinstance(cx, CoreContext):
-            return True
-        return False
 
     def get_context(self, item):
         return self.__getitem__(item) or NullContext
@@ -117,8 +124,10 @@ class XdbTermManager(object):
 
 
 class XdbClient(LcArchive):
-    def __init__(self, source, ref):
+    def __init__(self, source, ref=None):
         self._requester = XdbRequester(source, ref)
+        if ref is None:
+            ref = 'qdb'
         super(XdbClient, self).__init__(source, ref=ref, term_manager=XdbTermManager(self._requester))
 
     @property
@@ -131,4 +140,4 @@ class XdbClient(LcArchive):
         raise InterfaceError(iface)
 
     def _fetch(self, entity, **kwargs):
-        return self[entity] or XdbEntity(self._requester.get_one(Entity, entity), self)
+        return self[entity] or self.query.make_ref(XdbEntity(self._requester.get_one(Entity, entity), self))

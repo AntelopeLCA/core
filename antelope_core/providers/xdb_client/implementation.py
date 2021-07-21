@@ -2,9 +2,13 @@ from antelope import IndexInterface, ExchangeInterface, QuantityInterface, Backg
 from antelope import ExchangeRef, RxRef
 from antelope_core.implementations import BasicImplementation
 from antelope_core.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceExchange, UnallocatedExchange,
-                                  DetailedLciaResult)
+                                  DetailedLciaResult, AllocatedExchange)
 
 from .xdb_entities import XdbEntity
+
+
+class BadClientRequest(Exception):
+    pass
 
 
 class RemoteExchange(Exchange):
@@ -13,12 +17,24 @@ class RemoteExchange(Exchange):
         return self.type == 'reference'
 
 
+def _ref(obj):
+    """
+    URL-ize input argument
+    :param obj:
+    :return:
+    """
+    if hasattr(obj, 'external_ref'):
+        return obj.external_ref
+    return str(obj)
+
+
 class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, QuantityInterface, BackgroundInterface):
     """
     The implementation is very thin, so pile everything into one class
     """
     def get_reference(self, key):
-        rs = self._archive.r.get_one(list, key, 'references')
+        raise AttributeError('noooooo! %s' % key)
+        rs = self._archive.r.get_one(list, _ref(key), 'references')
         if isinstance(rs[0], str):
             return rs[0]  # quantity - unitstring
         elif 'entity_id' in rs[0]:
@@ -26,6 +42,12 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         else:
             p = self.get(key)
             return [RxRef(p, self.get(r.flow), r.direction, comment=r.comment) for r in rs]
+
+    def properties(self, external_ref, **kwargs):
+        return self._archive.r.get_many(str, 'properties', _ref(external_ref))
+
+    def get_item(self, external_ref, item):
+        return self._archive.r.get_raw(_ref(external_ref), 'doc', item)
 
     '''
     Index routes
@@ -56,14 +78,14 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         return self._archive.tm.get_context(term)
 
     def targets(self, flow, direction=None, **kwargs):
-        tgts = self._archive.r.get_many(ReferenceExchange, flow, 'targets')
+        tgts = self._archive.r.get_many(ReferenceExchange, _ref(flow), 'targets')
         return [RxRef(self.get(tgt.process), self.get(tgt.flow), tgt.direction, tgt.comment) for tgt in tgts]
 
     '''
     Exchange routes
     '''
     def _resolve_ex(self, ex):
-        ex.flow = self.get(ex.flow)
+        ex.flow = XdbEntity(FlowEntity.from_exchange_model(ex), self._archive)  # must get turned into a ref with make_ref
         if ex.type == 'context':
             ex.termination = self.get_context(ex.termination)
         elif ex.type == 'cutoff':
@@ -77,7 +99,37 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         :param kwargs:
         :return:
         """
-        return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(RemoteExchange, process, 'exchanges'))
+        return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(RemoteExchange, _ref(process), 'exchanges'))
+
+    def inventory(self, node, ref_flow=None, scenario=None, **kwargs):
+        """
+        Client code already turns them into ExchangeRefs
+        :param node:
+        :param ref_flow: if node is a process, optionally provide its reference flow
+        :param scenario: if node is a fragment, optionally provide a scenario- as string or tuple
+        :param kwargs:
+        :return:
+        """
+        if ref_flow and scenario:
+            raise BadClientRequest('cannot specify both ref_flow and scenario')
+        if ref_flow:
+            # process inventory
+            return list(self._resolve_ex(ex)
+                        for ex in self._archive.r.get_many(AllocatedExchange, _ref(node), _ref(ref_flow), 'inventory'))
+        elif scenario:
+            return list(self._resolve_ex(ex)
+                        for ex in self._archive.r.get_many(AllocatedExchange, _ref(node), 'inventory',
+                                                           scenario=scenario))
+        else:
+            return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(node), 'inventory'))
+
+    def lci(self, process, ref_flow=None, **kwargs):
+        if ref_flow:
+            # process inventory
+            return list(self._resolve_ex(ex)
+                        for ex in self._archive.r.get_many(AllocatedExchange, _ref(process), _ref(ref_flow), 'lci'))
+        else:
+            return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(process), 'lci'))
 
     '''
     qdb routes
@@ -92,5 +144,5 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         :return:
         """
         exchanges = [UnallocatedExchange.from_inv(x) for x in inventory]
-        return self._archive.r.post_return_many(exchanges, DetailedLciaResult, quantity, 'do_lcia')
+        return self._archive.r.post_return_many(exchanges, DetailedLciaResult, _ref(quantity), 'do_lcia')
 

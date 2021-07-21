@@ -41,7 +41,7 @@ class Entity(ResponseModel):
         for key, val in kwargs.items():
             obj.properties[key] = entity[key]
 
-        obj.properties['name'] = entity.name
+        obj.properties['name'] = entity['name']  # entity.name is doctored
 
         if entity.entity_type == 'quantity':
             obj.properties['unit'] = entity.unit
@@ -72,6 +72,28 @@ class FlowEntity(Entity):
             obj.properties[key] = entity[key]
         return obj
 
+    @classmethod
+    def from_exchange(cls, ex):
+        """
+        This is from an antelope Exchange or ExchangeRef
+        :param ex:
+        :return:
+        """
+        return cls(origin=ex.origin, entity_id=ex.flow.external_ref, entity_type='flow', context=list(ex.flow.context),
+                   locale=ex.flow.locale, properties={'name': ex.flow['name'],
+                                                      ex.flow.reference_field: ex.flow.reference_entity.external_ref})
+
+    @classmethod
+    def from_exchange_model(cls, ex):
+        """
+        ExchangeModel includes a FlowSpec instead of a flow
+        :param ex:
+        :return:
+        """
+        return cls(origin=ex.origin, entity_id=ex.flow.external_ref, entity_type='flow', context=ex.flow.context,
+                   locale=ex.flow.locale, properties={'name': ex.flow.flowable,
+                                                      'referenceQuantity': ex.flow.quantity_ref})
+
 
 class Context(ResponseModel):
     name: str
@@ -88,6 +110,34 @@ class Context(ResponseModel):
             parent = cx.parent.name
         return cls(name=cx.name, parent=parent or '', sense=cx.sense, elementary=cx.elementary,
                    subcontexts=list(k.name for k in cx.subcompartments))
+
+
+class FlowSpec(ResponseModel):
+    external_ref: Optional[str]
+    flowable: str
+    quantity_ref: str
+    context: List[str]
+    locale: str
+
+    @classmethod
+    def from_flow(cls, flow):
+        context = list(flow.context)
+        return cls(external_ref=flow.external_ref, flowable=flow.name, quantity_ref=flow.reference_entity.external_ref,
+                   context=context, locale=flow.locale)
+
+    @classmethod
+    def from_exchange(cls, x, locale=None):
+        if x.type in ('node', 'self'):
+            cx = list(x.flow.context)
+        elif x.type == 'context':
+            cx = list(x.termination)
+        elif x.type in ('reference', 'cutoff'):
+            cx = None
+        else:
+            raise TypeError('%s\nUnknown exchange type %s' % (x, x.type))
+        loc = locale or x.flow.locale
+        return cls(flow_id=x.flow.external_ref, flowable=x.flow.name, ref_quantity=x.flow.reference_entity.external_ref,
+                   context=cx, locale=loc)
 
 
 class ExteriorFlow(ResponseModel):
@@ -108,12 +158,11 @@ class Exchange(ResponseModel):
     """
     origin: str
     process: str
-    flow: str
+    flow: FlowSpec
     direction: str
     termination: Optional[str]
     type: str  # {'reference', 'self', 'node', 'context', 'cutoff'}, per
     comment: Optional[str]
-    str: str
 
     @classmethod
     def from_exchange(cls, x, **kwargs):
@@ -121,7 +170,7 @@ class Exchange(ResponseModel):
             term = x.termination.name
         else:
             term = x.termination
-        return cls(origin=x.process.origin, process=x.process.external_ref, flow=x.flow.external_ref,
+        return cls(origin=x.process.origin, process=x.process.external_ref, flow=FlowSpec.from_flow(x.flow),
                    direction=x.direction, termination=term, type=x.type, comment=x.comment, str=str(x), **kwargs)
 
 
@@ -167,15 +216,18 @@ class UnallocatedExchange(Exchange):
 
 
 class AllocatedExchange(Exchange):
-    # is_reference = False  ## not sure we want this
+
     ref_flow: str
     value: float
     uncertainty: Optional[Dict]
 
+    @property  # maybe this will prevent it from getting serialized but still operate
+    def is_reference(self):
+        return False
+
     @classmethod
     def from_inv(cls, x, ref_flow:str):
         return cls.from_exchange(x, ref_flow=ref_flow, value=x.value)
-
 
 
 def generate_pydantic_exchanges(xs, type=None):
@@ -336,34 +388,6 @@ def _context_to_str(cx):
     else:
         raise TypeError('%s: Unrecognized context type %s' % (cx, type(cx)))
     return context
-
-
-class FlowSpec(ResponseModel):
-    flow_id: str
-    flowable: str
-    ref_quantity: str
-    context: Optional[str]
-    locale: str
-
-    @classmethod
-    def from_flow(cls, flow):
-        context = _context_to_str(flow.context)
-        return cls(flow_id=flow.external_ref, flowable=flow.name, ref_quantity=flow.reference_entity.name,
-                   context=context, locale=flow.locale)
-
-    @classmethod
-    def from_exchange(cls, x, locale=None):
-        if x.type in ('node', 'self'):
-            cx = _context_to_str(x.flow.context)
-        elif x.type == 'context':
-            cx = _context_to_str(x.termination)
-        elif x.type in ('reference', 'cutoff'):
-            cx = None
-        else:
-            raise TypeError('%s\nUnknown exchange type %s' % (x, x.type))
-        loc = locale or x.flow.locale
-        return cls(flow_id=x.flow.external_ref, flowable=x.flow.name, ref_quantity=x.flow.reference_entity.external_ref,
-                   context=cx, locale=loc)
 
 
 class LciaResult(ResponseModel):
