@@ -44,7 +44,7 @@ class ArchiveInterfaceTest(unittest.TestCase):
         self.assertNotIn(nsuuid, ar)
         self.assertNotIn(q.uuid, ar)
         ar._add(q, q.external_ref)
-        self.assertNotIn(q.uuid, ar)  # this is only done in BasicArchives
+        self.assertIn(q.uuid, ar)  # this was previously only done in BasicArchives
         self.assertIn(nsuuid, ar)
 
 

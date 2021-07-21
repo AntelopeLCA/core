@@ -83,7 +83,7 @@ class LcArchive(BasicArchive):
             x = exchs[i]
             # eventually move this to an exchange classmethod - which is why I'm repeating myself for now
             v = None
-            f = self._get_entity(x['flow'])
+            f = self._entities[x['flow']]
             d = x['direction']
             if 'value' in x:
                 v = x['value']
@@ -93,7 +93,7 @@ class LcArchive(BasicArchive):
         for i in nonrefs:
             x = exchs[i]
             # is_ref = False
-            f = self._get_entity(x['flow'])
+            f = self._entities[x['flow']]
             d = x['direction']
             if 'termination' in x:
                 t = x['termination']

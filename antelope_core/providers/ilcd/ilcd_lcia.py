@@ -132,7 +132,7 @@ class IlcdLcia(IlcdArchive):
         for f in self.list_objects('LCIAMethod'):
             u = uuid_regex.search(f).groups()[0]
             try:
-                self._get_entity(u)
+                self._entities[u]
             except KeyError:
                 self.load_lcia_method(u, **kwargs)
 
