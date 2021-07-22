@@ -79,6 +79,9 @@ class XdbRequester(object):
         else:
             return [model(k) for k in self._get_endpoint(self._org, *args, **kwargs)]
 
+    def qdb_get_one(self, model, *args, **kwargs):
+            return model(**self._get_endpoint(self._qdb, *args, **kwargs))
+
     def qdb_get_many(self, model, *args, **kwargs):
             return [model(**k) for k in self._get_endpoint(self._qdb, *args, **kwargs)]
 
@@ -86,7 +89,7 @@ class XdbRequester(object):
         url = '/'.join([self._qdb, *args])
         self._print('POST %s', cont=True)
         t = time()
-        resp = self._s.post(url, postdata, params=params)
+        resp = self._s.post(url, json=postdata, params=params)
         el = time() - t
         self._print('%d [%.2f sec]' % (resp.status_code, el))
         if resp.status_code >= 400:

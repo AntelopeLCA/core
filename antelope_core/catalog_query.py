@@ -69,6 +69,18 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
 
         self._iface_cache = dict()
 
+    def __str__(self):
+        if self._catalog:
+            root = 'catalog_root=%s' % self._catalog.root
+        else:
+            root = 'no catalog'
+        if self._dbg:
+            root += ', DEBUG ON'
+        return '%s(%s, %s)' % (self.__class__.__name__, self._origin, root)
+
+    def __repr__(self):
+        return self.__str__()
+
     @property
     def origin(self):
         return self._origin
@@ -156,12 +168,15 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
     def get(self, eid, **kwargs):
         """
         Retrieve entity by external Id. This will take any interface and should keep trying until it finds a match.
+        It first matches canonical entities, because that is the point of canonical entities.
         :param eid: an external Id
         :return:
         """
-        entity = self._perform_query('basic', 'get', EntityNotFound, eid,
-                                     **kwargs)
-        return self.make_ref(entity)
+        try:
+            return self._tm.get_canonical(eid)
+        except EntityNotFound:
+            entity = self._perform_query('basic', 'get', EntityNotFound, eid, **kwargs)
+            return self.make_ref(entity)
 
     def get_reference(self, external_ref):
         ref = self._perform_query('basic', 'get_reference', EntityNotFound, external_ref)
@@ -195,8 +210,8 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         except EntityNotFound:
             if hasattr(quantity, 'entity_type') and quantity.entity_type == 'quantity':
                 print('Missing canonical quantity-- adding to LciaDb')
-                self._catalog.register_quantity_ref(quantity)
-                q_can = self._tm.get_canonical(quantity)
+                self._catalog.register_entity_ref(quantity)
+                return self._tm.get_canonical(quantity)
                 # print('Retrieving canonical %s' % q_can)
             else:
                 raise
@@ -220,7 +235,28 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         if entity.entity_type == 'quantity':
             ''' # astonishingly, we don't want this - register but not return
             # print('Going canonical')
-            return self.get_canonical(e_ref)
+            # astonishing because it's not true. 
+            Well. not exactly true.
+            
+            CatalogQueries should return canonical quantities. that is the point of the catalog.  The reason we didn't
+            want this was because we were using the catalog to access origin-specific data to re-serve it.  On the
+            server side, we thought we would want to keep track of all this- for veracity of the data, for provenance,
+            etc.  But in point of fact, there is NO CIRCUMSTANCE under which a user benefits from having 
+            origin-specific  versions of "mass" or "area".
+            
+            True, the data won't match the source.  but we will still RECOGNIZE the source because we will register the 
+            quantity terms with the term manager.  Which we WEREN"T doing before.
+            
+            A corollary of this is that CatalogQuery.get() should get_canonical FIRST
             '''
-            _ = self.get_canonical(e_ref)
-        return e_ref
+            try:
+                return self._tm.get_canonical(entity.link)
+            except EntityNotFound:
+                try:
+                    _ = self._tm.get_canonical(entity)
+                except EntityNotFound:
+                    self._catalog.register_entity_ref(e_ref)
+                    return self._tm.get_canonical(entity)
+                return self._tm.add_quantity(entity) # this will be identical to _ unless there is a unit conflict
+        else:
+            return e_ref

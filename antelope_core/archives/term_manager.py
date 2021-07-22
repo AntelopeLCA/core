@@ -635,12 +635,15 @@ class TermManager(object):
         try:
             return self._qm[quantity]
         except KeyError:
+            if isinstance(quantity, str):
+                raise
             if hasattr(quantity, 'link'):
                 try:
                     return self._qm[quantity.link]
                 except KeyError:
-                    return self._qm.find_matching_quantity(quantity)
-            return self._qm[str(quantity)]
+                    if hasattr(quantity, 'quantity_terms'):
+                        return self._qm.find_matching_quantity(quantity)  # or else KeyError
+            return self._qm[str(quantity)]  # or else KeyError
 
     def _canonical_q_ref(self, quantity):
         return self._canonical_q(quantity).external_ref

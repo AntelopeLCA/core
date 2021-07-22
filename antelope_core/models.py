@@ -136,7 +136,7 @@ class FlowSpec(ResponseModel):
         else:
             raise TypeError('%s\nUnknown exchange type %s' % (x, x.type))
         loc = locale or x.flow.locale
-        return cls(flow_id=x.flow.external_ref, flowable=x.flow.name, ref_quantity=x.flow.reference_entity.external_ref,
+        return cls(flow_id=x.flow.external_ref, flowable=x.flow.name, quantity_ref=x.flow.reference_entity.external_ref,
                    context=cx, locale=loc)
 
 

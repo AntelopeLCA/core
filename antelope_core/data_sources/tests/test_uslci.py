@@ -23,8 +23,7 @@ else:
 if _run_uslci:
     cfg = make_config('uslci')
     try:
-        q = cat.query('lcia.ipcc')
-        gwp = q.get_canonical(next(q.lcia_methods()))
+        gwp = next(cat.query('lcia.ipcc').lcia_methods())
     except UnknownOrigin:
         gwp = False
 

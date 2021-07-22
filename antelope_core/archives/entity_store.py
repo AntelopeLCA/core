@@ -576,12 +576,12 @@ class EntityStore(object):
                 print('Warning: UUID %s already exists and will not be bound to this entity' % entity.uuid)
 
     def _add(self, entity, key, quiet=False):
-        self._ensure_valid_refs(entity)
-
         if key is None:
             raise ValueError('Key not allowed to be None')
         if key in self._entities:
             raise EntityExists('Entity already exists: %s' % key)
+
+        self._ensure_valid_refs(entity)
 
         if entity.entity_type not in self._entity_types:
             raise TypeError('Entity type %s not valid!' % entity.entity_type)

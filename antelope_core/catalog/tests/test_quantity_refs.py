@@ -20,16 +20,14 @@ def setUpModule():
 class QuantityRefTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.gwp = next(cat.query(org).lcia_methods(Name='Global Warming'))  # original ref
-        cls.gwp_can = cat.query(org).get_canonical(cls.gwp)  # canonical (masqueraded) ref
-        cls.gwp_ref = cat._qdb[cls.gwp.external_ref]  # locally stored
+        cls.gwp = next(cat.query(org).lcia_methods(Name='Global Warming'))  # canonical
+        cls.gwp_ref = cat._qdb[cls.gwp.external_ref]  # original ref (locally stored)
         cls.gwp_true = cat.get_archive(cls.gwp_ref.origin).get(cls.gwp_ref.external_ref)  # authentic entity
 
     def test_origins(self):
         self.assertEqual(self.gwp.origin, org)
-        self.assertEqual(self.gwp_can.origin, org)
-        self.assertEqual(self.gwp_can._query.origin, 'local.qdb')
-        self.assertIs(self.gwp, self.gwp_ref)
+        self.assertEqual(self.gwp_ref.origin, org)
+        self.assertEqual(self.gwp._query.origin, 'local.qdb')
         res = cat.get_resource(org)
         self.assertEqual(self.gwp_true.origin, res.archive.names[res.source])
 

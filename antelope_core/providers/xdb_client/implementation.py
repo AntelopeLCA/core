@@ -33,7 +33,6 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
     The implementation is very thin, so pile everything into one class
     """
     def get_reference(self, key):
-        raise AttributeError('noooooo! %s' % key)
         rs = self._archive.r.get_one(list, _ref(key), 'references')
         if isinstance(rs[0], str):
             return rs[0]  # quantity - unitstring
@@ -48,6 +47,14 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
 
     def get_item(self, external_ref, item):
         return self._archive.r.get_raw(_ref(external_ref), 'doc', item)
+
+    def get_uuid(self, external_ref):
+        """
+        Stopgap: don't support UUIDs
+        :param external_ref:
+        :return:
+        """
+        return self._archive.r.get_raw(_ref(external_ref), 'uuid')
 
     '''
     Index routes
@@ -134,6 +141,15 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
     '''
     qdb routes
     '''
+    def get_canonical(self, quantity, **kwargs):
+        """
+
+        :param quantity:
+        :param kwargs:
+        :return:
+        """
+        return self._archive.r.qdb_get_one(Entity, _ref(quantity))
+
     def do_lcia(self, quantity, inventory, locale='GLO', **kwargs):
         """
 
@@ -143,6 +159,6 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         :param kwargs:
         :return:
         """
-        exchanges = [UnallocatedExchange.from_inv(x) for x in inventory]
+        exchanges = [UnallocatedExchange.from_inv(x).dict() for x in inventory]
         return self._archive.r.post_return_many(exchanges, DetailedLciaResult, _ref(quantity), 'do_lcia')
 

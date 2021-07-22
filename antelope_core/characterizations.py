@@ -171,7 +171,7 @@ class Characterization(object):
     def query(self, locale):
         found = self._lookup(locale)  # with the addition of LocaleMismatch, we should do away with this
         if found is None:
-            raise LocaleMismatch(list(self._locations.keys()))
+            raise LocaleMismatch(locale, list(self._locations.keys()))
         return QRResult(self.flowable, self.ref_quantity, self.quantity, self.context, found,
                         self.origin, self._locations[found])
 

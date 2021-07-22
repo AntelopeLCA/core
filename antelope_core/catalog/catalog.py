@@ -25,7 +25,7 @@ import re
 import hashlib
 # from collections import defaultdict
 
-from ..archives import InterfaceError
+from ..archives import InterfaceError, EntityExists
 from ..lcia_engine import LciaDb
 
 
@@ -192,9 +192,25 @@ class StaticCatalog(object):
     def lcia_engine(self):
         return self._qdb.tm
 
-    def register_quantity_ref(self, q_ref):
-        print('registering %s' % q_ref.link)
-        self._qdb.add(q_ref)
+    def register_entity_ref(self, q_ref):
+        if q_ref.is_entity:
+            raise TypeError('Supplied argument is an entity')
+        try:
+            self._qdb.add(q_ref)
+            print('registered %s' % q_ref.link)
+        except EntityExists:
+            pass
+
+    def get_qdb_entity(self, origin, external_ref, entity_type='flow'):
+        if origin is None or external_ref is None:
+            raise ValueError('%s/%s not valid' % (origin, external_ref))
+        link = '/'.join([origin, external_ref])
+        ent = self._qdb[link]
+        if ent is None:
+            raise KeyError(link)
+        if ent.entity_type != entity_type:
+            raise TypeError(ent)
+        return ent
 
     @property
     def sources(self):

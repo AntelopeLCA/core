@@ -140,4 +140,4 @@ class XdbClient(LcArchive):
         raise InterfaceError(iface)
 
     def _fetch(self, entity, **kwargs):
-        return self[entity] or self.query.make_ref(XdbEntity(self._requester.get_one(Entity, entity), self))
+        return self.query.make_ref(XdbEntity(self._requester.get_one(Entity, entity), self))
