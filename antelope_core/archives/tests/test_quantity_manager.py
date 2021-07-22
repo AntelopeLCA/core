@@ -47,6 +47,9 @@ class QuantityTest(unittest.TestCase):
         qsynx = QuantitySynonyms.new(dummy_x)
         with self.assertRaises(QuantityUnitMismatch):
             qsyn.add_child(qsynx)
+        dummy_q['UnitConversion'][qsynx.unit] = 1.0
+        qsyn.add_child(qsynx)
+        self.assertIn(dummy_x.uuid, list(qsyn.terms))
 
     def test_serialize(self):
         pass

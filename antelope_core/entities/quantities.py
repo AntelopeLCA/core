@@ -228,7 +228,8 @@ class LcUnit(object):
         return self._unitstring
 
     def __str__(self):
-        return '[%s]' % self._unitstring
+        return self._unitstring
+        # return '[%s]' % self._unitstring  ## good god man, why?
 
     def reset_unitstring(self, ustring):
         self._external_ref = ustring
