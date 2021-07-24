@@ -113,6 +113,10 @@ class Context(ResponseModel):
 
 
 class FlowSpec(ResponseModel):
+    """
+    Non-context exchange terminations do not get included in flow specifications, because they are part of the model and
+    not the flow
+    """
     external_ref: Optional[str]
     flowable: str
     quantity_ref: str
@@ -121,22 +125,19 @@ class FlowSpec(ResponseModel):
 
     @classmethod
     def from_flow(cls, flow):
-        context = list(flow.context)
         return cls(external_ref=flow.external_ref, flowable=flow.name, quantity_ref=flow.reference_entity.external_ref,
-                   context=context, locale=flow.locale)
+                   context=list(flow.context), locale=flow.locale)
 
     @classmethod
     def from_exchange(cls, x, locale=None):
-        if x.type in ('node', 'self'):
-            cx = list(x.flow.context)
-        elif x.type == 'context':
+        if  x.type == 'context':
             cx = list(x.termination)
         elif x.type in ('reference', 'cutoff'):
             cx = None
         else:
             raise TypeError('%s\nUnknown exchange type %s' % (x, x.type))
         loc = locale or x.flow.locale
-        return cls(flow_id=x.flow.external_ref, flowable=x.flow.name, quantity_ref=x.flow.reference_entity.external_ref,
+        return cls(external_ref=x.flow.external_ref, flowable=x.flow.name, quantity_ref=x.flow.reference_entity.external_ref,
                    context=cx, locale=loc)
 
 
@@ -148,7 +149,7 @@ class ExteriorFlow(ResponseModel):
     origin: str
     flow: str
     direction: str  # antelope_interface specifies the direction as w/r/t/ context, as in "Input" "to air". This SEEMS WRONG.
-    context: str
+    context: List[str]
     locale: Optional[str] = 'GLO'  # ???
 
 
@@ -161,17 +162,20 @@ class Exchange(ResponseModel):
     flow: FlowSpec
     direction: str
     termination: Optional[str]
+    context: Optional[List[str]]
     type: str  # {'reference', 'self', 'node', 'context', 'cutoff'}, per
     comment: Optional[str]
 
     @classmethod
     def from_exchange(cls, x, **kwargs):
         if x.type == 'context':
-            term = x.termination.name
+            cx = list(x.termination)
+            term = None
         else:
             term = x.termination
+            cx = None
         return cls(origin=x.process.origin, process=x.process.external_ref, flow=FlowSpec.from_flow(x.flow),
-                   direction=x.direction, termination=term, type=x.type, comment=x.comment, str=str(x), **kwargs)
+                   direction=x.direction, termination=term, context=cx, type=x.type, comment=x.comment, str=str(x), **kwargs)
 
 
 class ReferenceExchange(Exchange):
@@ -403,12 +407,6 @@ class LciaResult(ResponseModel):
                    total=res.total())
 
 
-class LciaDetail(ResponseModel):
-    exchange: FlowSpec
-    factor: QuantityConversion
-    result: float
-
-
 class AggregatedLciaScore(ResponseModel):
     component: str
     result: float
@@ -428,20 +426,39 @@ class SummaryLciaResult(LciaResult):
                    total=res.total(), components=res.serialize_components(detailed=False))
 
 
+class LciaDetail(ResponseModel):
+    exchange: Optional[FlowSpec]
+    factor: QuantityConversion
+    result: float
+
+
 class DisaggregatedLciaScore(AggregatedLciaScore):
+    origin: str
+    entity_id: str
     details: List[LciaDetail]
+    summaries: List[SummaryLciaScore]  # these are different data types
 
     @classmethod
-    def from_component(cls, c):
+    def from_component(cls, obj, c):
         if hasattr(c.entity, 'name'):
             component = c.entity.name
         else:
             component = str(c.entity)
-        obj = cls(component=component, result=c.cumulative_result, details=[])
-        for d in sorted(c.LciaDetails, key=lambda x: x.result, reverse=True):
-            obj.details.append(LciaDetail(exchange=FlowSpec.from_exchange(d.exchange, locale=d.factor.locale),
-                                          factor=QuantityConversion.from_qrresult(d.factor),
-                                          result=d.result))
+        if hasattr(c.entity, 'external_ref'):
+            origin = c.entity.origin
+            entity_id = c.entity.external_ref
+        else:
+            origin = obj.origin
+            entity_id = obj.external_ref
+        obj = cls(origin=origin, entity_id=entity_id, component=component, result=c.cumulative_result,
+                  details=[], summaries=[])
+        for d in sorted(c.details(), key=lambda x: x.result, reverse=True):
+            if hasattr(d, 'node_weight'):
+                obj.summaries.append(SummaryLciaScore(**d.serialize(detailed=False)))
+            else:
+                obj.details.append(LciaDetail(exchange=FlowSpec.from_exchange(d.exchange),
+                                              factor=QuantityConversion.from_qrresult(d.factor),
+                                              result=d.result))
         return obj
 
 
@@ -449,9 +466,9 @@ class DetailedLciaResult(LciaResult):
     components: List[DisaggregatedLciaScore]
 
     @classmethod
-    def from_lcia_result(cls, object, res):
-        obj = cls(scenario=res.scenario, object=object.name, quantity=Entity.from_entity(res.quantity), scale=res.scale,
+    def from_lcia_result(cls, obj, res):
+        mod = cls(scenario=res.scenario, object=obj.name, quantity=Entity.from_entity(res.quantity), scale=res.scale,
                   total=res.total(), components=[])
         for c in res.components():
-            obj.components.append(DisaggregatedLciaScore.from_component(c))
-        return obj
+            mod.components.append(DisaggregatedLciaScore.from_component(obj, c))
+        return mod

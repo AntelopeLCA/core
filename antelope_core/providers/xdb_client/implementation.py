@@ -1,8 +1,12 @@
+from collections import defaultdict
+
 from antelope import IndexInterface, ExchangeInterface, QuantityInterface, BackgroundInterface
-from antelope import ExchangeRef, RxRef
+from antelope import comp_dir, ExchangeRef, RxRef
 from antelope_core.implementations import BasicImplementation
 from antelope_core.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceExchange, UnallocatedExchange,
                                   DetailedLciaResult, AllocatedExchange)
+from antelope_core.lcia_results import LciaResult
+from antelope_core.characterizations import QRResult
 
 from .xdb_entities import XdbEntity
 
@@ -82,6 +86,8 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         return self._archive.tm.contexts(**kwargs)
 
     def get_context(self, term, **kwargs):
+        if isinstance(term, list):
+            return self._archive.tm.get_context(term[-1])
         return self._archive.tm.get_context(term)
 
     def targets(self, flow, direction=None, **kwargs):
@@ -94,7 +100,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
     def _resolve_ex(self, ex):
         ex.flow = XdbEntity(FlowEntity.from_exchange_model(ex), self._archive)  # must get turned into a ref with make_ref
         if ex.type == 'context':
-            ex.termination = self.get_context(ex.termination)
+            ex.termination = self.get_context(ex.context)
         elif ex.type == 'cutoff':
             ex.termination = None
         return ex
@@ -150,6 +156,27 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         """
         return self._archive.r.qdb_get_one(Entity, _ref(quantity))
 
+    def _result_from_model(self, quantity, exch_map, res_m: DetailedLciaResult):
+        res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
+        nodes = set(v.process for v in exch_map.values())
+        for c in res_m.components:
+            try:
+                node = next(v for v in nodes if v.external_ref == c.entity_id)
+            except StopIteration:
+                node = c.entity_id
+            for d in c.details:
+                key = (d.exchange.external_ref, tuple(d.exchange.context))
+                ex = exch_map[key]
+                val = d.result / d.factor.value
+                if val != ex.value:
+                    print('%s: value mismatch %g vs %g' % (key, val, ex.value))
+                cf = QRResult(d.factor.flowable, ex.flow.reference_entity, quantity, ex.termination,
+                              d.factor.locale, d.factor.origin, d.factor.value)
+                res.add_score(c.component, ex, cf)
+            for s in c.summaries:
+                res.add_summary(c.component, node, s.node_weight, s.unit_score)
+        return res
+
     def do_lcia(self, quantity, inventory, locale='GLO', **kwargs):
         """
 
@@ -160,5 +187,8 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         :return:
         """
         exchanges = [UnallocatedExchange.from_inv(x).dict() for x in inventory]
-        return self._archive.r.post_return_many(exchanges, DetailedLciaResult, _ref(quantity), 'do_lcia')
+        exch_map = {(x.flow.external_ref, x.term_ref): x for x in inventory}
+
+        ress = self._archive.r.post_return_many(exchanges, DetailedLciaResult, _ref(quantity), 'do_lcia')
+        return [self._result_from_model(quantity, exch_map, res) for res in ress]
 

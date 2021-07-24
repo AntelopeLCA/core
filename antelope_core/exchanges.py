@@ -150,16 +150,24 @@ class Exchange(object):
         return self._termination
 
     @property
+    def term_ref(self):
+        if isinstance(self._termination, Context):
+            return tuple(self._termination)
+        else:
+            return self._termination
+
+
+    @property
     def key(self):
         return self._hash
 
     @property
     def lkey(self):
         """
-        Long key, for testing equality-- more robust than a hash
+        Long key, for testing equality with exchange refs whose terminations may be tuples
         :return:
         """
-        return self.flow.external_ref, self._direction, self._termination  # self._hash_tuple
+        return self.flow.external_ref, self._direction, self.term_ref  # self._hash_tuple
 
     def is_allocated(self, reference):
         """

@@ -206,7 +206,8 @@ class LcCatalog(StaticCatalog):
                 # this should be postponed to after creation of new, but that fails in case of naming collision (bc YYYYMMDD)
                 # so golly gee we just delete-first.
                 print('deleting %s' % stale.origin)
-                self._resolver.delete_resource(stale)
+                self.delete_resource(stale)
+
 
         the_index = res.make_index(inx_file, force=force)
         self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=stored, interfaces='index',
@@ -231,12 +232,14 @@ class LcCatalog(StaticCatalog):
         :param strict: [True] whether to be strict
         :return:
         """
-        try:
-            ix = next(self.gen_interfaces(origin, itype='index', strict=False))
-            return ix.origin
-        except StopIteration:
-            source = self._find_single_source(origin, interface, source=source, strict=strict)
-            return self._index_source(source, priority, force=force)
+        if not force:
+            try:
+                ix = next(self.gen_interfaces(origin, itype='index', strict=False))
+                return ix.origin
+            except StopIteration:
+                pass
+        source = self._find_single_source(origin, interface, source=source, strict=strict)
+        return self._index_source(source, priority, force=force)
 
     def cache_ref(self, origin, interface=None, source=None, static=False):
         source = self._find_single_source(origin, interface, source=source)

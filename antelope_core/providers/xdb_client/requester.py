@@ -87,7 +87,7 @@ class XdbRequester(object):
 
     def _post_qdb(self, postdata, *args, **params):
         url = '/'.join([self._qdb, *args])
-        self._print('POST %s', cont=True)
+        self._print('POST %s' % url, cont=True)
         t = time()
         resp = self._s.post(url, json=postdata, params=params)
         el = time() - t

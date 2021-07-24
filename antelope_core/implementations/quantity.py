@@ -21,8 +21,10 @@ class QuantityConversion(object):
     The first QRR added should report the query quantity (numerator) in terms of some reference quantity (denominator);
     then each subsequent QRR should include the prior ref quantity as the query quantity.
 
-    The QuantityConversion has a subset of the interface of a QRResult (flowable, ref, query, context, value), leaving
-    out locale and origin for the time being since they could vary across factors.
+    QuantityConversion implements the interface of a QRResult (flowable, ref, query, context, value, locale, origin),
+    'context' is a cache of the [canonical] context used as query input; 'locale' is a '/' join of all
+    found geographies; 'flowable' 'query' and 'origin' take from the first QR Result; 'ref' takes the last; value is
+    computed as the product of all contained QRResults.
 
     For instance, a Quantity conversion from moles of CH4 to GWP 100 might include first the GWP conversion and then
     the mol conversion:
@@ -32,6 +34,8 @@ class QuantityConversion(object):
 
     The QuantityConversion needs information to be fully defined: the query quantity and the query context, both of
     which should be canonical.  The canonical context is especially needed to test directionality for LCIA.
+
+    For the context initially submitted, consult the exchange.
     """
     @classmethod
     def null(cls, flowable, rq, qq, context, locale, origin):

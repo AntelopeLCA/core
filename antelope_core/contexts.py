@@ -71,6 +71,13 @@ class FrozenElementary(Exception):
     pass
 
 
+class ImmutableContextName(Exception):
+    """
+    A context's hash comes from its name and thus the name may not be changed.
+    """
+    pass
+
+
 def _dir_mod(arg, sense):
     if arg.lower() in PROTECTED:
         if sense is None:
@@ -95,6 +102,29 @@ class Context(Compartment):
     _first_origin = None
     entity_type = 'context'
     _elem = None
+
+    def set_name(self, name):
+        raise ImmutableContextName('May not change canonical name for contexts')
+
+    def __iter__(self):
+        for k in self.as_list():
+            yield k
+
+    def __hash__(self):
+        return hash(self._id)  # don't mess with the hash
+
+    def __eq__(self, other):
+        if isinstance(other, str):
+            return self.name == other
+        try:
+            return tuple(self) == tuple(other)
+        except TypeError:
+            return False
+
+    def __len__(self):
+        if self.parent is None:
+            return 1
+        return self.parent.__len__() + 1
 
     @property
     def origin(self):

@@ -197,7 +197,7 @@ class StaticCatalog(object):
             raise TypeError('Supplied argument is an entity')
         try:
             self._qdb.add(q_ref)
-            print('registered %s' % q_ref.link)
+            # print('registered %s' % q_ref.link)
         except EntityExists:
             pass
 

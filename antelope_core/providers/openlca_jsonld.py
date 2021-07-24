@@ -15,11 +15,11 @@ from .file_store import FileStore
 from .ecospold import parse_math
 
 
-geog_tail = re.compile('\\b[A-Z]+[o-]?[A-Z]*$')  # capture, e.g. 'ZA', 'GLO', 'RoW', 'US-CA' but not 'PET-g'
+geog_tail = re.compile(',\\s([A-Z]+[o-]?[A-Z]*)$')  # capture, e.g. 'ZA', 'GLO', 'RoW', 'US-CA' but not 'PET-g'
 
 def pull_geog(flowname):
     try:
-        return geog_tail.search(flowname).group()
+        return geog_tail.search(flowname).group(1)
     except AttributeError:
         return None
 
@@ -449,10 +449,7 @@ class OpenLcaJsonLdArchive(LcArchive):
             flow = self._create_flow(factor['flow']['@id'])
             loc = factor.get('location')
             if loc is None:
-                try:
-                    loc = geog_tail.search(flow.name).group()
-                except AttributeError:
-                    pass
+                loc = pull_geog(flow.name)
 
             ref_qty = self._create_quantity(factor['flowProperty']['@id'])
             assert flow.reference_entity == ref_qty

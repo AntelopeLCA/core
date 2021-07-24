@@ -4,13 +4,11 @@ Client for the xdb Antelope server
 The concept here is to pass received requests straight into the Pydantic models, and then use those for easy
 (though manual) deserialization into EntityRefs.
 """
-from synonym_dict import LowerDict
-
 from antelope import EntityNotFound
 from antelope_core.archives import LcArchive, InterfaceError
 from antelope_core.models import Context as ContextModel, Entity
 from antelope_core.catalog_query import READONLY_INTERFACE_TYPES
-from antelope_core.contexts import NullContext, Context as CoreContext
+from antelope_core.contexts import ContextManager, NullContext
 
 from .requester import XdbRequester, HttpError
 from .implementation import XdbImplementation
@@ -29,7 +27,8 @@ class XdbTermManager(object):
         :param requester:
         """
         self._requester = requester
-        self._contexts = LowerDict()
+        self._cm = ContextManager()
+        self._bad_contexts= set()
         self._flows = set()
         self._quantities = set()
 
@@ -43,7 +42,7 @@ class XdbTermManager(object):
     def _fetch_context_model(self, item):
         return self._requester.get_one(ContextModel, 'contexts', item)
 
-    def _build_context(self, context_model):
+    def _build_context(self, context_model, *args):
         if context_model.name == 'None':
             c_actual = NullContext  # maintain singleton status of NullContext
         else:
@@ -51,9 +50,10 @@ class XdbTermManager(object):
                 parent = None
             else:
                 parent = self.get_context(context_model.parent)
-            c_actual = CoreContext(context_model.name, sense=context_model.sense, parent=parent)
+            c_actual = self._cm.new_entry(context_model.name, *args, parent=parent)
+            if parent is not None and parent.sense is None and context_model.sense is not None:
+                c_actual.sense = context_model.sense
             c_actual.add_origin(self._requester.origin)  # here we are masquerading all origins back to the requester origin
-        self._contexts[c_actual.name] = c_actual
         return c_actual
 
     def add_flow(self, flow, **kwargs):
@@ -63,19 +63,22 @@ class XdbTermManager(object):
         self._quantities.add(quantity)
 
     def __getitem__(self, item):
+        if isinstance(item, list):
+            item = tuple(item)
+        if item in self._bad_contexts:
+            return None
         try:
-            return self._contexts[item]
+            return self._cm[item]
         except KeyError:
             try:
                 c_model = self._fetch_context_model(item)
             except HttpError as e:
                 if e.args[0] == 404:
-                    self._contexts[item] = None
+                    self._bad_contexts.add(item)
                     return None
                 else:
                     raise
-            c_actual = self._build_context(c_model)
-            self._contexts[item] = c_actual
+            c_actual = self._build_context(c_model, item)
             return c_actual
 
     def is_context(self, item):
@@ -86,13 +89,10 @@ class XdbTermManager(object):
         :return:
         """
         try:
-            cx = self._contexts[item]
-            if cx is not None:
-                return True
-            else:
-                return False
+            cx = self._cm[item]
         except KeyError:
             return False
+        return cx is not None
 
     def get_context(self, item):
         return self.__getitem__(item) or NullContext
@@ -117,8 +117,8 @@ class XdbTermManager(object):
     def contexts(self, **kwargs):
         c_models = self._requester.get_many(ContextModel, 'contexts', **kwargs)
         for c in c_models:
-            if c.name in self._contexts:
-                yield self._contexts[c.name]
+            if c.name in self._cm:
+                yield self._cm[c.name]
             else:
                 yield self._build_context(c)
 
