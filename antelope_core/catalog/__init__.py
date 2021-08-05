@@ -1,3 +1,3 @@
 from .catalog import StaticCatalog
-from .lccatalog import LcCatalog
+from .lc_catalog import LcCatalog
 

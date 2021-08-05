@@ -11,13 +11,14 @@ valid_configs = {  # 0_ indicates the arg is allowed to be None
     'set_reference': ValidConfig(3, ('process', 'flow', '0_direction')),
     'unset_reference': ValidConfig(3, ('0_process', '0_flow', '0_direction')),
     'characterize_flow': ValidConfig(3, ('flow', 'quantity', 'float')),
-    'allocate_by_quantity': ValidConfig(2, ('process', 'quantity'))
+    'allocate_by_quantity': ValidConfig(2, ('process', 'quantity')),
+    'prefer_provider': ValidConfig(2, ('flow', '0_process'))
 }
 
 
-class ConfigureImplementation(BasicImplementation, ConfigureInterface):
+class CoreConfigureImplementation(BasicImplementation, ConfigureInterface):
 
-    _config_options = ('characterize_flow', )
+    _config_options = ()
 
     def _apply_config(self, config, option, **kwargs):
         if option in config:
@@ -89,16 +90,19 @@ class ConfigureImplementation(BasicImplementation, ConfigureInterface):
                     raise ValueError('Argument %d [%s] is not a recognized local context' % (i, c_args[i]))
                 continue
             else:
-                '''
                 if not isinstance(c_args[i], str):
                     raise TypeError('%s [%d:%s]: Configuraton arguments must be strings and not entities' % (config, i,
                                                                                                              c_args[i]))
-                '''
                 e = self._archive.retrieve_or_fetch_entity(c_args[i])
                 if e.entity_type == t:
                     continue
             raise TypeError('Argument %d should be type %s' % (i, t))
         return True
+
+
+class ConfigureImplementation(CoreConfigureImplementation):
+
+    _config_options = ('characterize_flow',)
 
     def characterize_flow(self, flow_ref, quantity_ref, value, location='GLO', overwrite=False, **kwargs):
         """

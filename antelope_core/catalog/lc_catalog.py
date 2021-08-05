@@ -1,3 +1,4 @@
+from antelope import IndexRequired
 from .catalog import StaticCatalog
 from ..archives import REF_QTYS, archive_from_json
 from ..lc_resource import LcResource, download_file
@@ -230,8 +231,12 @@ class LcCatalog(StaticCatalog):
         :param strict: [True] whether to be strict
         :return:
         """
-        source = self._find_single_source(origin, interface, source=source, strict=strict)
-        return self._index_source(source, priority, force=force)
+        try:
+            ix = next(self.gen_interfaces(origin, itype='index', strict=False))
+            return ix.origin
+        except StopIteration:
+            source = self._find_single_source(origin, interface, source=source, strict=strict)
+            return self._index_source(source, priority, force=force)
 
     def cache_ref(self, origin, interface=None, source=None, static=False):
         source = self._find_single_source(origin, interface, source=source)
@@ -255,11 +260,13 @@ class LcCatalog(StaticCatalog):
         res.make_cache(self.cache_file(self._localize_source(source)))
 
     def _background_for_origin(self, ref, strict=False):
+        res = self.get_resource(ref, iface='exchange')
         inx_ref = self.index_ref(ref, interface='exchange', strict=strict)
         bk_file = self._localize_source(os.path.join(self.archive_dir, '%s_background.mat' % inx_ref))
         bk = LcResource(inx_ref, bk_file, 'Background', interfaces='background', priority=99,
                         save_after=True, _internal=True)
-        bk.check(self)  # ImportError if antelope_background pkg not found
+        bk.config = res.config
+        bk.check(self)  # ImportError if antelope_background pkg not found;; also applies configs
         self.add_resource(bk)
         return bk.make_interface('background')  # when the interface is returned, it will trigger setup_bm
 
@@ -275,7 +282,7 @@ class LcCatalog(StaticCatalog):
             yield k
 
         if itype == 'background':
-            if True:  # origin.startswith('local') or origin.startswith('test'):
+            if origin.startswith('local') or origin.startswith('test'):
                 yield self._background_for_origin(origin, strict=strict)
 
     def create_descendant(self, origin, interface=None, source=None, force=False, signifier=None, strict=True,

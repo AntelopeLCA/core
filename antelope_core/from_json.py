@@ -1,3 +1,4 @@
+import os
 import re
 import gzip as gz
 import json
@@ -20,6 +21,9 @@ def from_json(fname):
 
 
 def to_json(obj, fname, gzip=False):
+    dirname = os.path.dirname(fname)
+    if not os.path.exists(dirname):
+        os.makedirs(dirname, exist_ok=True)
     if gzip is True:
         if not bool(re.search('\.gz$', fname)):
             fname += '.gz'

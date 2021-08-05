@@ -110,6 +110,11 @@ class BasicImplementation(object):
         e = self._fetch(external_ref, **kwargs)
         if e is not None:
             return e
+        if isinstance(external_ref, int):  # we got away with this before by falling back on NSUUIDs
+            external_ref = str(external_ref)
+        e = self._fetch(external_ref, **kwargs)
+        if e is not None:
+            return e
         er_s = external_ref.split('/')
         if self.origin.startswith(er_s[0]):
             e = self._fetch('/'.join(er_s[1:]), **kwargs)

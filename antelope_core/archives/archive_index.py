@@ -18,11 +18,13 @@ class AbstractIndex(object):
 
 
 class BasicIndex(AbstractIndex, BasicArchive):
+    _ns_uuid_required = None
     def serialize(self, characterizations=False, values=False, domesticate=False):
         return super(BasicIndex, self).serialize(characterizations=False, values=False, domesticate=False)
 
 
 class LcIndex(AbstractIndex, LcArchive):
+    _ns_uuid_required = None
     def serialize(self, exchanges=False, characterizations=False, values=False, domesticate=False):
         return super(LcIndex, self).serialize(exchanges=False, characterizations=False, values=False, domesticate=False)
 

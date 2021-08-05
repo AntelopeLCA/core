@@ -114,7 +114,8 @@ class UsLciTestContainer(object):
 
         @unittest.skipIf(lci is False, "no background")
         def test_30_bg_gen(self):
-            self.assertTrue(self.query.check_bg(reset=True, prefer=list(self._preferred())))
+            preferred = list((rx.flow.external_ref, p.external_ref) for p in self._preferred() for rx in p.references())
+            self.assertTrue(self.query.check_bg(reset=True, prefer=preferred))
 
         @unittest.skipIf(lci is False, "no background")
         def test_31_bg_length(self):
@@ -158,7 +159,7 @@ class UsLciOlcaTest(UsLciTestContainer.UsLciTestBase):
     _atype = 'olca'
     _initial_count = (8, 71, 3)  # 4 physical quantities + 4 alloc quantities
     _bg_len = 36
-    _ex_len = 3681  # at some point, should investigate where 209 exterior flows disappeared to
+    _ex_len = 3680  # a "Diesel, at refinery" flow was incorrectly duplicated to exterior
     _test_case_lcia = .04110577
 
     # volume unit is m3 in olca, versus l in ecospold

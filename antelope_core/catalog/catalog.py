@@ -299,9 +299,6 @@ class StaticCatalog(object):
         :param strict: passed to resolver
         :return:
         """
-        if itype is None:
-            itype = 'basic'  # fetch, get properties, uuid, reference
-
         # if itype == 'quantity':
         #    yield self._qdb.make_interface(itype)
 

@@ -132,6 +132,7 @@ class EntityStore(object):
         return self._ref_to_uuid(key)
 
     def _set_ns_uuid(self, ns_uuid):
+        print('%s: Setting NSUUID (%s) %s' % (self.ref, self._ns_uuid_required, ns_uuid))
         if self._ns_uuid_required is None:
             if ns_uuid is not None:
                 print('Ignoring ns_uuid specification')
@@ -237,8 +238,6 @@ class EntityStore(object):
         self._static = static
         self._descendant = False
 
-        self._ns_uuid = self._set_ns_uuid(ns_uuid)
-
         if upstream is not None:
             self.set_upstream(upstream)
 
@@ -246,6 +245,7 @@ class EntityStore(object):
         self._add_name(ref, source)
         self._serialize_dict['dataReference'] = ref
 
+        self._ns_uuid = self._set_ns_uuid(ns_uuid)
         if self._ns_uuid is not None:
             self._serialize_dict['ns_uuid'] = str(self._ns_uuid)
 

@@ -80,7 +80,7 @@ class BasicArchive(EntityStore):
 
         old_ref = j.pop('dataReference', ref)
         ref = init_args.pop('dataReference', old_ref)
-        ns_uuid = j.pop('nsUuid', None)  # this is for opening legacy files
+        ns_uuid = j.pop('nsUuid', j.pop('ns_uuid', None))  # this is for opening legacy files
         if ns_uuid is None:
             ns_uuid = init_args.pop('ns_uuid', None)
         ar = cls(filename, ref=ref, ns_uuid=ns_uuid, **init_args)
@@ -99,7 +99,7 @@ class BasicArchive(EntityStore):
         :return:
         """
         init_args = j.pop('initArgs', {})
-        ns_uuid = j.pop('nsUuid', None)  # this is for opening legacy files
+        ns_uuid = j.pop('nsUuid', j.pop('ns_uuid', None))  # this is for opening legacy files
         if ns_uuid is None:
             ns_uuid = init_args.pop('ns_uuid', None)
         kwargs.update(init_args)

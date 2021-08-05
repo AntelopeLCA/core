@@ -5,8 +5,11 @@ from .archive_index import index_archive, BasicIndex, LcIndex
 from .term_manager import TermManager
 from .lc_archive import LcArchive, LC_ENTITY_TYPES
 from ..from_json import from_json
+from ..entities.processes import NoExchangeFound
 
 from pathlib import Path
+from collections import defaultdict
+
 # import pkgutil
 
 REF_QTYS = str(Path(__file__).parent / 'data' / 'elcd_reference_quantities.json')
@@ -86,3 +89,46 @@ def create_archive(source, ds_type, factory=archive_factory, **kwargs):
         cls = factory(ds_type)
         a = cls(source, **kwargs)
     return a
+
+
+class CheckTerms(object):
+    def __init__(self, query):
+        self._check = defaultdict(list)
+        self._p = 0
+        self._rx = 0
+        self._x = 0
+
+        for p in query.processes():
+            self._p += 1
+            for rx in p.references():
+                self._rx += 1
+                for x in p.inventory(rx):
+                    self._x += 1
+                    if x.type == 'node':
+                        try:
+                            query.get(x.termination).reference(x.flow)
+                            self._check['terminated'].append(x)
+                        except NoExchangeFound:
+                            self._check['missing'].append(x)
+                    elif x.type == 'elementary':
+                        self._check['elementary'].append(x)
+                    elif x.type == 'context':
+                        tg = list(query.targets(x.flow))
+                        if len(tg) == 0:
+                            self._check['cutoff'].append(x)
+                        elif len(tg) > 1:
+                            self._check['ambiguous'].append(x)
+                        else:
+                            self._check['terminated'].append(x)
+                    else:
+                        self._check[x.type].append(x)
+        self.show()
+
+    def show(self):
+        print('%d processes\n%d reference exchanges\n%d dependent exchanges' % (self._p, self._rx, self._x))
+        for k, v in self._check.items():
+            if len(v) > 0:
+                print('%s: %d exchanges' % (k, len(v)))
+
+    def exchanges(self, key):
+        return self._check[key]
