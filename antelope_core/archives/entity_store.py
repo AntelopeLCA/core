@@ -270,7 +270,7 @@ class EntityStore(object):
                     '''
                     self._catalog_names[ref] = self._catalog_names.pop(k)
                     return
-                if k == ref:
+                if k == ref or ref.startswith(k):
                     return
                 if rewrite:
                     self._catalog_names[k].remove(source)
