@@ -4,7 +4,7 @@ VERSION = '0.1.7.1'
 
 requires = [
     "synonym_dict>=0.2.0",
-    "antelope_interface>=0.1.6",
+    "antelope_interface>=0.1.7",
     "xlrd==1.2.0",  ## really need to get out of this requirement and into openpyxl or equivalent
     "python-magic>=0.4.18",
     "requests>=2.25"
