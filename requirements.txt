@@ -1,6 +1,5 @@
 synonym_dict>=0.2.0
 git+git://github.com/AntelopeLCA/antelope@master#egg=antelope_interface
-lxml>=4.5.2
 xlrd==1.2.0
 python-magic>=0.4.18
 XlsxWriter>=1.3.7
