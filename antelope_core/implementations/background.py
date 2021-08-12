@@ -28,7 +28,8 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
         self._index = None
 
     def check_bg(self, **kwargs):
-        return True
+        self.setup_bm(**kwargs)
+        return bool(self._index is not None)
 
     def setup_bm(self, index=None):
         """
