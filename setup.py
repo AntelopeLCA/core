@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.1.7.1'
+VERSION = '0.1.7.3'
 
 requires = [
     "synonym_dict>=0.2.0",
@@ -13,6 +13,9 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.1.7.3 2021-08-11 - fix last edit
+0.1.7.2 2021-08-11 - make lxml optional when running _find_providers
+0.1.7.1 2021-08-11 - eliminate recursion error in basic get_reference()
 0.1.7 - 2021-08-05 - merge configuration changes from [virtualize] in-progress
 0.1.6 - 2021-03-10 - update to handle new synonym_dict 0.2.0, along with OLCA reference flow matching, ecoinvent 2.2,
                      a range of other improvements in performance and context handling

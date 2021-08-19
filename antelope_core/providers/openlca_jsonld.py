@@ -12,7 +12,7 @@ from ..entities import *
 from ..entities.processes import NoExchangeFound
 from ..archives import LcArchive
 from .file_store import FileStore
-from .ecospold import parse_math
+from .parse_math import parse_math
 
 
 geog_tail = re.compile('\\b[A-Z]+[o-]?[A-Z]*$')  # capture, e.g. 'ZA', 'GLO', 'RoW', 'US-CA' but not 'PET-g'

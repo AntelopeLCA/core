@@ -7,15 +7,21 @@
 
 # from lcatools.archives import LcArchive, archive_from_json
 
-from .ilcd import IlcdArchive, IlcdLcia
-from .ecospold2 import EcospoldV2Archive
-from .ecospold import EcospoldV1Archive
+try:
+    import lxml
+    from .ilcd import IlcdArchive, IlcdLcia
+    from .ecospold2 import EcospoldV2Archive
+    from .ecospold import EcospoldV1Archive
+
+    _prov = ['IlcdArchive', 'IlcdLcia', 'EcospoldV2Archive', 'EcospoldV1Archive']
+except ImportError:
+    _prov = []
+
 from .ecoinvent_lcia import EcoinventLcia
 from .openlca_jsonld import OpenLcaJsonLdArchive
 from .traci import Traci21Factors
 
-PROVIDERS = ['IlcdArchive', 'IlcdLcia', 'EcospoldV2Archive', 'EcospoldV1Archive',
-             'EcoinventLcia', 'OpenLcaJsonLdArchive', 'Traci21Factors']
+PROVIDERS = _prov + ['EcoinventLcia', 'OpenLcaJsonLdArchive', 'Traci21Factors']
 
 ''' # this has all been folded into archive.__init__
 class ArchiveError(Exception):
