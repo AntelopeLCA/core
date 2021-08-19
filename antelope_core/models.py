@@ -25,9 +25,13 @@ class OriginCount(ResponseModel):
     count: dict
 
 
-class Entity(ResponseModel):
+class EntityRef(ResponseModel):
     origin: str
     entity_id: str
+    entity_type: Optional[str]
+
+
+class Entity(EntityRef):
     entity_type: str
     properties: Dict
 
@@ -46,6 +50,19 @@ class Entity(ResponseModel):
         if entity.entity_type == 'quantity':
             obj.properties['unit'] = entity.unit
             obj.properties['is_lcia_method'] = entity.is_lcia_method
+        return obj
+
+    @classmethod
+    def from_json(cls, j):
+        obj = cls(origin=j.pop('origin'), entity_id=j.pop('externalId'), entity_type=j.pop('entityType'),
+                  properties=dict())
+
+        if obj.entity_type == 'quantity':
+            obj.properties['unit'] = j.pop('referenceUnit', None)
+            obj.properties['is_lcia_method'] = bool('Indicator' in j)
+
+        for key, val in j.items():
+            obj.properties[key] = val
         return obj
 
 
