@@ -1,8 +1,6 @@
 import json
 import os
 from collections import defaultdict
-import requests
-import hashlib
 
 from antelope import UnknownOrigin
 
@@ -19,19 +17,6 @@ class ResourceInvalid(Exception):
     resource points to an invalid filename
     """
     pass
-
-
-def download_file(url, local_file, md5sum=None):
-    r = requests.get(url, stream=True)
-    md5check = hashlib.md5()
-    with open(local_file, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:  # filter out keep-alive new chunks
-                f.write(chunk)
-                md5check.update(chunk)
-                # f.flush() commented by recommendation from J.F.Sebastian
-    if md5sum is not None:
-        assert md5check.hexdigest() == md5sum, 'MD5 checksum does not match'
 
 
 class LcResource(object):

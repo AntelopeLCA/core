@@ -1,3 +1,18 @@
+"""
+Pydantic Model definitions for data exchange.
+
+TODO: decide on a consistent structure / format for entity identification.  Currently:
+
+ * EntityRef and subclasses use entity_id
+ * FlowSpec uses external_ref
+ * ExteriorFlow uses flow
+ * Exchange and subclasses use <type> e.g. process and flow.external_ref (exchange.flow is FlowSpec)
+ * Quantity-related subclasses use <mod>_<type> e.g. ref_quantity, query_quantity
+
+ = This tells me that FragmentFlows should use 'fragment' and 'parent_fragment'
+
+"""
+
 from pydantic import BaseModel
 from pydantic.typing import List, Dict, Optional
 
@@ -23,6 +38,16 @@ class OriginMeta(ResponseModel):
 class OriginCount(ResponseModel):
     origin: str
     count: dict
+
+
+class Resource(ResponseModel):
+    origin: str
+    source: str
+    ds_type: str
+    interfaces: List[str]
+    static: bool
+    options: Dict  # includes: priority=int, download={url: str, md5sum: Optional[str]}, possibly other ds-specific
+    config: Dict[List[List]]  # must be a dict of config key: list of config value tuples (list of lists)
 
 
 class EntityRef(ResponseModel):
@@ -162,6 +187,8 @@ class ExteriorFlow(ResponseModel):
     """
     Do we really need both an ExteriorFlow model and a FlowSpec model? this one has direction, and origin+flow;
     that one has flowable+ref entity, and locale (but we added locale)
+
+    This is currently unused, but that's because we haven't implemented the {origin}/exterior route yet
     """
     origin: str
     flow: str

@@ -1,13 +1,28 @@
-from antelope import IndexRequired
 from .catalog import StaticCatalog
 from ..archives import REF_QTYS, archive_from_json
-from ..lc_resource import LcResource, download_file
+from ..lc_resource import LcResource
 from ..lcia_engine import DEFAULT_CONTEXTS, DEFAULT_FLOWABLES
+
+import requests
 
 from shutil import copy2, rmtree
 import os
+import hashlib
 
 TEST_ROOT = os.path.join(os.path.dirname(__file__), 'cat-test')  # volatile, inspectable
+
+def download_file(url, local_file, md5sum=None):
+    r = requests.get(url, stream=True)
+    md5check = hashlib.md5()
+    with open(local_file, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:  # filter out keep-alive new chunks
+                f.write(chunk)
+                md5check.update(chunk)
+                # f.flush() commented by recommendation from J.F.Sebastian
+    if md5sum is not None:
+        assert md5check.hexdigest() == md5sum, 'MD5 checksum does not match'
+
 
 class LcCatalog(StaticCatalog):
     """
@@ -21,7 +36,7 @@ class LcCatalog(StaticCatalog):
         :param md5sum:
         :param force:
         :param localize: whether to return the filename relative to the catalog root
-        :return:
+        :return: the full path to the downloaded file 
         """
         local_file = os.path.join(self._download_dir, self._source_hash_file(url))
         if os.path.exists(local_file):
