@@ -47,7 +47,7 @@ class Resource(ResponseModel):
     interfaces: List[str]
     static: bool
     options: Dict  # includes: priority=int, download={url: str, md5sum: Optional[str]}, possibly other ds-specific
-    config: Dict[List[List]]  # must be a dict of config key: list of config value tuples (list of lists)
+    config: Dict[str, List[List]]  # must be a dict of config key: list of config value tuples (list of lists)
 
 
 class EntityRef(ResponseModel):
