@@ -343,6 +343,8 @@ class StaticCatalog(object):
     """
     public functions -- should these operate directly on a catalog ref instead? I think so but let's see about usage
     """
+    _query_type = CatalogQuery
+
     def query(self, origin, strict=False, refresh=False, **kwargs):
         """
         Returns a query using the first interface to match the origin.
@@ -359,7 +361,7 @@ class StaticCatalog(object):
         next(self._resolver.resolve(origin, strict=strict))
 
         if refresh or (origin not in self._queries):
-            self._queries[origin] = CatalogQuery(origin, catalog=self, **kwargs)
+            self._queries[origin] = self._query_type(origin, catalog=self, **kwargs)
         return self._queries[origin]
 
     def lookup(self, catalog_ref, keep_properties=False):
