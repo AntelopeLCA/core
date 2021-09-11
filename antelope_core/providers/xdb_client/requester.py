@@ -1,4 +1,5 @@
 import requests
+from requests.structures import CaseInsensitiveDict
 import json
 from time import time
 from antelope_core.models import ResponseModel, OriginMeta
@@ -19,9 +20,10 @@ class XdbRequester(object):
             else:
                 print(*args)
 
-    def __init__(self, api_root, origin=None, quiet=False):
+    def __init__(self, api_root, origin=None, token=None, quiet=False):
         self._s = requests.Session()
         self._quiet = quiet
+        self._token = token
 
         if api_root[-1] == '/':
             api_root = api_root[:-1]
@@ -41,6 +43,14 @@ class XdbRequester(object):
         self._origin = origin
 
     @property
+    def headers(self):
+        h = CaseInsensitiveDict()
+        h["Accept"] = "application/json"
+        if self._token is not None:
+            h["Authorization"] = "Bearer %s" % self._token
+        return h
+
+    @property
     def origin(self):
         return self._origin
 
@@ -57,7 +67,7 @@ class XdbRequester(object):
         url = '/'.join([base, *args])
         self._print('GET %s' % url, cont=True)
         t = time()
-        resp = self._s.get(url, params=params)
+        resp = self._s.get(url, params=params, headers=self.headers)
         el = time() - t
         self._print('%d [%.2f sec]' % (resp.status_code, el))
         if resp.status_code >= 400:
@@ -89,7 +99,7 @@ class XdbRequester(object):
         url = '/'.join([self._qdb, *args])
         self._print('POST %s' % url, cont=True)
         t = time()
-        resp = self._s.post(url, json=postdata, params=params)
+        resp = self._s.post(url, json=postdata, params=params, headers=self.headers)
         el = time() - t
         self._print('%d [%.2f sec]' % (resp.status_code, el))
         if resp.status_code >= 400:

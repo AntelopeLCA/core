@@ -124,8 +124,8 @@ class XdbTermManager(object):
 
 
 class XdbClient(LcArchive):
-    def __init__(self, source, ref=None):
-        self._requester = XdbRequester(source, ref)
+    def __init__(self, source, ref=None, token=None):
+        self._requester = XdbRequester(source, ref, token=token)
         if ref is None:
             ref = 'qdb'
         super(XdbClient, self).__init__(source, ref=ref, term_manager=XdbTermManager(self._requester))
