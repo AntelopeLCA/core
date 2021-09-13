@@ -102,6 +102,10 @@ class AuthorizationGrant(AuthModel):
             grant += ',u'
         return grant
 
+    @property
+    def display(self):
+        return '%s:%s:%s' % (self.user, self.origin, self.serialize())
+
     @classmethod
     def from_jwt(cls, jwt: JwtGrant) -> List:
         """
