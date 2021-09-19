@@ -34,6 +34,10 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
     def setup_bm(self, index=None):
         """
         Requires an index interface or catalog query <-- preferred
+        HOLD UP- catalog query limits access to interfaces named in the resource, which may not include index.
+        It also returns entity references, which may be inadequate to the task of generating results (e.g. it is
+        an error for the same LOCAL implementation to provide both 'exchange' and 'background' as they will be the
+        same).  So routes that require exchange access, e.g. to fake up lci, should access the archive directly
         :param index:
         :return:
         """
@@ -67,7 +71,7 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
         :return:
         """
         self.check_bg()
-        for p in self._index.processes():
+        for p in self._archive.entities_by_type('process'):
             for rx in p.references():
                 if search_skip(p, search):
                     continue
@@ -170,7 +174,7 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
     def is_in_background(self, process, ref_flow=None, **kwargs):
         self.check_bg()
         try:
-            self._index.get(process)
+            self._archive.retrieve_or_fetch_entity(process)
         except EntityNotFound:
             return False
         return True
@@ -186,7 +190,7 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
     def lci(self, process, ref_flow=None, **kwargs):
         self.check_bg()
         ref_flow = self._ensure_ref_flow(ref_flow)
-        p = self._index.get(process)
+        p = self._archive.retrieve_or_fetch_entity(process)
         for x in p.inventory(ref_flow=ref_flow):
             yield x
 
