@@ -143,14 +143,18 @@ class StaticCatalog(object):
         if source is None:
             return None
         if source.startswith(self._rootdir):
-            return re.sub('^%s' % self._rootdir, '$CAT_ROOT', source)
+            #return re.sub('^%s' % self._rootdir, '$CAT_ROOT', source)
+            # Should work on both mac and windows
+            return os.path.join('$CAT_ROOT', os.path.relpath(source, self._rootdir))
         return source
 
     def abs_path(self, rel_path):
         if os.path.isabs(rel_path):
             return rel_path
         elif rel_path.startswith('$CAT_ROOT'):
-            return re.sub('^\$CAT_ROOT', self.root, rel_path)
+            #return re.sub('^\$CAT_ROOT', self.root, rel_path)
+            # Should work on both mac and windows
+            return os.path.join(self.root, os.path.relpath(rel_path, '$CAT_ROOT'))
         return os.path.join(self.root, rel_path)
 
     @property
