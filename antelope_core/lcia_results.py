@@ -251,9 +251,9 @@ class SummaryLciaResult(object):
         return self.entity == other.entity
 
     def __str__(self):
-        return '%s = %-s x %-s %s' % (number(self.cumulative_result * self._lc.autorange), number(self.node_weight),
-                                      number(self.unit_score * self._lc.autorange),
-                                      self.entity)
+        return '%s = %-s x %-s | %s' % (number(self.cumulative_result * self._lc.autorange), number(self.node_weight),
+                                        number(self.unit_score * self._lc.autorange),
+                                        self.entity)
 
     def show(self):
         if self.static:
@@ -309,7 +309,13 @@ class SummaryLciaResult(object):
                     _node_weight = self._node_weight
                     unit_score = self._static_value + other.unit_score
                 else:
-                    raise InconsistentScores('These summaries do not add together:\n%s\n%s' % (self, other))
+                    # in conflicts, prefer unit node weights if they exist (i.e. in aggregations)
+                    if self.node_weight == 1.0 or other.node_weight == 1.0:
+                        _node_weight = 1.0
+                        unit_score = self.cumulative_result + other.cumulative_result
+                    else:
+                        # if these are richly detailed, it is wrong to add them
+                        raise InconsistentScores('These summaries do not add together:\n%s\n%s' % (self, other))
             else:
                 if self.unit_score == other.unit_score:
                     unit_score = other._internal_result

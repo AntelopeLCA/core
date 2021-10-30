@@ -81,13 +81,13 @@ class LcResource(object):
         Instantiate the archive described by the current resource.  Several steps:
          - download file if applicable
          - rename relative path to absolute path
-         - instantiate the archive, using catalog's LciaEngine as term manager if non-static
+         - instantiate the archive
          - load any cached data into the archive
          - override static spec to be consistent with archive's own spec
          - load_all() if static
          - apply_config()
 
-        :param catalog:
+        :param catalog: required for: file downloads, foreground interfaces, local paths + caches
         :return:
         """
         if self.source is None:

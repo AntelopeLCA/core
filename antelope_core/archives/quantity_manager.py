@@ -10,6 +10,10 @@ class QuantityAlreadySet(Exception):
     pass
 
 
+class ValidationError(Exception):
+    pass
+
+
 class QuantitySynonyms(SynonymSet):
     """
     QuantitySynonyms are string terms that all refer to the same quantity of measure. They must all have the same
@@ -40,12 +44,16 @@ class QuantitySynonyms(SynonymSet):
 
     def _validate_quantity(self, quantity):
         if not hasattr(quantity, 'entity_type'):
-            return False
+            raise AttributeError(quantity)
         if quantity.entity_type != 'quantity':
-            return False
+            raise TypeError(quantity)
         if not hasattr(quantity, 'unit'):
-            return False
-        self._check_incoming_unit(quantity.unit)
+            raise AttributeError(quantity, 'unit')
+        if quantity.unit is not None:  # allow unit=None quantities to merge with existing quantities
+            if not isinstance(quantity.unit, str):
+                raise AttributeError(quantity, 'unit-str')
+            if self.unit is not None and quantity.unit != self.unit:
+                raise QuantityUnitMismatch('incoming %s (set %s)' % (quantity.unit, self.unit))
         return True
 
     def __init__(self, *args, quantity=None, unit=None, **kwargs):
@@ -68,7 +76,7 @@ class QuantitySynonyms(SynonymSet):
                 for term in item.quantity_terms():
                     self.add_term(term)
             else:
-                raise TypeError('Quantity fails validation (%s)' % type(item))
+                raise ValidationError('Quantity fails validation for uncaught reason (%s)' % item)
         else:
             raise QuantityAlreadySet
 

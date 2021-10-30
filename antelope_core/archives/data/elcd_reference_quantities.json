@@ -765,6 +765,17 @@
       "origin": "elcd.3.2",
       "referenceUnit": "EUR",
       "synonyms": ["flowproperties/fdfecf14-ff8a-4e17-b2b2-f938c4b5cc27"]
+    },
+    {
+      "Comment": "Indicates the magnitude of the node's reference flow",
+      "Name": "Node Activity",
+      "UnitConversion": {
+        "activity": 1.0
+      },
+      "entityType": "quantity",
+      "externalId": "node activity",
+      "origin": "local.qdb",
+      "referenceUnit": "activity"
     }
   ]
 }

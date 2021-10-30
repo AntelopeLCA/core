@@ -12,16 +12,19 @@ from ..entities import LcQuantity, LcFlow, LcProcess, LcUnit, MetaQuantityUnit
 from ..entities.processes import NoExchangeFound
 from ..archives import LcArchive
 from .file_store import FileStore
-from .ecospold import parse_math
+from .parse_math import parse_math
 
 
 geog_tail = re.compile(',\\s([A-Z]+[o-]?[A-Z]*)$')  # capture, e.g. 'ZA', 'GLO', 'RoW', 'US-CA' but not 'PET-g'
 
 def pull_geog(flowname):
+    raise NotImplementedError
+    '''
     try:
         return geog_tail.search(flowname).group(1)
     except AttributeError:
         return None
+    '''
 
 
 valid_types = {'processes', 'flows', 'flow_properties'}
@@ -448,8 +451,13 @@ class OpenLcaJsonLdArchive(LcArchive):
         for factor in l_obj.get('impactFactors', []):
             flow = self._create_flow(factor['flow']['@id'])
             loc = factor.get('location')
+            ''' # this does not work
             if loc is None:
-                loc = pull_geog(flow.name)
+                try:
+                    loc = geog_tail.search(flow.name).group()
+                except AttributeError:
+                    pass
+            '''
 
             ref_qty = self._create_quantity(factor['flowProperty']['@id'])
             assert flow.reference_entity == ref_qty
@@ -457,7 +465,6 @@ class OpenLcaJsonLdArchive(LcArchive):
 
             self.tm.add_characterization(flow.name, ref_qty, q, factor['value'], context=flow.context, location=loc,
                                          origin=self.ref)
-
         return q
 
     def _create_lcia_category(self, c_id):

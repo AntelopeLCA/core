@@ -248,7 +248,7 @@ class XlsxUpdater(object):
             return
 
         for row in range(1, fp.nrows):
-            rowdata = {headers[i]: self._grab_value(k) for i, k in enumerate(fp.row(row))}
+            rowdata = {headers[i]: self._grab_value(k) for i, k in enumerate(fp.row(row)[:len(headers)])}
             try:
                 flow = self.get_flow(rowdata['flow'])
             except EntityNotFound:
@@ -269,7 +269,11 @@ class XlsxUpdater(object):
             else:
                 rq = flow.reference_entity
 
-            qq = self.qi.get_canonical(rowdata['quantity'])
+            try:
+                qq = self.qi.get_canonical(rowdata['quantity'])
+            except EntityNotFound:
+                print('Skipping unrecognized canonical quantity %s' % rowdata['quantity'])
+                continue
 
             value = rowdata.pop('value', None)
 

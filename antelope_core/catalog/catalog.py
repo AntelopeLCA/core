@@ -142,15 +142,19 @@ class StaticCatalog(object):
         if source is None:
             return None
         if source.startswith(self._rootdir):
-            return re.sub('^%s' % self._rootdir, '$CAT_ROOT', source)
+            #return re.sub('^%s' % self._rootdir, '$CAT_ROOT', source)
+            # Should work on both mac and windows
+            return os.path.join('$CAT_ROOT', os.path.relpath(source, self._rootdir))
         return source
 
     def abs_path(self, rel_path):
         if os.path.isabs(rel_path):
             return rel_path
         elif rel_path.startswith('$CAT_ROOT'):
-            return re.sub('^\$CAT_ROOT', self.root, rel_path)
-        return os.path.join(self.root, rel_path)
+            #return re.sub('^\$CAT_ROOT', self.root, rel_path)
+            # Should work on both mac and windows
+            return os.path.abspath(os.path.join(self.root, os.path.relpath(rel_path, '$CAT_ROOT')))
+        return os.path.abspath(os.path.join(self.root, rel_path))
 
     @property
     def root(self):
@@ -187,6 +191,18 @@ class StaticCatalog(object):
         self._qdb = qdb
         res = LcResource.from_archive(qdb, interfaces=('index', 'quantity'), store=False)
         self._resolver.add_resource(res, store=False)
+
+    '''
+    The thing that distinguishes a catalog from an archive is its centralized handling of quantities via the qdb
+    '''
+    @property
+    def qdb(self):
+        """
+        Provides query access to the quantity database. Should be like cat.query('local.qdb'), except that
+        it provides a basic query- which is what internal quantities use themselves
+        :return:
+        """
+        return self._qdb.query
 
     @property
     def lcia_engine(self):

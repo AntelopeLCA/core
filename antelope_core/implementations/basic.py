@@ -50,7 +50,7 @@ class BasicImplementation(object):
             eref = None
         entity = self.get(external_ref)
         # if entity:
-        if entity is eref:
+        if not entity.is_entity:
             raise NoAccessToEntity(entity.link)
         return entity
 
@@ -70,7 +70,7 @@ class BasicImplementation(object):
         # raise EntityNotFound(external_ref)
 
     def get_reference(self, key):
-        entity = self._fetch(key)
+        entity = self._dereference_entity(key)
         if entity is None:
             return None
         if entity.entity_type == 'process':

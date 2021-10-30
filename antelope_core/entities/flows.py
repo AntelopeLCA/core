@@ -97,7 +97,12 @@ class LcFlow(LcEntity, Flow):
         return self.context
 
     def cf(self, quantity, **kwargs):
-        return quantity.cf(self, **kwargs)
+        if quantity.entity_type == 'quantity':
+            return quantity.cf(self, **kwargs)
+        elif quantity.entity_type == 'flow':
+            return quantity.reference_entity.cf(self, **kwargs)
+        else:
+            raise TypeError('Invalid argument %s' % quantity)
 
     '''
     This is now done in Flow interface

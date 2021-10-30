@@ -296,7 +296,7 @@ class FileStore(object):
                 file = {
                     '7z': lambda x: self._archive.getmember(x),
                     'zip': lambda x: self._archive.open(x)
-                }[self.ext](self._prefix(fname))
+                }[self.ext](repr(self._prefix(fname)).replace("\\\\","/").replace("\\","/")[1:-1]) # Should find better fix
             except KeyError:
                 raise FileNotFoundError(self._prefix(fname))
             if file is None:

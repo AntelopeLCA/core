@@ -92,6 +92,7 @@ class LcCatalog(StaticCatalog):
     def save_local_changes(self):
         self._qdb.write_to_file(self._reference_qtys, characterizations=True, values=True)
         self.lcia_engine.save_flowables(self._flowables)
+        self.lcia_engine.save_contexts(self._contexts)
 
     def restore_qdb(self, really=False):
         if really:

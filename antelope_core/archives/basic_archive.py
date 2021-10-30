@@ -419,6 +419,8 @@ class BasicArchive(EntityStore):
                 return '\n'.join([_recurse_expand_subtag(t) for t in tag])
         keep = True
         for k, v in kwargs.items():
+            if v is None:
+                continue
             if not entity.has_property(k):
                 return False
             if isinstance(v, str):
