@@ -404,7 +404,8 @@
       "Synonyms": [
         "Freight",
         "tkm",
-        "t*km"
+        "t*km",
+        "flowproperties/838aaa20-0117-11db-92e3-0800200c9a66"
       ],
       "UnitConversion": {
         "kg*km": 1000.0,
@@ -418,8 +419,7 @@
       "entityType": "quantity",
       "externalId": "838aaa20-0117-11db-92e3-0800200c9a66",
       "origin": "elcd.3.2",
-      "referenceUnit": "t*km",
-      "synonyms": ["flowproperties/838aaa20-0117-11db-92e3-0800200c9a66"]
+      "referenceUnit": "t*km"
     },
     {
       "Comment": "Reference Flow Property Data Set of the International Reference Life Cycle Data System (ILCD).",
