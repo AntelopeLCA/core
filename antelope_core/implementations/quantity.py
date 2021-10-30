@@ -3,7 +3,7 @@ Each archive now has a TermManager which interprets query arguments as synonyms 
 can also be upgraded to an LciaEngine, which extends the synonymization strategy to quantities as well
 """
 from antelope import (QuantityInterface, NoFactorsFound, ConversionReferenceMismatch, EntityNotFound, FlowInterface,
-                      convert, NoUnitConversionTable)
+                      convert, NoUnitConversionTable, QuantityRequired)
 
 from .basic import BasicImplementation
 from ..characterizations import QRResult, LocaleMismatch
@@ -341,14 +341,17 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
             # then look for reverse matches... but... only once
             if _reverse:
                 new_conv = QuantityConversion.copy(conv)
-                rev_conv = self._ref_qty_conversion(found_quantity, flowable, compartment,
-                                                    QuantityConversion(query=target_quantity), locale,
-                                                    _reverse=False)
+                try:
+                    rev_conv = self._ref_qty_conversion(found_quantity, flowable, compartment,
+                                                        QuantityConversion(query=target_quantity), locale,
+                                                        _reverse=False)
 
-                for res in rev_conv.invert().results:
-                    new_conv.add_result(res)
-                if new_conv.ref == target_quantity:
-                    return new_conv
+                    for res in rev_conv.invert().results:
+                        new_conv.add_result(res)
+                    if new_conv.ref == target_quantity:
+                        return new_conv
+                except QuantityRequired:  # if we don't have a reverse qty interface, we can't look for reverse cfs
+                    pass
 
             raise ConversionReferenceMismatch('Flow %s\nfrom %s\nto %s' % (flowable,
                                                                            conv.ref,
@@ -397,8 +400,8 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 return qr_results, qr_geog, qr_mismatch
 
         for cf in self._archive.tm.factors_for_flowable(fb, quantity=qq, context=cx, **kwargs):
-            res = QuantityConversion(cf.query(locale), query=qq, context=cx)
             try:
+                res = QuantityConversion(cf.query(locale), query=qq, context=cx)
                 qr_results.append(self._ref_qty_conversion(rq, fb, cx, res, locale))
             except ConversionReferenceMismatch:
                 qr_mismatch.append(QuantityConversionError(res, rq))

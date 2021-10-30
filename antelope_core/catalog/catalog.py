@@ -154,8 +154,8 @@ class StaticCatalog(object):
         elif rel_path.startswith('$CAT_ROOT'):
             #return re.sub('^\$CAT_ROOT', self.root, rel_path)
             # Should work on both mac and windows
-            return os.path.join(self.root, os.path.relpath(rel_path, '$CAT_ROOT'))
-        return os.path.join(self.root, rel_path)
+            return os.path.abspath(os.path.join(self.root, os.path.relpath(rel_path, '$CAT_ROOT')))
+        return os.path.abspath(os.path.join(self.root, rel_path))
 
     @property
     def root(self):
@@ -192,6 +192,18 @@ class StaticCatalog(object):
         self._qdb = qdb
         res = LcResource.from_archive(qdb, interfaces=('index', 'quantity'), store=False)
         self._resolver.add_resource(res, store=False)
+
+    '''
+    The thing that distinguishes a catalog from an archive is its centralized handling of quantities via the qdb
+    '''
+    @property
+    def qdb(self):
+        """
+        Provides query access to the quantity database. Should be like cat.query('local.qdb'), except that
+        it provides a basic query- which is what internal quantities use themselves
+        :return:
+        """
+        return self._qdb.query
 
     @property
     def lcia_engine(self):
