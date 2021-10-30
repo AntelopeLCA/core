@@ -2,10 +2,15 @@ import unittest
 
 from antelope import EntityNotFound
 
-from ...archives import Qdb
+from ...from_json import from_json
+from ...archives import Qdb, REF_QTYS
 from ...entities.tests.base_testclass import BasicEntityTest
 
 mass_uuid = '93a60a56-a3c8-11da-a746-0800200b9a66'
+
+
+ref_qs = from_json(REF_QTYS)
+num_ref_quantities = len(ref_qs['quantities'])
 
 
 class QdbTestCase(BasicEntityTest):
@@ -18,7 +23,8 @@ class QdbTestCase(BasicEntityTest):
         cls._qdb = Qdb.new()
 
     def test_0_qdb_initialization(self):
-        self.assertEqual(self._qdb.count_by_type('quantity'), 25)
+        self.assertEqual(self._qdb.count_by_type('quantity'), num_ref_quantities)
+        self.assertGreaterEqual(num_ref_quantities, 26)  # current number as of 2021-10-30
 
     def test_mass(self):
         self.assertEqual(self._qdb.query.get_canonical('mass').uuid, mass_uuid)

@@ -405,7 +405,7 @@ class LciaEngine(TermManager):
     def save_flowables(self, filename=None):
         self._fm.save(filename)
 
-    def save_contetxts(self, filename=None):
+    def save_contexts(self, filename=None):
         self._cm.save(filename)
 
     def flowables(self, search=None, origin=None, new=False, **kwargs):
