@@ -60,6 +60,7 @@ class AuthorizationGrant(AuthModel):
     """
     user: str  #
     origin: str  #
+    issuer: str = None  # a query for a given origin must be signed by the issuer; none is permitted for antelope data
     # access: bool    # access the origin- this could be said to be implicitly true
     access: str       # instead report the interface being accessed. single interface only
     values: bool = False    # whether numeric data is authorized
@@ -84,6 +85,7 @@ class AuthorizationGrant(AuthModel):
          m - metered
 
         The origin 'qdb' is special and refers to antelope cloud qdb and is short for "qdb:quantity,v"
+        (lots of DNS TXT record vibes here)
 
         An example of a verbose, precise specification would be:
 

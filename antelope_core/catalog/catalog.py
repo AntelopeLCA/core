@@ -361,6 +361,13 @@ class StaticCatalog(object):
     """
     _query_type = CatalogQuery
 
+    def known_origin(self, origin, strict=False):
+        try:
+            self._resolver.resolve(origin, strict=strict)
+        except UnknownOrigin:
+            return False
+        return True
+
     def query(self, origin, strict=False, refresh=False, **kwargs):
         """
         Returns a query using the first interface to match the origin.
