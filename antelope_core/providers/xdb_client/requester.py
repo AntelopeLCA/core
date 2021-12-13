@@ -1,35 +1,12 @@
-import requests
-from requests.structures import CaseInsensitiveDict
-import json
-from time import time
 from antelope_core.models import ResponseModel, OriginMeta
+from .rest_client import RestClient
 
-
-class HttpError(Exception):
-    """
-    More than one origin
-    """
-    pass
-
-
-class XdbRequester(object):
-    def _print(self, *args, cont=False):
-        if not self._quiet:
-            if cont:  # continue the same line
-                print(*args, end=".. ")
-            else:
-                print(*args)
-
+class XdbRequester(RestClient):
     def __init__(self, api_root, origin=None, token=None, quiet=False):
-        self._s = requests.Session()
-        self._quiet = quiet
-        self._token = token
-
-        if api_root[-1] == '/':
-            api_root = api_root[:-1]
+        super(XdbRequester, self).__init__(api_root, token=token, quiet=quiet)
 
         if origin:
-            self._org = '/'.join([api_root, origin])
+            self._org = origin  # '/'.join([api_root, origin])  # we prepend the API_ROOT now in the parent class
             self._origins = sorted((OriginMeta(**k) for k in self._get_endpoint(self._org)),
                                    key=lambda x: len(x.origin))
         else:
@@ -38,21 +15,11 @@ class XdbRequester(object):
                                     for k in self._get_endpoint(api_root, origin)),
                                    key=lambda x: x.origin)
 
-        self._qdb = '/'.join([api_root, 'qdb'])
-
-        self._origin = origin
-
-    @property
-    def headers(self):
-        h = CaseInsensitiveDict()
-        h["Accept"] = "application/json"
-        if self._token is not None:
-            h["Authorization"] = "Bearer %s" % self._token
-        return h
+        self._qdb = 'qdb'  # '/'.join([api_root, 'qdb'])  # we prepend the API_ROOT now in the parent class
 
     @property
     def origin(self):
-        return self._origin
+        return self._org
 
     @property
     def origins(self):
@@ -62,17 +29,6 @@ class XdbRequester(object):
         """
         for org in self._origins:
             yield org
-
-    def _get_endpoint(self, base, *args, **params):
-        url = '/'.join([base, *args])
-        self._print('GET %s' % url, cont=True)
-        t = time()
-        resp = self._s.get(url, params=params, headers=self.headers)
-        el = time() - t
-        self._print('%d [%.2f sec]' % (resp.status_code, el))
-        if resp.status_code >= 400:
-            raise HttpError(resp.status_code, resp.content)
-        return json.loads(resp.content)
 
     def get_raw(self, *args, **kwargs):
         return self._get_endpoint(self._org, *args, **kwargs)
@@ -96,15 +52,7 @@ class XdbRequester(object):
             return [model(**k) for k in self._get_endpoint(self._qdb, *args, **kwargs)]
 
     def _post_qdb(self, postdata, *args, **params):
-        url = '/'.join([self._qdb, *args])
-        self._print('POST %s' % url, cont=True)
-        t = time()
-        resp = self._s.post(url, json=postdata, params=params, headers=self.headers)
-        el = time() - t
-        self._print('%d [%.2f sec]' % (resp.status_code, el))
-        if resp.status_code >= 400:
-            raise HttpError(resp.status_code, resp.content)
-        return json.loads(resp.content)
+        return self._post(postdata, self._qdb, *args, **params)
 
     def post_return_one(self, postdata, model, *args, **kwargs):
         if issubclass(model, ResponseModel):

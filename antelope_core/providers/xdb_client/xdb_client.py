@@ -10,7 +10,8 @@ from antelope_core.models import Context as ContextModel, Entity
 from antelope_core.catalog_query import READONLY_INTERFACE_TYPES
 from antelope_core.contexts import ContextManager, NullContext
 
-from .requester import XdbRequester, HttpError
+from .requester import XdbRequester
+from .rest_client import HttpError
 from .implementation import XdbImplementation
 from .xdb_entities import XdbEntity
 
