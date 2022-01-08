@@ -1,27 +1,9 @@
 from pydantic import BaseModel
 from typing import List
+from antelope.xdb_tokens import JwtGrant
 
 class AuthModel(BaseModel):
     pass
-
-
-class JwtGrant(AuthModel):
-    """
-    The contents of the JWT payload granted in response to a successful access request
-
-    xdb must have or obtain a publickey from an established keyserver, corresponding with the contents of the iss field
-
-    The signature is prepared using the private key associated with the issuer; xdb then verifies the signature
-    with the public key
-
-    the grants are used authorize the query
-    """
-    iss: str  # the authority providing the grant- must be known to the xdb via an established keyserver
-    sub: str  # must specify the authorized user that is receiving the grant (bills back to)
-    # (email address (if matches 'x@y') or vault.lc id (if matches 'x' or 'x@') of authorized user
-    exp: int  # required
-
-    grants: str  # specifies origins and permissions
 
 
 JWT_SCOPES = {
@@ -112,6 +94,7 @@ class AuthorizationGrant(AuthModel):
     def from_jwt(cls, jwt: JwtGrant) -> List:
         """
         returns a list of grants
+        NOTE: This does not currently deal with quota flags
         :param jwt:
         :return:
         """
