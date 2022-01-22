@@ -1,8 +1,6 @@
 import json
 import os
 from collections import defaultdict
-import requests
-import hashlib
 
 from antelope import UnknownOrigin
 
@@ -19,19 +17,6 @@ class ResourceInvalid(Exception):
     resource points to an invalid filename
     """
     pass
-
-
-def download_file(url, local_file, md5sum=None):
-    r = requests.get(url, stream=True)
-    md5check = hashlib.md5()
-    with open(local_file, 'wb') as f:
-        for chunk in r.iter_content(chunk_size=1024):
-            if chunk:  # filter out keep-alive new chunks
-                f.write(chunk)
-                md5check.update(chunk)
-                # f.flush() commented by recommendation from J.F.Sebastian
-    if md5sum is not None:
-        assert md5check.hexdigest() == md5sum, 'MD5 checksum does not match'
 
 
 class LcResource(object):
@@ -135,7 +120,9 @@ class LcResource(object):
         else:
             if self.ds_type.lower() == 'ecoinventlcia':
                 # this is a GIANT HACK
-                # we need to bring along a local ecoinvent archive to lookup flow reference qtys
+                # we need to bring along a local ecoinvent archive to lookup flow reference qtys-
+                # Partial solution to the hack: reference entity is QUERYABLE from a basic query which the catalog
+                # can provide- still need to specify
                 ei_ref = '.'.join(['local', 'ecoinvent', kwargs['version']])
                 try:
                     res = catalog.get_resource(ei_ref, iface='exchange', strict=False)
@@ -147,20 +134,19 @@ class LcResource(object):
                     pass
 
             try:
-                self._archive = create_archive(src, self.ds_type, ref=self.reference,
+                self._archive = create_archive(src, self.ds_type, ref=self.origin,
                                                factory=herd_factory, **kwargs)
             except FileNotFoundError as e:
-                raise ResourceInvalid('%s: %s' % (self.reference, e.filename))
+                raise ResourceInvalid('%s: %s' % (self.origin, e.filename))
         if catalog is not None and os.path.exists(catalog.cache_file(self.source)):
             update_archive(self._archive, catalog.cache_file(self.source))
         self._static |= self._archive.static
         if self.static and self.ds_type.lower() != 'json':
-            self._archive.load_all()  # static json archives are by convention saved in complete form
-
+            self._archive.load_all()  # static json archives are loaded on open- load_all() would be redundant
 
     @property
     def is_loaded(self):
-        return self._archive is not None
+        return self._archive is not None  # and self._archive._loaded ??
 
     def remove_archive(self):
         self._archive = None
@@ -227,11 +213,11 @@ class LcResource(object):
             for k in interfaces:
                 self.add_interface(k)
 
-    def __init__(self, reference, source, ds_type, interfaces=None, privacy=0, priority=50, static=False,
+    def __init__(self, origin, source, ds_type, interfaces=None, privacy=0, priority=50, static=False,
                  preload_archive=None, **kwargs):
         """
 
-        :param reference: semantic reference
+        :param origin: semantic reference to data origin
         :param source: physical data source; 'None' allowed if 'downloadLink' argument provided
         :param ds_type: data source type
         :param interfaces: list which can include 'entity', 'foreground', or 'background'. Default 'foreground'
@@ -252,7 +238,7 @@ class LcResource(object):
 
         self._archive = preload_archive
 
-        self._ref = reference
+        self._org = origin
         if source is None:
             if 'download' not in kwargs:
                 raise KeyError('Resource must be initialized with either source or download')
@@ -291,11 +277,11 @@ class LcResource(object):
             flags.append('%d cfg' % len(self._config))
         fgs = ' '.join(flags)
 
-        return 'LcResource(%s, dataSource=%s:%s, %s [%d]%s)' % (self.reference, self.source, self.ds_type,
+        return 'LcResource(%s, dataSource=%s:%s, %s [%d]%s)' % (self.origin, self.source, self.ds_type,
                                                                 [k for k in self.interfaces], self.priority, fgs)
 
     def exists(self, path):
-        filename = os.path.join(path, self.reference)
+        filename = os.path.join(path, self.origin)
         if os.path.exists(filename):
             try:
                 with open(filename, 'r') as fp:
@@ -303,7 +289,7 @@ class LcResource(object):
             except json.JSONDecodeError:
                 return False
 
-            if any([self.matches(k) for k in j[self.reference]]):
+            if any([self.matches(k) for k in j[self.origin]]):
                 return True
         return False
 
@@ -316,8 +302,8 @@ class LcResource(object):
         return self._issaved
 
     @property
-    def reference(self):
-        return self._ref
+    def origin(self):
+        return self._org
 
     @property
     def source(self):
@@ -437,7 +423,7 @@ class LcResource(object):
         :return:
         """
         if assign_ref is None:
-            assign_ref = self.reference
+            assign_ref = self.origin
         if apply_config is not None:
             self.config = apply_config  # tests configuration before storing it
         if not os.path.isdir(path):

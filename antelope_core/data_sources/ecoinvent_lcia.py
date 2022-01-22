@@ -30,7 +30,7 @@ class EcoinventLciaConfig(DataSource):
         super(EcoinventLciaConfig, self).__init__(data_root, **kwargs)
 
     @property
-    def references(self):
+    def origins(self):
         if self._sourcefile is not None:
             if os.path.exists(os.path.join(self._root, self._sourcefile)):
                 yield '.'.join(['local', 'lcia', 'ecoinvent', self._version])
@@ -40,10 +40,10 @@ class EcoinventLciaConfig(DataSource):
             yield k
 
     def make_resources(self, ref):
-        if ref not in self.references:
+        if ref not in self.origins:
             raise ValueError('Unknown reference %s' % ref)
         if self._sourcefile is None:
-            raise AttributeError('This exception should never occur')  # because self.references screens self._info
+            raise AttributeError('This exception should never occur')  # because self.origins screens self._info
         source = os.path.join(self._root, self._sourcefile)
         yield self._make_resource(ref, source=source, interfaces=self._ifaces, version=self._version, static=True,
                                   config=E_CFG)

@@ -1,6 +1,6 @@
 import unittest
 from synonym_dict.compartments.test_compartments import CompartmentContainer
-from ..contexts import Context, ContextManager, InconsistentSense, ProtectedTerm
+from ..contexts import Context, ContextManager, InconsistentSense, ImmutableContextName, ProtectedTerm
 from antelope.interfaces.iindex import InvalidSense
 from ..lcia_engine.lcia_engine import DEFAULT_CONTEXTS, NUM_DEFAULT_CONTEXTS
 
@@ -34,6 +34,16 @@ class ContextTest(CompartmentContainer.CompartmentTest):
 
 
 class ContextManagerTest(CompartmentContainer.CompartmentManagerTest):
+    def test_pruned_set_name_closure(self):
+        with self.assertRaises(ImmutableContextName):
+            super(ContextManagerTest, self).test_pruned_set_name_closure()
+
+    def test_remove_child(self):
+        self.skipTest('cannot rename contexts')
+
+    def test_no_lingering_subcompartments(self):
+        pass
+
     def _test_class(self, ignore_case=True):
         if ignore_case is False:
             self.skipTest('skipping case sensitive test')

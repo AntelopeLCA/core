@@ -9,26 +9,31 @@ from ...data_sources.local import make_config
 
 cat = LcCatalog.make_tester()
 cfg = make_config('ipcc2007')
-ref = next(cfg.references)
+org = next(cfg.origins)
 
 
 def setUpModule():
-    if ref not in cat.references:
-        cat.add_resource(next(cfg.make_resources(ref)))
+    if org not in cat.origins:
+        cat.add_resource(next(cfg.make_resources(org)))
 
 
 class QuantityRefTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.gwp = next(cat.query(ref).lcia_methods(Name='Global Warming'))  # canonical
-        cls.gwp_ref = cat._qdb[cls.gwp.external_ref]  # original ref
+        cls.gwp = next(cat.query(org).lcia_methods(Name='Global Warming'))  # canonical
+        cls.gwp_ref = cat._qdb[cls.gwp.external_ref]  # original ref (locally stored)
         cls.gwp_true = cat.get_archive(cls.gwp_ref.origin).get(cls.gwp_ref.external_ref)  # authentic entity
 
     def test_origins(self):
-        self.assertEqual(self.gwp.origin, ref)
-        self.assertEqual(self.gwp_ref.origin, ref)
-        res = cat.get_resource(ref)
+        self.assertEqual(self.gwp.origin, org)
+        self.assertEqual(self.gwp_ref.origin, org)
+        self.assertEqual(self.gwp._query.origin, 'local.qdb')
+        res = cat.get_resource(org)
         self.assertEqual(self.gwp_true.origin, res.archive.names[res.source])
+
+    def test_identity(self):
+        self.assertTrue(self.gwp_true.is_entity)
+        self.assertFalse(self.gwp.is_entity)
 
     def test_factors(self):
         self.assertEqual(len([k for k in self.gwp.factors()]), 91)

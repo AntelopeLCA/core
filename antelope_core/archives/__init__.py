@@ -110,7 +110,7 @@ class CheckTerms(object):
                             self._check['terminated'].append(x)
                         except NoExchangeFound:
                             self._check['missing'].append(x)
-                    elif x.type == 'elementary':
+                    elif x.is_elementary:
                         self._check['elementary'].append(x)
                     elif x.type == 'context':
                         tg = list(query.targets(x.flow))

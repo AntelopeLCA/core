@@ -1,4 +1,5 @@
 from synonym_dict import SynonymDict, SynonymSet
+from antelope import convert
 
 
 class QuantityUnitMismatch(Exception):
@@ -20,6 +21,27 @@ class QuantitySynonyms(SynonymSet):
     the same dimensionality but different units (e.g. kWh and MJ) are NOT SYNONYMS but distinct quantities. The
     LciaEngine should be able to handle conversions between these kinds of quantities.
     """
+
+    def _check_incoming_unit(self, unit):
+        if unit is None:
+            return
+        if not isinstance(quantity.unit, str):
+            raise AttributeError(quantity, 'unit-str')
+        if self._unit is None:
+            if unit is not None:
+                self._unit = unit
+            return
+        if unit == self.unit:
+            return
+        if self._quantity is not None:
+            try:
+                cv = convert(self._quantity, from_unit=unit, to=self.unit)
+                if cv == 1.0:
+                    return
+            except KeyError:
+                pass
+        raise QuantityUnitMismatch('incoming %s (set %s)' % (unit, self.unit))
+
     @classmethod
     def new(cls, quantity):
         return cls(*quantity.quantity_terms(), quantity=quantity)
@@ -31,11 +53,7 @@ class QuantitySynonyms(SynonymSet):
             raise TypeError(quantity)
         if not hasattr(quantity, 'unit'):
             raise AttributeError(quantity, 'unit')
-        if quantity.unit is not None:  # allow unit=None quantities to merge with existing quantities
-            if not isinstance(quantity.unit, str):
-                raise AttributeError(quantity, 'unit-str')
-            if self.unit is not None and quantity.unit != self.unit:
-                raise QuantityUnitMismatch('incoming %s (set %s)' % (quantity.unit, self.unit))
+        self._check_incoming_unit(quantity.unit)
         return True
 
     def __init__(self, *args, quantity=None, unit=None, **kwargs):
@@ -74,11 +92,7 @@ class QuantitySynonyms(SynonymSet):
     def add_child(self, other, force=False):
         if not isinstance(other, QuantitySynonyms):
             raise TypeError('Child set is not a Quantity synonym set (%s)' % type(other))
-        if other.unit is not None:
-            if self.unit is None:
-                self._unit = other.unit
-            elif other.unit != self.unit:
-                raise QuantityUnitMismatch('incoming %s (canonical %s)' % (other.unit, self._quantity.unit))
+        self._check_incoming_unit(other.unit)
         if self._quantity is None:
             self.quantity = other.quantity
         elif self._quantity.is_entity:

@@ -7,9 +7,9 @@ class ExchangeImplementation(BasicImplementation, ExchangeInterface):
     This provides access to detailed exchange values and computes the exchange relation.
     Creates no additional requirements on the archive.
     """
-    def exchanges(self, process, **kwargs):
+    def exchanges(self, process, flow=None, direction=None, **kwargs):
         p = self._archive.retrieve_or_fetch_entity(process)
-        for x in p.exchanges():
+        for x in p.exchanges(flow=flow, direction=direction):
             yield x
 
     def exchange_values(self, process, flow, direction=None, termination=None, reference=None, **kwargs):
@@ -58,12 +58,14 @@ class ExchangeImplementation(BasicImplementation, ExchangeInterface):
         norm = p.reference(ref_flow)
         if termination is None:
             xs = [x for x in p.exchange_values(flow=exch_flow, direction=direction)]
+            '''
             if len(xs) == 1:
                 return xs[0][norm]
             elif len(xs) == 0:
                 return 0.0
             else:
-                return sum(x[norm] for x in xs)
+            '''
+            return sum(x[norm] for x in xs)
         else:
             x = p.get_exchange(hash((p.external_ref, exch_flow, direction, termination)))
             return x[norm]

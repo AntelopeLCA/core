@@ -28,6 +28,7 @@ class LciaDb(Qdb):
         self.tm.add_characterization(flow.link, flow.reference_entity, q, v, context=flow.context,
                                      origin=self.ref)
 
+    '''
     def _ref_to_key(self, key):
         """
         LciaDb uses links as keys so as to store different-sourced versions of the same quantity. But we also want
@@ -41,6 +42,7 @@ class LciaDb(Qdb):
         if key is None:
             key = super(LciaDb, self)._ref_to_key('%s/%s' % (self.ref, key))
         return key
+    '''
 
     def __getitem__(self, item):
         """
@@ -61,26 +63,16 @@ class LciaDb(Qdb):
             # raise AttributeError('Origin not set! %s' % entity)
         super(LciaDb, self)._ensure_valid_refs(entity)
 
-    '''
     def add(self, entity):
         """
-        Add entity to archive.  If entity is a quantity ref, add a masquerade to the lcia engine
+        Add entity to archive, by link instead of external ref. If the entity has a uuid and uuid does not already
+        exist, add it.  If the UUID does already exist, warn.
         :param entity:
         :return:
         """
-        try:
-            self._add(entity, entity.link)
-        except EntityExists:
-            # merge incoming entity's properties with existing entity
-            current = self[entity.link]
-            current.merge(entity)
-            return
-
-        if entity.uuid is not None:
-            self._entities[entity.uuid] = entity
-
+        self._add(entity, entity.link)
         self._add_to_tm(entity)
-    '''
+
 
     def _add_to_tm(self, entity, merge_strategy=None):
         if entity.entity_type == 'quantity':
@@ -93,10 +85,21 @@ class LciaDb(Qdb):
                 q_masq = QuantityRef(entity.external_ref, self.query, entity.reference_entity,
                                      Name=entity['Name'], Indicator=ind)
                 entity.set_qi(self.make_interface('quantity'))
-            else:  # ref -- masquerade
-                # print('LciaDb: Adding qty ref %s' % entity)
-                q_masq = QuantityRef(entity.external_ref, self.query, entity.reference_entity, masquerade=entity.origin,
-                                     Name=entity['Name'], Indicator=ind)
+            else:
+                if entity.has_lcia_engine():  # ready to go
+                    """
+                    These quantities will not be managed by the local LciaDb-- neither will access the other's value.
+                    It seems like we may still want to override whether a particular quantity gets masqueraded
+                    it's easy enough to do by giving the entity a property, but that is obviously sloppy. TBD.
+                    """
+                    self.tm.add_quantity(entity)
+                    return
+
+                else: # ref -- masquerade
+                    # print('LciaDb: Adding qty ref %s' % entity)
+                    q_masq = QuantityRef(entity.external_ref, self.query, entity.reference_entity,
+                                         masquerade=entity.origin,
+                                         Name=entity['Name'], Indicator=ind)
 
             for k in entity.properties():  # local only for ref
                 q_masq[k] = entity[k]

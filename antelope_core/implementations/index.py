@@ -62,14 +62,19 @@ class IndexImplementation(BasicImplementation, IndexInterface):
         for f in self._archive.search('flow', **kwargs):
             yield f
 
-    def quantities(self, **kwargs):
+    def quantities(self, unit=None, **kwargs):
         for q in self._archive.search('quantity', **kwargs):
+            if unit is not None:
+                if q.unit != unit:
+                    continue
             yield q
 
+    '''
     def lcia_methods(self, **kwargs):
         for q in self._archive.search('quantity', **kwargs):
             if q.is_lcia_method:
                 yield q
+    '''
 
     def targets(self, flow_ref, direction=None, **kwargs):
         """

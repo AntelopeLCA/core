@@ -27,7 +27,7 @@ class EcoinventDataSourceTest(unittest.TestCase):
         ar = []
         for ref in test_refs.keys():
             res = next(cfg.make_resources(ref))
-            if ref not in cat.references:
+            if ref not in cat.origins:
                 cat.add_resource(res)
             res.check(cat)
             res.archive.load_flows()

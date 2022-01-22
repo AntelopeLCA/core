@@ -6,9 +6,8 @@ It is made up of the following components:
 
   * built on an LciaEngine
   + local, persistent storage of resources, indexes, cache data + etc
-  + A resolver, which translates semantic references into resources.  Input: semantic ref. output: CatalogInterface.
+  + A resolver, which translates semantic origins into resources.  Input: semantic ref. output: CatalogInterface.
   + an interface generator, which creates archive accessors on demand based on resource information from the resolver
-  x An internal cache of entities retrieved, by full reference-- this has been cut
 
 From the catalog_ref file, the catalog should meet the following spec:
           Automatic - entity information
@@ -26,7 +25,7 @@ import os
 import hashlib
 # from collections import defaultdict
 
-from ..archives import InterfaceError
+from ..archives import InterfaceError, EntityExists
 from ..lcia_engine import LciaDb
 
 
@@ -209,9 +208,25 @@ class StaticCatalog(object):
     def lcia_engine(self):
         return self._qdb.tm
 
-    def register_quantity_ref(self, q_ref):
-        print('registering %s' % q_ref.link)
-        self._qdb.add(q_ref)
+    def register_entity_ref(self, q_ref):
+        if q_ref.is_entity:
+            raise TypeError('Supplied argument is an entity')
+        try:
+            self._qdb.add(q_ref)
+            # print('registered %s' % q_ref.link)
+        except EntityExists:
+            pass
+
+    def get_qdb_entity(self, origin, external_ref, entity_type='flow'):
+        if origin is None or external_ref is None:
+            raise ValueError('%s/%s not valid' % (origin, external_ref))
+        link = '/'.join([origin, external_ref])
+        ent = self._qdb[link]
+        if ent is None:
+            raise KeyError(link)
+        if ent.entity_type != entity_type:
+            raise TypeError(ent)
+        return ent
 
     @property
     def sources(self):
@@ -219,18 +234,18 @@ class StaticCatalog(object):
             yield k
 
     @property
-    def references(self):
-        for ref, ints in self._resolver.references:
+    def origins(self):
+        for ref, ints in self._resolver.origins:
             yield ref
 
     @property
     def interfaces(self):
-        for ref, ints in self._resolver.references:
+        for ref, ints in self._resolver.origins:
             for i in ints:
                 yield ':'.join([ref, i])
 
     def show_interfaces(self):
-        for ref, ints in sorted(self._resolver.references):
+        for ref, ints in sorted(self._resolver.origins):
             print('%s [%s]' % (ref, ', '.join(ints)))
 
     '''
@@ -242,7 +257,7 @@ class StaticCatalog(object):
         List known references.
         :return:
         """
-        for k, ifaces in self._resolver.references:
+        for k, ifaces in self._resolver.origins:
             for iface in ifaces:
                 yield ':'.join([k, iface])
         for k in self._nicknames.keys():
@@ -303,7 +318,17 @@ class StaticCatalog(object):
     '''
     def _sorted_resources(self, origin, interfaces, strict):
         for res in sorted(self._resolver.resolve(origin, interfaces, strict=strict),
-                          key=lambda x: (not (x.is_loaded and x.static), x.priority, x.reference != origin)):
+                          key=lambda x: (x.priority, len(x.origin))): #
+            '''
+            sort key was formerly: (not (x.is_loaded and x.static), x.priority, x.origin != origin)):
+            What were we thinking overriding priority with whether a static resource was loaded?
+            
+            ans: bad logic. The bad logic was: if we already have the (static JSON) index loaded, we should just use
+            it because it's easier / possibly more reliable (?) than accessing the exchange interface.
+            
+            But this is properly managed by data owners with priorities. Any source-specific optimizations are 
+            just that.  
+            '''
             yield res
 
     def gen_interfaces(self, origin, itype=None, strict=False):
@@ -334,6 +359,15 @@ class StaticCatalog(object):
     """
     public functions -- should these operate directly on a catalog ref instead? I think so but let's see about usage
     """
+    _query_type = CatalogQuery
+
+    def known_origin(self, origin, strict=False):
+        try:
+            self._resolver.resolve(origin, strict=strict)
+        except UnknownOrigin:
+            return False
+        return True
+
     def query(self, origin, strict=False, refresh=False, **kwargs):
         """
         Returns a query using the first interface to match the origin.
@@ -350,7 +384,7 @@ class StaticCatalog(object):
         next(self._resolver.resolve(origin, strict=strict))
 
         if refresh or (origin not in self._queries):
-            self._queries[origin] = CatalogQuery(origin, catalog=self, **kwargs)
+            self._queries[origin] = self._query_type(origin, catalog=self, **kwargs)
         return self._queries[origin]
 
     def lookup(self, catalog_ref, keep_properties=False):

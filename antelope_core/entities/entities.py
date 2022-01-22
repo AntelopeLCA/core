@@ -232,6 +232,8 @@ class LcEntity(BaseEntity):
                 continue
             if v is None:
                 continue
+            elif isinstance(v, tuple):
+                j[k] = list(v)
             elif isinstance(v, list):
                 j[k] = v
             elif isinstance(v, set):
@@ -240,13 +242,14 @@ class LcEntity(BaseEntity):
                 j[k] = v
             elif isinstance(v, bool):
                 j[k] = v
-            elif isinstance(v, LcEntity):
+            elif isinstance(v, BaseEntity):
                 j[k] = {"origin": v.origin,
                         "externalId": v.external_ref,
                         "entity_type": v.entity_type}
             elif isinstance(v, dict):
                 j[k] = v
             else:
+                # this is a .. robust if dangerous default
                 j[k] = str(v)
         return j
 
@@ -290,7 +293,7 @@ class LcEntity(BaseEntity):
                     self[k] = other[k]
 
     def show(self):
-        print('%s Entity (ref %s)' % (self.entity_type.title(), self.external_ref))
+        print('%s Entity (ref %s)' % (self.__class__.__name__, self.external_ref))
         print('origin: %s' % self.origin)
         if self.entity_type == 'process':
             for i in self.reference_entity:

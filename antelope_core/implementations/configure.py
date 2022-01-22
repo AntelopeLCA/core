@@ -122,7 +122,7 @@ class ConfigureImplementation(CoreConfigureImplementation):
         print('Characterizing flow %s by %s: %g' % (flow_ref, quantity_ref, value))
         flow = self._archive.retrieve_or_fetch_entity(flow_ref)
         qty = self._archive.retrieve_or_fetch_entity(quantity_ref)
-        self._archive.tm.add_characterization(flow.link, flow.reference_entity, qty, value, context=flow.context,
+        self._archive.tm.add_characterization(flow.name, flow.reference_entity, qty, value, context=flow.context,
                                               location=location,
                                               origin=self.origin, overwrite=overwrite)
 

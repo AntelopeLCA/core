@@ -1,5 +1,6 @@
 synonym_dict>=0.2.0
-git+git://github.com/AntelopeLCA/antelope@master#egg=antelope_interface
+git+git://github.com/AntelopeLCA/antelope@virtualize#egg=antelope_interface
 xlrd==1.2.0
 python-magic>=0.4.18
 requests>=2.25
+pydantic>=1.8.2

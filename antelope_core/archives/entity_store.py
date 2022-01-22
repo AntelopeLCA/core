@@ -69,12 +69,80 @@ class EntityExists(Exception):
     pass
 
 
+class UuidNotValid(Exception):
+    pass
+
+
 class InvalidSemanticReference(Exception):
     pass
 
 
 class ReferenceCreationError(Exception):
     pass
+
+
+'''
+class EntityStoreInterface:
+
+    _descendant = False
+    _loaded = False
+
+    @property
+    def source(self):
+        raise NotImplemented
+
+    @property
+    def ref(self):
+        raise NotImplemented
+
+    def set_origin(self, origin):
+        raise NotImplemented
+
+    def _add_name(self, origin, source, rewrite=False):
+        raise NotImplemented
+
+
+    # mapping key to entity
+    @property
+    def _entities(self):
+        raise NotImplemented
+
+    def __getitem__(self, item):
+        raise NotImplementedError
+
+    def _ref_to_uuid(self, ref):
+        raise NotImplemented
+
+    def _ref_to_nsuuid(self, ref):
+        raise NotImplemented
+
+    def _ensure_valid_refs(self, entity):
+        raise NotImplementedError
+
+    def _add(self, entity, key):
+        raise NotImplemented
+
+    def entities_by_type(self, entity_type):
+        raise NotImplemented
+
+    def count_by_type(self, entity_type):
+        raise NotImplemented
+
+    def retrieve_or_fetch_entity(self, key):
+        raise NotImplemented
+
+    def check_counter(self, entity_type=None):
+        raise NotImplemented
+
+    def serialize(self):
+        raise NotImplemented
+
+    def write_to_file(self, file, gzip=True):
+        raise NotImplemented
+
+    def _print(self, *args):
+        raise NotImplemented
+'''
 
 
 class EntityStore(object):
@@ -129,7 +197,7 @@ class EntityStore(object):
         :param key:
         :return:
         """
-        return self._ref_to_uuid(key)
+        return self[key].uuid
 
     def _set_ns_uuid(self, ns_uuid):
         print('%s: Setting NSUUID (%s) %s' % (self.ref, self._ns_uuid_required, ns_uuid))
@@ -148,7 +216,7 @@ class EntityStore(object):
                     return ns_uuid
                 return uuid.UUID(ns_uuid)
 
-    def __init__(self, source, ref=None, quiet=True, upstream=None, static=False, dataReference=None, ns_uuid=None,
+    def __init__(self, source, ref=None, quiet=True, static=False, dataReference=None, ns_uuid=None,
                  no_validate=None,
                  **kwargs):
         """
@@ -157,7 +225,8 @@ class EntityStore(object):
         which data describing the entities can be extracted.  The exact manner of extracting data from resources is
         subclass-dependent.
 
-        Internally, all entities are stored with UUID keys.  If the external references do not contain UUIDs, it is
+        The desired key is specified during the call to _add(entity, key).  Internally, if the entity has a 'uuid'
+        attribute and it is set (validity not checked), then the uuid is .  If the external references do not contain UUIDs, it is
         recommended to derive a UUID3 using an archive-specific, stable namespace ID.  The class-level
         _ns_uuid_required attribute governs this option:
          - if True, an ns_uuid argument must be provided when the class is instantiated.  This is consistent with a
@@ -192,10 +261,10 @@ class EntityStore(object):
         uslci.ecospold/Acetic acid, at plant
 
         Note that the inclusion of embedded whitespace, commas, and other characters indicate that these semantic
-        references are not proper URIs.
+        origins are not proper URIs.
 
         It is hoped that the user community will help develop and maintain a consistent and easily interpreted
-        namespace for semantic references.  If this is done, it should be possible to identify any published entity
+        namespace for semantic origins.  If this is done, it should be possible to identify any published entity
         with a concise reference.
 
         When an entity is first added to an archive, it is assigned that archive's *reference* as its origin, following
@@ -208,7 +277,6 @@ class EntityStore(object):
         :param source: physical data source-- where the information is being drawn from
         :param ref: optional semantic reference for the data source. gets added to catalog_names.
         :param quiet:
-        :param upstream:
         :param static: [False] whether archive is expected to be unchanging.
         :param dataReference: alternative to ref
         :param ns_uuid: required to store entities by common name.  Used to generate uuid3 from string inputs.
@@ -231,17 +299,13 @@ class EntityStore(object):
 
         self._counter = defaultdict(int)
         self._ents_by_type = defaultdict(set)
-        self._upstream = None
         self._no_validate = no_validate
 
         self._loaded = False
         self._static = static
         self._descendant = False
 
-        if upstream is not None:
-            self.set_upstream(upstream)
-
-        self._catalog_names = defaultdict(set)  # this is a place to map semantic references to data sources
+        self._catalog_names = defaultdict(set)  # this is a place to map semantic origins to data sources
         self._add_name(ref, source)
         self._serialize_dict['dataReference'] = ref
 
@@ -251,7 +315,7 @@ class EntityStore(object):
 
     def _add_name(self, ref, source, rewrite=False):
         """
-        A source is not allowed to provide multiple semantic references
+        A source is not allowed to provide multiple semantic origins
         a ref must match the regexp ([A-Za-z0-9_]+(\.[A-Za-z0-9_])*)
         :param ref:
         :param source:
@@ -324,19 +388,12 @@ class EntityStore(object):
         Return a mapping of data source to semantic reference, based on the catalog_names property.  This is used by
         a catalog interface to convert entity origins from physical to semantic.
 
-        If a single data source has multiple semantic references, only the most-downstream one will be kept.  If there
-        are multiple semantic references for the same data source in the same archive, one will be kept at random.
+        If a single data source has multiple semantic origins, only the most-downstream one will be kept.  If there
+        are multiple semantic origins for the same data source in the same archive, one will be kept at random.
         This should be avoided and I should probably test for it when setting catalog_names.
         :return:
         """
-        if self._upstream is None:
-            names = dict()
-        else:
-            names = self._upstream.names
-
-        for k, s in self._catalog_names.items():
-            for v in s:
-                names[v] = k
+        names = {v: k  for k, s in self._catalog_names.items() for v in s}
         return names
 
     def get_sources(self, name):
@@ -434,13 +491,13 @@ class EntityStore(object):
         for v in self._entities.values():
             yield v
 
+    '''
     def set_upstream(self, upstream):
         assert isinstance(upstream, EntityStore)
         if upstream.source != self.source:
             self._serialize_dict['upstreamReference'] = upstream.ref
         self._upstream = upstream
 
-    '''
     def truncate_upstream(self):
         """
         BROKEN! / deprecated
@@ -463,10 +520,9 @@ class EntityStore(object):
     def __str__(self):
         count = sum(len(v) for v in self._ents_by_type.values())
         s = '%s with %d entities at %s' % (self.__class__.__name__, count, self.source)
-        if self._upstream is not None:
-            s += ' [upstream %s]' % self._upstream.__class__.__name__
         return s
 
+    '''
     def _get_entity(self, key):
         """
         the fundamental method- retrieve an entity from LOCAL collection by key, nominally a UUID string.
@@ -475,9 +531,8 @@ class EntityStore(object):
         :param key: a uuid
         :return: the LcEntity or None
         """
-        if key in self._entities:
-            return self._entities[key]
-        raise KeyError(key)
+        return self._entities[key]
+    '''
 
     def __contains__(self, item):
         return item in self._entities
@@ -496,14 +551,10 @@ class EntityStore(object):
         """
         if item is None:
             return None
-        if self._upstream is not None:
-            e = self._upstream[item]
-            if e is not None:
-                return e
         try:
             if isinstance(item, int) and self._ns_uuid is not None:
-                return self._get_entity(self._ref_to_nsuuid(item))
-            return self._get_entity(self._ref_to_key(item))
+                return self._entities[self._ref_to_nsuuid(item)]
+            return self._entities[self._ref_to_key(item)]
         except KeyError:
             return None
 
@@ -513,18 +564,24 @@ class EntityStore(object):
         :param entity:
         :return:
         """
-        if hasattr(entity, 'uuid') and entity.uuid is None:
-            uu = self._ref_to_uuid(entity.external_ref)
-            if uu is not None:
-                entity.uuid = uu
+        if hasattr(entity, 'uuid'):
+            if entity.uuid is None:
+                uu = self._ref_to_uuid(entity.external_ref)
+                if uu is not None:
+                    entity.uuid = uu
+            else:
+                if to_uuid(entity.uuid) != entity.uuid:
+                    raise UuidNotValid(entity, entity.uuid)
+            if entity.uuid in self._entities:
+                print('Warning: UUID %s already exists and will not be bound to this entity' % entity.uuid)
 
     def _add(self, entity, key, quiet=False):
-        self._ensure_valid_refs(entity)
-
         if key is None:
             raise ValueError('Key not allowed to be None')
         if key in self._entities:
             raise EntityExists('Entity already exists: %s' % key)
+
+        self._ensure_valid_refs(entity)
 
         if entity.entity_type not in self._entity_types:
             raise TypeError('Entity type %s not valid!' % entity.entity_type)
@@ -539,11 +596,19 @@ class EntityStore(object):
             # TODO: uncomment / enforce this
             # assert self._ref_to_key(entity.external_ref) == key, 'entity uuid must match origin repository key!'
             entity.origin = self.ref
+
+        ## ADD TO ENTITIES DB
         self._entities[key] = entity
+
+        if hasattr(entity, 'uuid'):
+            if entity.uuid is not None and entity.uuid not in self._entities:
+                self._entities[entity.uuid] = entity
+
         if self._ns_uuid is not None:  # ensure UUID3s work even if custom UUIDs are specified
             nsuuid = self._ref_to_uuid(entity.external_ref)
             if nsuuid is not None and nsuuid not in self._entities:
                 self._entities[nsuuid] = entity
+
         self._counter[entity.entity_type] += 1
         self._ents_by_type[entity.entity_type].add(key)  # it's not ok to change an entity's type
 
@@ -555,10 +620,9 @@ class EntityStore(object):
                                                            self.count_by_type(entity_type)))
             self._counter[entity_type] = 0
 
-    def find_partial_id(self, uid, upstream=False, startswith=True):
+    def find_partial_id(self, uid, startswith=True):
         """
         :param uid: is a fragmentary (or complete) uuid string.
-        :param upstream: [False] whether to look upstream if it exists
         :param startswith: [True] use .startswith instead of full regex
         :return: result set
         """
@@ -569,8 +633,6 @@ class EntityStore(object):
             def test(x, y):
                 return bool(re.search(x, y))
         result_set = [v for k, v in self._entities.items() if test(uid, k)]
-        if upstream and self._upstream is not None:
-            result_set += self._upstream.find_partial_id(uid, upstream=upstream, startswith=startswith)
         return result_set
 
     def _fetch(self, entity, **kwargs):

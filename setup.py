@@ -1,13 +1,14 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.1.7.3'
+VERSION = '0.1.7.3-pydantic'
 
 requires = [
     "synonym_dict>=0.2.0",
     "antelope_interface>=0.1.7",
     "xlrd==1.2.0",  ## really need to get out of this requirement and into openpyxl or equivalent
     "python-magic>=0.4.18",
-    "requests>=2.25"
+    "requests>=2.25",
+    "pydantic>=1.8.2"
 ]
 
 # optional: pylzma

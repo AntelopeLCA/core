@@ -20,6 +20,7 @@ except ImportError:
 from .ecoinvent_lcia import EcoinventLcia
 from .openlca_jsonld import OpenLcaJsonLdArchive
 from .traci import Traci21Factors
+from .xdb_client import XdbClient
 
 PROVIDERS = _prov + ['EcoinventLcia', 'OpenLcaJsonLdArchive', 'Traci21Factors']
 

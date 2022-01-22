@@ -9,16 +9,16 @@ _run_test = check_enabled('ipcc2007')
 
 if _run_test:
     cfg = make_config('ipcc2007')
-    ref = next(cfg.references)
+    org = next(cfg.origins)
 
 
 class GwpIpcc2007Test(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.query = cat.query(ref)
+        cls.query = cat.query(org)
 
     def test_resources_exist(self):
-        self.assertIn(ref, cat.references)
+        self.assertIn(org, cat.origins)
 
     def test_num_entities(self):
         self.assertEqual(self.query.count('quantity'), 2)

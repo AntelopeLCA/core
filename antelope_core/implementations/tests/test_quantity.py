@@ -40,12 +40,12 @@ class QuantityImplementation(unittest.TestCase):
         self.assertEqual(self.gwp.cf('carbon dioxide', ref_quantity=mass, context='air'), 1.0)
         self.assertEqual(self.gwp.cf('nitrous oxide', ref_quantity=mass, context='air'), 298.0)
         self.assertEqual(self.gwp.cf('10024-97-2', ref_quantity=mass, context='air'), 298.0)
-        self.assertEqual(self.gwp.quantity_relation(mass, 'carbon dioxide', 'water').value, 0.0)
+        self.assertEqual(self.gwp.quantity_relation('carbon dioxide', mass, 'water').value, 0.0)
         # this will only work with an LciaEngine
         ilcd_vol = self.I[volu_uuid]
         ar.add(ilcd_vol)  ## no longer done automatically in get_canonical
         with self.assertRaises(ConversionReferenceMismatch):
-            self.gwp.quantity_relation(ilcd_vol, 'carbon tetrachloride', 'air')
+            self.gwp.quantity_relation('carbon tetrachloride', ilcd_vol, 'air')
 
 
 if __name__ == '__main__':

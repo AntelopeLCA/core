@@ -2,12 +2,14 @@
 This object replaces the LciaResult types spelled out in Antelope-- instead, it serializes to an LCIA result directly.
 
 """
-from antelope import comp_dir
+from antelope import comp_dir, CatalogRef, ExchangeRef
 from .exchanges import ExchangeValue, DissipationExchange
 from .autorange import AutoRange
 from numbers import Number
 from math import isclose
 from collections import defaultdict
+
+from .models import DetailedLciaResult as DetailedLciaResultModel
 # from lcatools.interfaces import to_uuid
 
 
@@ -158,6 +160,8 @@ class DetailedLciaResult(object):
 class SummaryLciaResult(object):
     """
     like a DetailedLciaResult except omitting the exchange and factor information.  This makes them totally static.
+    The unit_score can itself _be_ an LciaResult, making the datatype recursive.
+    This has __add__ functionality, for merging repeated instances of the same fragment during traversal
     """
     def __init__(self, lc_result, entity, node_weight, unit_score):
         """
@@ -917,4 +921,4 @@ class LciaResult(object):
             return results, balance
 
     def serialize_components(self, detailed=False):
-        return [c.serialize(detailed=detailed) for c in self.components()]
+        return [c.serialize(detailed=detailed) for c in sorted(self.components(), key=lambda x: x.result, reverse=True)]

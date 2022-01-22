@@ -15,13 +15,45 @@ LciaEngine is designed to handle information from multiple origins to operate as
 subclass adds canonical lists of flowables and contexts that would be redundant if loaded into individual archives,
 introduces "smart" hierarchical context lookup (CLookup), and adds the ability to quell biogenic CO2 emissions.
 Someday, it might make sense to expose it as a massive, central graph db.
+
+INTERFACE
+---------
+The TermManager is assumed to implement the following interface:
+Required for external operability:
+ - is_lcia_engine: [bool] whether the term manager performs flow and context matching
+ - is_context(obj): [bool] whether the supplied object maps to a known Context;;; hmm, this was implemented twice
+ - __getitem__(obj): retrieve a context or None **note: this is because archives all return None for failed __getitem__,
+    which I know is bad but I haven't been moved to change it yet)
+ - get_canonical(qty): return the best-fit quantity, or raise EntityNotFou
+ - synonyms()  # currently required by BasicImplementation
+
+Required by the default implementation:
+Post data:
+ - add_quantity()
+ - add_context()
+ - add_flow()
+ - add_characterization()
+ - add_from_json()
+
+retrieve data:
+ - serialize()
+ - flows_for_flowable()
+ - factors_for_flowable()
+ - factors_for_quantity()
+ - get_flowable()
+ - flowables()
+ - quantities()
+ - contexts()
+
+
+
 """
 from collections import namedtuple
 
 from synonym_dict import SynonymDict, InconsistentLineage
 
 from antelope import EntityNotFound
-from ..contexts import ContextManager, Context, NullContext
+from ..contexts import ContextManager, NullContext
 from .quantity_manager import QuantityManager
 
 from ..characterizations import Characterization, DuplicateCharacterizationError
@@ -97,6 +129,7 @@ class TermManager(object):
            - third level CLookup maps context to a set of CFs
      _fq_map: reverse-maps flowable canonical name to a set of quantities that characterize it
     """
+    is_lcia_engine = False
     def __init__(self, contexts=None, flowables=None, quantities=None, merge_strategy='graft', quiet=True):
         """
         :param contexts: optional filename to initialize CompartmentManager
@@ -172,9 +205,11 @@ class TermManager(object):
              'quantity': self._qm.new_entry}[term_type]
         d(*terms, **kwargs)
 
+    ''' # OOPS
     @staticmethod
     def is_context(cx):
         return isinstance(cx, Context)
+    '''
 
     @property
     def quiet(self):
@@ -600,12 +635,15 @@ class TermManager(object):
         try:
             return self._qm[quantity]
         except KeyError:
+            if isinstance(quantity, str):
+                raise
             if hasattr(quantity, 'link'):
                 try:
                     return self._qm[quantity.link]
                 except KeyError:
-                    return self._qm.find_matching_quantity(quantity)
-            return self._qm[str(quantity)]
+                    if hasattr(quantity, 'quantity_terms'):
+                        return self._qm.find_matching_quantity(quantity)  # or else KeyError
+            return self._qm[str(quantity)]  # or else KeyError
 
     def _canonical_q_ref(self, quantity):
         return self._canonical_q(quantity).external_ref
@@ -833,15 +871,15 @@ class TermManager(object):
                     yield cx
 
     def quantities(self, search=None, origin=None):
-        for q in self._qm.objects:
+        for q in self._qm.entries:
             if origin is not None:
-                if not q.origin.startswith(origin):
+                if not q.object.origin.startswith(origin):
                     continue
             if search is None:
-                yield q
+                yield q.object
             else:
-                if q.contains_string(search):
-                    yield q
+                if q.contains_string(search, ignore_case=True):
+                    yield q.object
 
     '''
     De/Serialization

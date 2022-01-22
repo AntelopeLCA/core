@@ -36,16 +36,16 @@ class Ecoinvent2Base(DataSource):
         self._version = version
 
     @property
-    def references(self):
+    def origins(self):
         """
-        Generates a list of semantic references the DataSource knows how to instantiate
+        Generates a list of semantic origins the DataSource knows how to instantiate
         :return:
         """
         yield 'local.ecoinvent.%s' % self._version
 
     def interfaces(self, ref):
         """
-        Generates a list of interfaces known for the given reference. the reference must be in the list of references.
+        Generates a list of interfaces known for the given reference. the reference must be in the list of origins.
         :param ref:
         :return:
         """
@@ -62,7 +62,7 @@ class Ecoinvent2Base(DataSource):
         :param ref:
         :return:
         """
-        ref = next(self.references)
+        ref = next(self.origins)
         yield self._make_resource(ref, self.source, interfaces=tuple(self.interfaces(ref)), config=E_CFG)
 
 
@@ -87,7 +87,7 @@ class Ecoinvent3Base(DataSource):
             yield 'local.ecoinvent.%s.%s' % (self._version, self._model)
 
     @property
-    def references(self):
+    def origins(self):
         for x in self._lci_ref:
             yield x
         for x in self._inv_ref:

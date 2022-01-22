@@ -91,7 +91,7 @@ class BasicImplementation(object):
             return self._archive[external_ref]
         try:
             return self._archive.retrieve_or_fetch_entity(external_ref, **kwargs)
-        except NotImplementedError:
+        except (KeyError, NotImplementedError):
             return None
 
     '''
@@ -121,6 +121,14 @@ class BasicImplementation(object):
             if e is not None:
                 return e
         raise EntityNotFound(external_ref)
+
+    def is_lcia_engine(self, **kwargs):
+        """
+        suggests expansion to a graph-based TM
+        :param kwargs:
+        :return:
+        """
+        return self._archive.tm.is_lcia_engine
 
     def synonyms(self, item, **kwargs):
         return self._archive.tm.synonyms(item)

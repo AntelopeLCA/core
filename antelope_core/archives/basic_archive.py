@@ -63,6 +63,7 @@ class BasicArchive(EntityStore):
     _drop_fields = defaultdict(list)  # dict mapping entity type to fields that should be omitted from serialization
 
     _skip_msg = set()
+    _query = None
 
     @classmethod
     def from_file(cls, filename, ref=None, **init_args):
@@ -119,15 +120,20 @@ class BasicArchive(EntityStore):
     def __init__(self, *args, contexts=None, flowables=None, term_manager=None, **kwargs):
         super(BasicArchive, self).__init__(*args, **kwargs)
         self._tm = term_manager or TermManager(contexts=contexts, flowables=flowables)
+        self._set_query()
+
+    def _set_query(self):
+        self._query = BasicQuery(self)
 
     @property
     def query(self):
-        return BasicQuery(self)
+        return self._query
 
     @property
     def tm(self):
         return self._tm
 
+    '''
     def _check_key_unused(self, key):
         """
         If the key is unused, return the UUID. Else raise EntityExists
@@ -141,7 +147,6 @@ class BasicArchive(EntityStore):
             return u
         raise EntityExists(str(e))
 
-    '''
     def new_quantity(self, name, ref_unit, **kwargs):
         u = self._check_key_unused(name)
         q = LcQuantity(u, ref_unit=LcUnit(ref_unit), Name=name, origin=self.ref, external_ref=name, **kwargs)
@@ -178,9 +183,6 @@ class BasicArchive(EntityStore):
 
     def add(self, entity):
         self._add(entity, entity.external_ref)
-        if hasattr(entity, 'uuid') and entity.uuid is not None:  # BasicArchives: allow UUID to retrieve entity as well, if defined
-            self._entities[entity.uuid] = entity
-
         self._add_to_tm(entity)
 
     def _add_to_tm(self, entity, merge_strategy=None):
@@ -263,11 +265,11 @@ class BasicArchive(EntityStore):
             try:
                 ref_q = self.tm.get_canonical(rq)
             except EntityNotFound:
-                ref_q = self._get_entity(rq)
+                ref_q = self._entities[rq]
         return LcFlow(ext_ref, referenceQuantity=ref_q, **entity_j)
 
     def _add_char(self, flow, q, v):
-        self.tm.add_characterization(flow.link, flow.reference_entity, q, v, context=flow.context,
+        self.tm.add_characterization(flow.name, flow.reference_entity, q, v, context=flow.context,
                                      origin=flow.origin)
 
     def _add_chars(self, flow, chars):
@@ -430,12 +432,11 @@ class BasicArchive(EntityStore):
                                                flags=(re.IGNORECASE|re.MULTILINE)))
         return keep
 
-    def search(self, etype=None, upstream=False, **kwargs):
+    def search(self, etype=None, **kwargs):
         """
         Find entities by search term, either full or partial uuid or entity property like 'Name', 'CasNumber',
         or so on.
         :param etype: optional first argument is entity type
-        :param upstream: (False) if upstream archive exists, search there too
         :param kwargs: regex search through entities' properties as named in the kw arguments
         :return: result set
         """
@@ -450,8 +451,6 @@ class BasicArchive(EntityStore):
             for ent in self._entities.values():
                 if self._narrow_search(ent, **kwargs):
                     yield ent
-        if upstream and self._upstream is not None:
-            self._upstream.search(etype, upstream=upstream, **kwargs)
 
     def _serialize_quantities(self, domesticate=False):
         return sorted([q.serialize(domesticate=domesticate, drop_fields=self._drop_fields['quantity'])

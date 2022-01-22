@@ -111,6 +111,9 @@ class LcQuantity(LcEntity):
     Quantity entities use the quantity interface provided by the parent archive; this emulates the operation of 
     quantity refs, which have access to the catalog.
     """
+    def has_lcia_engine(self):
+        return self._qi.is_lcia_engine()
+
     def cf(self, flow, locale='GLO', **kwargs):
         """
         The semantics here may be confusing, but cf is flow-centered. It converts reports the amount in self that
@@ -144,6 +147,9 @@ class LcQuantity(LcEntity):
 
     def convert(self, from_unit=None, to=None):
         return convert(self, from_unit, to)
+
+    def quantity_relation(self, flowable, ref_quantity, context, locale='GLO', **kwargs):
+        return self._qi.quantity_relation(flowable, ref_quantity, self, context, locale=locale, **kwargs)
 
     """
     Interior utility functions
@@ -222,8 +228,12 @@ class LcUnit(object):
         return self._unitstring
 
     def __str__(self):
-        return '[%s]' % self._unitstring
+        return self._unitstring
+        # return '[%s]' % self._unitstring  ## good god man, why?
 
     def reset_unitstring(self, ustring):
         self._external_ref = ustring
         self._unitstring = ustring
+
+
+MetaQuantityUnit = LcUnit("0")  # singleton unit for non-quantities (i.e. LCIA Methodologies) that contain quantities

@@ -170,7 +170,7 @@ class UsLciConfig(DataSource):
         return '.'.join([self.prefix, fmt])
 
     @property
-    def references(self):
+    def origins(self):
         for f in VALID_FORMATS:
             yield self._ref(f)
 
@@ -179,7 +179,7 @@ class UsLciConfig(DataSource):
             yield k
 
     def make_resources(self, ref):
-        if ref not in self.references:
+        if ref not in self.origins:
             raise ValueError('Unknown reference %s' % ref)
         fmt = ref.split('.')[-1]
         info = INFO[fmt]

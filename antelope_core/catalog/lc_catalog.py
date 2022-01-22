@@ -1,13 +1,28 @@
-from antelope import IndexRequired
 from .catalog import StaticCatalog
 from ..archives import REF_QTYS, archive_from_json
-from ..lc_resource import LcResource, download_file
+from ..lc_resource import LcResource
 from ..lcia_engine import DEFAULT_CONTEXTS, DEFAULT_FLOWABLES
+
+import requests
 
 from shutil import copy2, rmtree
 import os
+import hashlib
 
 TEST_ROOT = os.path.join(os.path.dirname(__file__), 'cat-test')  # volatile, inspectable
+
+def download_file(url, local_file, md5sum=None):
+    r = requests.get(url, stream=True)
+    md5check = hashlib.md5()
+    with open(local_file, 'wb') as f:
+        for chunk in r.iter_content(chunk_size=1024):
+            if chunk:  # filter out keep-alive new chunks
+                f.write(chunk)
+                md5check.update(chunk)
+                # f.flush() commented by recommendation from J.F.Sebastian
+    if md5sum is not None:
+        assert md5check.hexdigest() == md5sum, 'MD5 checksum does not match'
+
 
 class LcCatalog(StaticCatalog):
     """
@@ -21,7 +36,7 @@ class LcCatalog(StaticCatalog):
         :param md5sum:
         :param force:
         :param localize: whether to return the filename relative to the catalog root
-        :return:
+        :return: the full path to the downloaded file 
         """
         local_file = os.path.join(self._download_dir, self._source_hash_file(url))
         if os.path.exists(local_file):
@@ -190,7 +205,7 @@ class LcCatalog(StaticCatalog):
                 print('Not overwriting existing index. force=True to override.')
                 try:
                     ex_res = next(r for r in self._resolver.resources_with_source(inx_local))
-                    return ex_res.reference
+                    return ex_res.origin
                 except StopIteration:
                     # index file exists, but no matching resource
                     inx = archive_from_json(inx_file)
@@ -206,8 +221,9 @@ class LcCatalog(StaticCatalog):
             for stale in stale_res:
                 # this should be postponed to after creation of new, but that fails in case of naming collision (bc YYYYMMDD)
                 # so golly gee we just delete-first.
-                print('deleting %s' % stale.reference)
-                self._resolver.delete_resource(stale)
+                print('deleting %s' % stale.origin)
+                self.delete_resource(stale)
+
 
         the_index = res.make_index(inx_file, force=force)
         self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=stored, interfaces='index',
@@ -232,12 +248,14 @@ class LcCatalog(StaticCatalog):
         :param strict: [True] whether to be strict
         :return:
         """
-        try:
-            ix = next(self.gen_interfaces(origin, itype='index', strict=False))
-            return ix.origin
-        except StopIteration:
-            source = self._find_single_source(origin, interface, source=source, strict=strict)
-            return self._index_source(source, priority, force=force)
+        if not force:
+            try:
+                ix = next(self.gen_interfaces(origin, itype='index', strict=False))
+                return ix.origin
+            except StopIteration:
+                pass
+        source = self._find_single_source(origin, interface, source=source, strict=strict)
+        return self._index_source(source, priority, force=force)
 
     def cache_ref(self, origin, interface=None, source=None, static=False):
         source = self._find_single_source(origin, interface, source=source)

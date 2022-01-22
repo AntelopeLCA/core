@@ -23,9 +23,8 @@ class LcArchive(BasicArchive):
     """
     _entity_types = LC_ENTITY_TYPES
 
-    @property
-    def query(self):
-        return LcQuery(self)
+    def _set_query(self):
+        self._query = LcQuery(self)
 
     def make_interface(self, iface):
         if iface == 'inventory' or iface == 'exchange':
@@ -84,7 +83,7 @@ class LcArchive(BasicArchive):
             x = exchs[i]
             # eventually move this to an exchange classmethod - which is why I'm repeating myself for now
             v = None
-            f = self._get_entity(x['flow'])
+            f = self._entities[x['flow']]
             d = x['direction']
             if 'value' in x:
                 v = x['value']
@@ -94,7 +93,7 @@ class LcArchive(BasicArchive):
         for i in nonrefs:
             x = exchs[i]
             # is_ref = False
-            f = self._get_entity(x['flow'])
+            f = self._entities[x['flow']]
             d = x['direction']
             if 'termination' in x:
                 t = x['termination']
