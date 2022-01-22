@@ -30,7 +30,7 @@ from ..archives import InterfaceError
 from ..lcia_engine import LciaDb
 
 
-from antelope import CatalogRef, UnknownOrigin, EntityNotFound
+from antelope import CatalogRef, UnknownOrigin  # , EntityNotFound
 from ..catalog_query import CatalogQuery, INTERFACE_TYPES, zap_inventory
 from .lc_resolver import LcCatalogResolver
 from ..lc_resource import LcResource
@@ -404,7 +404,9 @@ class StaticCatalog(object):
         """
         try:
             q = self.query(origin)
-            ref = q.get(external_ref)
-        except (UnknownOrigin, EntityNotFound):
-            ref = CatalogRef(origin, external_ref, entity_type=entity_type, **kwargs)
-        return ref
+        except UnknownOrigin:
+            return CatalogRef(origin, external_ref, entity_type=entity_type, **kwargs)
+        return q.get(external_ref)
+        # except EntityNotFound:  why would we catch this?
+        #     return CatalogRef.from_query(external_ref, q, entity_type=entity_type, **kwargs)
+
