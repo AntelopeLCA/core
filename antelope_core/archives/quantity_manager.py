@@ -22,10 +22,15 @@ class QuantitySynonyms(SynonymSet):
     LciaEngine should be able to handle conversions between these kinds of quantities.
     """
 
-    def _check_incoming_unit(self, unit):
-        if self._unit is None:
-            return
+    def _check_incoming_unit(self, quantity):
+        unit = quantity.unit
         if unit is None:
+            return
+        if not isinstance(unit, str):
+            raise AttributeError(quantity, 'unit-str')
+        if self._unit is None:
+            if unit is not None:
+                self._unit = unit
             return
         if unit == self.unit:
             return
@@ -49,11 +54,7 @@ class QuantitySynonyms(SynonymSet):
             raise TypeError(quantity)
         if not hasattr(quantity, 'unit'):
             raise AttributeError(quantity, 'unit')
-        if quantity.unit is not None:  # allow unit=None quantities to merge with existing quantities
-            if not isinstance(quantity.unit, str):
-                raise AttributeError(quantity, 'unit-str')
-            if self.unit is not None and quantity.unit != self.unit:
-                raise QuantityUnitMismatch('incoming %s (set %s)' % (quantity.unit, self.unit))
+        self._check_incoming_unit(quantity)
         return True
 
     def __init__(self, *args, quantity=None, unit=None, **kwargs):
@@ -92,7 +93,7 @@ class QuantitySynonyms(SynonymSet):
     def add_child(self, other, force=False):
         if not isinstance(other, QuantitySynonyms):
             raise TypeError('Child set is not a Quantity synonym set (%s)' % type(other))
-        self._check_incoming_unit(other.unit)
+        self._check_incoming_unit(other)
         if self._quantity is None:
             self.quantity = other.quantity
         elif self._quantity.is_entity:

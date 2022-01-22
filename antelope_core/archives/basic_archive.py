@@ -379,6 +379,7 @@ class BasicArchive(EntityStore):
         q_map = dict()
         if 'quantities' in j:
             for e in j['quantities']:
+                e['entityType'] = 'quantity'
                 q = self.entity_from_json(e)
                 if q.uuid is not None:
                     q_map[q.uuid] = q
@@ -388,6 +389,7 @@ class BasicArchive(EntityStore):
 
         if 'flows' in j:
             for e in j['flows']:
+                e['entityType'] = 'flow'
                 self.entity_from_json(e)
 
         if 'loaded' in j:

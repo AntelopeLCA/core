@@ -21,7 +21,7 @@ From the catalog_ref file, the catalog should meet the following spec:
 """
 
 import os
-import re
+# import re
 import hashlib
 # from collections import defaultdict
 
@@ -29,7 +29,7 @@ from ..archives import InterfaceError, EntityExists
 from ..lcia_engine import LciaDb
 
 
-from antelope import CatalogRef, UnknownOrigin
+from antelope import CatalogRef, UnknownOrigin  # , EntityNotFound
 from ..catalog_query import CatalogQuery, INTERFACE_TYPES, zap_inventory
 from .lc_resolver import LcCatalogResolver
 from ..lc_resource import LcResource
@@ -438,7 +438,9 @@ class StaticCatalog(object):
         """
         try:
             q = self.query(origin)
-            ref = q.get(external_ref)
         except UnknownOrigin:
-            ref = CatalogRef(origin, external_ref, entity_type=entity_type, **kwargs)
-        return ref
+            return CatalogRef(origin, external_ref, entity_type=entity_type, **kwargs)
+        return q.get(external_ref)
+        # except EntityNotFound:  why would we catch this?
+        #     return CatalogRef.from_query(external_ref, q, entity_type=entity_type, **kwargs)
+
