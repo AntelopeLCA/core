@@ -69,7 +69,7 @@ class LcFlow(LcEntity, Flow):
                                                     uuid=self.uuid, **d)
             self._query_ref.context = self.context
             for k, v in self._chars_seen.items():
-                self._query_ref.see_char(*k, v)
+                self._query_ref._chars_seen[k] = v  # this is hacky obv
 
         return self._query_ref
 
