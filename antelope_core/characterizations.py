@@ -218,12 +218,13 @@ class Characterization(object):
         for k, v in self._locations.items():
             self._locations[k] = v * factor
     '''
-
+    @property
     def locations(self):
-        return self._locations.keys()
+        for k in self._locations.keys():
+            yield k
 
     def list_locations(self):
-        return '; '.join([k for k in self.locations()])
+        return '; '.join([k for k in self.locations])
 
     def __hash__(self):
         return hash((self.flowable, self.ref_quantity.external_ref, self.quantity.external_ref, self.context))
@@ -238,7 +239,7 @@ class Characterization(object):
             return False
         if ((self.flowable == other.flowable) &
                 (self.quantity == other.quantity)):
-            if all(self[l] == other[l] for l in other.locations()):
+            if all(self[l] == other[l] for l in other.locations):
                 return True
         return False
 

@@ -7,7 +7,7 @@ class QuelledCF(Characterization):
         if flowable is None:
             flowable = cf.flowable
         quelled = cls(flowable, cf.ref_quantity, cf.quantity, cf.context, cf.origin)
-        for l in cf.locations():
+        for l in cf.locations:
             quelled.add_value(value=0.0, location=l)
         return quelled
 

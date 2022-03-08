@@ -363,7 +363,7 @@ class Characterization(ResponseModel):
     @classmethod
     def from_cf(cls, cf):
         ch = cls.null(cf)
-        for loc in cf.locations():
+        for loc in cf.locations:
             ch.value[loc] = cf[loc]
         return ch
 

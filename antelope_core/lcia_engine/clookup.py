@@ -63,6 +63,9 @@ class CLookup(object):
             return self._dict[item]
         return set()
 
+    def __contains__(self, item):
+        return item in self._dict
+
     def _check_qty(self, cf):
         if self._q is None:
             self._q = cf.quantity

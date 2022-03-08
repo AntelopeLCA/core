@@ -50,7 +50,8 @@ retrieve data:
 """
 from collections import namedtuple
 
-from synonym_dict import SynonymDict, InconsistentLineage
+from synonym_dict import SynonymDict
+from synonym_dict.compartments import InconsistentLineage
 
 from antelope import EntityNotFound
 from ..contexts import ContextManager, NullContext
@@ -67,6 +68,13 @@ class FactorCollision(Exception):
 
 
 class QuantityConflict(Exception):
+    pass
+
+
+class FlowableConflict(Exception):
+    """
+    A list of synonyms indicates two or more flowables
+    """
     pass
 
 
@@ -330,13 +338,16 @@ class TermManager(object):
     def _merge_terms(self, dominant, *syns):
         """
         Two parts to this: merge the entries in the flowables manager; update local reverse mappings:
-         _q_dict
-         _fq_map (nonconflicting)
-         _flow_map (nonconflicting)
+         _q_dict [maps canonical quantities to a map of canonical flowables to CLookups]
+         _fq_map (nonconflicting) maps flowable to quantities characterized by that flowable
+         _flow_map (nonconflicting) maps flowable to flows having that flowable
         Before we can do either, we need to check for collisions
         This just brute forces it which must be ungodly slow, and btw it also hasn't been tested
-        :param dominant:
-        :param syns:
+
+        the second two are nonconflicting- we just union the sets when we merge the flowables. The first one will
+        raise a conflict if the two flowables are characterized differently by any one quantity
+        :param dominant: MUST BE [canonical] flowables (already stored in _fm)
+        :param syns: MUST BE [canonical] flowables (already stored in _fm)
         :return:
         """
         fq_conflicts = []
@@ -349,7 +360,7 @@ class TermManager(object):
                 if syn not in f_dict:
                     continue
                 cl = f_dict[syn]
-                for k in cl.keys():
+                for k in cl.keys():  # of course, we have to check all contexts
                     if k in combo:
                         cand = (combo[k], cl[k])
                         if cand[0].value == cand[1].value:
@@ -358,24 +369,23 @@ class TermManager(object):
 
         if len(fq_conflicts) > 0:
             print('%d Merge conflicts encountered' % len(fq_conflicts))
-            return fq_conflicts
+            raise FactorCollision(fq_conflicts)
 
-        for f_dict in self._q_dict.values():
-            try:
-                combo = f_dict[dominant]
-            except KeyError:
-                combo = self._cl_typ()
+        for qq, f_dict in self._q_dict.items():
+            # once we are sure there are no conflicts, we perform the actual merge
             for syn in syns:
                 if syn not in f_dict:
                     continue
-                combo.update(f_dict[syn])
-            f_dict[dominant] = combo
+                cl = f_dict[syn]
+                for cx in cl.keys():
+                    for cf in cl[cx]:
+                        self._qassign(qq, dominant, cf, context=cx)
 
         if dominant not in self._fq_map:
             self._fq_map[dominant] = set()
         for syn in syns:
-            self._fq_map[dominant] += self._fq_map.pop(syn, set())
-            self._flow_map[dominant] += self._flow_map.pop(syn, set())
+            self._fq_map[dominant] |= self._fq_map.pop(syn, set())
+            self._flow_map[dominant] |= self._flow_map.pop(syn, set())
 
         for syn in syns:
             self._fm.merge(dominant, syn)
@@ -456,8 +466,6 @@ class TermManager(object):
                 # this is trivial but has never been tested, I mean even once
                 self._print('Merging')
                 fb = self._merge_terms(*fb_map.keys())
-                if isinstance(fb, list):
-                    raise FactorCollision(fb)
             else:
                 raise ValueError('merge strategy %s' % self._merge_strategy)
 
@@ -772,10 +780,11 @@ class TermManager(object):
                 for k in self.factors_for_flowable(f, quantity=qq, context=context, **kwargs):
                     yield k
 
-    def get_flowable(self, term):
+    def get_flowable(self, term, strict=True):
         """
         Input is a Flow or str
         :param term:
+        :param strict: [True] if the input corresponds to more than one flowable and strict is True, raise FlowableConflict
         :return:
         """
         if hasattr(term, 'synonyms'):
@@ -784,11 +793,19 @@ class TermManager(object):
             terms = [term.name]
         else:
             terms = [str(term)]
+        result_set = set()
         for t in terms:
             try:
-                return self._fm[t]
+                result_set.add(self._fm[t])
             except KeyError:
                 continue
+        if len(result_set) == 1:
+            return result_set.pop()
+        elif len(result_set) > 1:
+            if strict:
+                raise FlowableConflict(result_set)
+            else:
+                return result_set.pop()
         raise KeyError(term)
 
     def flowables(self, search=None, origin=None, quantity=None):

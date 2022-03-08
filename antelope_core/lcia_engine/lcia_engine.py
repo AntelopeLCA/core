@@ -400,8 +400,27 @@ class LciaEngine(TermManager):
         self._origins.add(new_cf.origin)
 
     def merge_flowables(self, dominant, *syns):
+        """
+        Combine together a list of synonyms under a dominant term.  If the synonyms are existing flowables, they are
+        merged with the dominant term; otherwise, they are added as synonyms.
+        :param dominant: must be known to the flowables database
+        :param syns: 0 or more terms or flowables
+        :return:
+        """
+        dom_fb = self.get_flowable(dominant)
+        to_merge = []
         for syn in syns:
-            self._fm.merge(dominant, syn)
+            try:
+                c = self.get_flowable(syn)
+                if c is dom_fb:
+                    continue
+                to_merge.append(c)
+            except KeyError:
+                self.add_synonym(dom_fb, syn)
+        if to_merge:
+            return self._merge_terms(dom_fb, *to_merge)
+        else:
+            return dom_fb
 
     def save_flowables(self, filename=None):
         self._fm.save(filename)
