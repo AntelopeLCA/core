@@ -51,6 +51,15 @@ class OpenLcaJsonLdArchive(LcArchive):
             return self._cat_as_list(cat['category']['@id']) + [cat['name']]
         return [cat['name']]
 
+    def _get_location(self, loc_id):
+        if loc_id in self._type_index:
+            if self._type_index[loc_id] == 'locations':
+                return self._create_object('locations', loc_id)
+            else:
+                raise TypeError('%s is a %s, not a location' % (loc_id, self._type_index[loc_id]))
+        else:
+            raise KeyError('%s not in index' % loc_id)
+
     def _gen_index(self):
         self._print('Generating index')
         self._type_index = dict()
@@ -93,6 +102,7 @@ class OpenLcaJsonLdArchive(LcArchive):
         self._archive = FileStore(source, internal_prefix=prefix)
 
         self._type_index = None
+        self._unit_dict = dict()
         if not skip_index:
             self._gen_index()
 
@@ -117,8 +127,8 @@ class OpenLcaJsonLdArchive(LcArchive):
         :return: clean json, name, list of category IDs
         """
         j = self._create_object(typ, key)
-        j.pop('@context')
-        j.pop('@id')
+        j.pop('@context', None)
+        j.pop('@id', None)
         name = j.pop('name')
 
         if 'category' in j:
@@ -169,6 +179,11 @@ class OpenLcaJsonLdArchive(LcArchive):
         for conv in u_j['units']:
             is_ref = conv.pop('referenceUnit', False)
             name = conv.pop('name')
+            if conv['@id'] in self._unit_dict:
+                if self._unit_dict[conv['@id']] != name:
+                    raise ValueError('Unit ID collision! %s: %s X %s' % (conv['@id'], self._unit_dict[conv['@id']], name))
+            else:
+                self._unit_dict[conv['@id']] = name
             cf_i = conv.pop('conversionFactor')
             unitconv[name] = 1.0 / cf_i
 
@@ -237,6 +252,9 @@ class OpenLcaJsonLdArchive(LcArchive):
                     facs.append(fac)
         if ref_q is None:
             raise OpenLcaException('No reference flow property found: %s' % f_id)
+        if not comp:
+            print('Warning: Flow %s with Null context' % f_id)
+
         f = LcFlow(f_id, Name=name, Compartment=comp, CasNumber=cas, ReferenceQuantity=ref_q, **f_j)  # context gets set by _catch_context()
 
         self.add(f)  # context gets matched inside tm.add_flow().  NONSPECIFIC entries are automatically prepended with parent name in CompartmentManager.new_entry()
@@ -254,7 +272,7 @@ class OpenLcaJsonLdArchive(LcArchive):
         fp = self.retrieve_or_fetch_entity(ex['flowProperty']['@id'], typ='flow_properties')
 
         try:
-            v_unit = ex['unit']['name']
+            v_unit = self._unit_dict[ex['unit']['@id']]
         except KeyError:
             print('%s: %d No unit! using default %s' % (p.external_ref, ex['internalId'], fp.unit))
             v_unit = fp.unit
@@ -282,7 +300,7 @@ class OpenLcaJsonLdArchive(LcArchive):
             term = None
         else:
             cx = self.tm[flow.context]
-            if cx.elementary:
+            if cx is not None and cx.elementary:
                 term = cx
             else:
                 if 'defaultProvider' in ex:
@@ -402,7 +420,12 @@ class OpenLcaJsonLdArchive(LcArchive):
             return q
 
         p_j, name, cls = self._clean_object('processes', p_id)
-        ss = p_j.pop('location', {'name': 'GLO'})['name']
+        loc = p_j.pop('location', {'name': 'GLO'})
+        try:
+            ss = loc['name']
+        except KeyError:
+            ss = self._get_location(loc['@id'])['name']
+
         stt = dict()
         for key, tgt in (('validFrom', 'begin'), ('validUntil', 'end')):
             try:
