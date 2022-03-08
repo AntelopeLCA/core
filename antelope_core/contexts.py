@@ -37,7 +37,7 @@ two different ways:
 The NullContext should be returned by the context manager
 """
 
-from synonym_dict import Compartment, CompartmentManager, NonSpecificCompartment
+from synonym_dict import Compartment, CompartmentManager, NonSpecificCompartment, TermExists
 from synonym_dict.compartments.compartment import InvalidSubCompartment
 from antelope import valid_sense
 
@@ -288,7 +288,11 @@ class ContextManager(CompartmentManager):
         if c is None:
             raise ValueError('Unrecognized canonical context %s' % c)
         syn = '%s:%s' % (origin, term)
-        self.add_synonym(c, syn)
+        try:
+            self.add_synonym(c, syn)
+        except TermExists:
+            self.del_term(syn)
+            self.add_synonym(c, syn)
 
     def new_entry(self, *args, parent=None, **kwargs):
         args = tuple(filter(None, args))
