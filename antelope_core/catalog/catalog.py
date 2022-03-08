@@ -418,13 +418,11 @@ class StaticCatalog(object):
             if i.lookup(external_ref):
                 return i.origin
         raise EntityNotFound('%s/%s' % (origin, external_ref))
-
-    def fetch(self, origin, external_ref=None):
-        if external_ref is None:
-            origin, external_ref = origin.split('/', maxsplit=1)
-        org = self.lookup(origin, external_ref)
-        return self.query(org).get(external_ref)
     '''
+
+    def fetch(self, link):
+        origin, external_ref = link.split('/', maxsplit=1)
+        return self.query(origin).get(external_ref)
 
     def catalog_ref(self, origin, external_ref, entity_type=None, **kwargs):
         """

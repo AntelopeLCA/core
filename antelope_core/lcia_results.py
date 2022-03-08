@@ -627,7 +627,8 @@ class LciaResult(object):
         """
         Return a new LciaResult in which all groupings have been replaced by a set of AggregatedLciaScores, one
          per elementary flow.
-        Performs some inline testing via equality assertions, but this still deserves unit testing
+        Performs some inline testing via equality assertions, but this still *really needs* unit testing, especially
+        around matters of internal scale versus applied scale
         :param: _apply_scale: [1.0] apply a node weighting to the components
         :return:
         """
@@ -652,7 +653,7 @@ class LciaResult(object):
                     if not c.static:
                         raise InconsistentSummaries(c)
                     try:
-                        flat.add_summary(k, c.entity, c.node_weight * _apply_scale, c.unit_score)
+                        flat.add_summary(k, c.entity, c.node_weight * _apply_scale, c.unit_score)  # TODO: apply internal scale??
                     except InconsistentScores:
                         print('for key %s' % k)
                         raise

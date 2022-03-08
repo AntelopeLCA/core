@@ -51,7 +51,7 @@ class BasicImplementation(object):
         entity = self.get(external_ref)
         # if entity:
         if not entity.is_entity:
-            raise NoAccessToEntity(entity.link)
+            raise NoAccessToEntity(self.origin, entity.link)
         return entity
 
     def get_item(self, external_ref, item):

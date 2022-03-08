@@ -573,7 +573,7 @@ class EntityStore(object):
                 if to_uuid(entity.uuid) != entity.uuid:
                     raise UuidNotValid(entity, entity.uuid)
             if entity.uuid in self._entities:
-                print('Warning: UUID %s already exists and will not be bound to this entity' % entity.uuid)
+                print('Warning: UUID %s already exists' % entity.uuid)
 
     def _add(self, entity, key, quiet=False):
         if key is None:
