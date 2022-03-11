@@ -667,7 +667,7 @@ class LciaResult(object):
                 name = '; '.join([x.flow.name, str(term or factor.context)])
                 flat.add_component(name)
                 exch = ExchangeValue(x.process, x.flow, dirn,
-                                     value=x.value * _apply_scale,
+                                     value=x.value * _apply_scale * self.scale,
                                      termination=term)
                 flat.add_score(name, exch, factor)
 
@@ -855,6 +855,66 @@ class LciaResult(object):
 
     def __str__(self):
         return '%s %s' % (number(self.total()), self.quantity)
+
+
+    def terminal_nodes(self, key=lambda x: x.name):
+        aggs, scores = self._terminal_nodes()
+        l = LciaResult(self.quantity)
+        for ent, agg in aggs.items():
+            if hasattr(ent, 'entity_type'):
+                if ent.entity_type == 'fragment':
+                    k = key(ent.top())
+                    l.add_component(k, entity=ent.top())
+                    for d in agg.details():
+                        x = ExchangeValue(d.exchange.process, d.exchange.flow, d.exchange.direction,
+                                          value=d.value * scores[ent], termination=d.exchange.termination)
+                        l.add_score(k, x, d.factor)
+                elif ent.entity_type == 'process':
+                    k = key(ent)
+                    l.add_summary(k, ent, scores[ent], agg.cumulative_result)
+            else:
+                k = key(ent)
+                l.add_summary(k, ent, scores[ent], agg.cumulative_result)
+        return l
+
+
+    def _terminal_nodes(self, weight=1.0):
+        """
+        Recursive function to flatten out an LCIA result by node rather than flow
+        returns a mapping of entity to (score and accumulated node weight)
+        aggregated scores return themselves, summary scores accumulate node weight by entity
+        :param weight:
+        :return:
+        """
+        aggs = dict()
+        scores = defaultdict(float)
+        for c in self.components():
+            if isinstance(c, AggregateLciaScore):
+                # base case
+                if c.entity in aggs:
+                    if aggs[c.entity].cumulative_result != c.cumulative_result:
+                        raise KeyError(c)
+                else:
+                    aggs[c.entity] = c
+                scores[c.entity] += weight
+            else:  # Summary
+                if c.static:
+                    if c.entity in aggs:
+                        if aggs[c.entity].cumulative_result != c.cumulative_result:
+                            raise KeyError(c)
+                    else:
+                        aggs[c.entity] = c
+                else:
+                    rec_weight = weight * c.node_weight
+                    rec_aggs, rec_scores = c._internal_result._terminal_nodes(weight=rec_weight)
+                    for k, v in rec_aggs.items():
+                        if k in aggs:
+                            if aggs[k].cumulative_result != v.cumulative_result:
+                                raise ValueError(k)
+                        else:
+                            aggs[k] = v
+                        scores[k] += rec_scores[k]
+        return aggs, scores
 
     # charts
     def contrib_query(self, stages=None):
