@@ -148,7 +148,7 @@ class QuantityManager(SynonymDict):
             self.add_or_update_entry(new_q, merge=True, create_child=True)
         except QuantityUnitMismatch:
             # want to print a warning
-            # if we get QuantityUnitMismatch, then that means we didn't get a MergeError
+            # if we get QuantityUnitMismatch, then that means we didn't get a MergeError-i.e. there is only one match
             me = self.match_entry(*new_q.terms)
             print('!! Warning: new quantity %s [%s] has unit conflict with existing quantity %s [%s] ' % (new_q,
                                                                                                           new_q.unit,
