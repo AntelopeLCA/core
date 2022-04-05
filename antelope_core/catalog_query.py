@@ -203,6 +203,10 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
     catch get_canonical calls to return the query from the local Qdb; fetch if absent and load its characterizations
     (using super ==> _perform_query)
     '''
+    def get_context(self, term, **kwargs):
+        cx = super(CatalogQuery, self).get_context(term, **kwargs)
+        return self._tm[cx]
+
     def get_canonical(self, quantity, **kwargs):
         try:
             # print('Gone canonical')
