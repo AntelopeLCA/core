@@ -88,7 +88,7 @@ class LcCatalogResolver(object):
         new_res = LcResource(ref, source, ds_type, **kwargs)
         try:
             s = new_res.serialize()
-            old_res = next(k.matches(s) for k in self._resources[ref])
+            old_res = next(k for k in self._resources[ref] if k.matches(s))
             print('Returning existing resource')
             return old_res
         except StopIteration:
