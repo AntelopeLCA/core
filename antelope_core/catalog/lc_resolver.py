@@ -86,8 +86,14 @@ class LcCatalogResolver(object):
 
     def new_resource(self, ref, source, ds_type, store=True, **kwargs):
         new_res = LcResource(ref, source, ds_type, **kwargs)
-        self.add_resource(new_res, store=store)
-        return new_res
+        try:
+            s = new_res.serialize()
+            old_res = next(k.matches(s) for k in self._resources[ref])
+            print('Returning existing resource')
+            return old_res
+        except StopIteration:
+            self.add_resource(new_res, store=store)
+            return new_res
 
     def delete_resource(self, resource):
         org = resource.origin
