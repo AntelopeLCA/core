@@ -318,7 +318,7 @@ class TermManager(object):
         try:
             _c = self._cm[flow.get_context()]
         except (KeyError, InconsistentLineage):
-            _c = self._add_compartments(flow.context)
+            _c = self._add_compartments(tuple(flow.context))
         _c.add_origin(flow.origin)
         return _c
 
