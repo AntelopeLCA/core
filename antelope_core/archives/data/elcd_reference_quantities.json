@@ -779,6 +779,7 @@
       "UnitConversion": {
         "activity": 1.0
       },
+      "entityId": "ae957304-e4ac-4e9c-b6a8-e3d056075b8b",
       "entityType": "quantity",
       "externalId": "node activity",
       "origin": "local.qdb",
