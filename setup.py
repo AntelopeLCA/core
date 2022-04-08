@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.1.7.3'
+VERSION = '0.1.8'
 
 requires = [
     "synonym_dict>=0.2.0",
     "antelope_interface>=0.1.7",
-    "xlrd==1.2.0",  ## really need to get out of this requirement and into openpyxl or equivalent
+    "xlstools>=0.1.0",
     "python-magic>=0.4.18",
     "requests>=2.25"
 ]
@@ -13,6 +13,16 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.1.8   2022-04-08 - PyPI release to roll up a few small changes:
+ * upgrade ecoinvent_lcia to use xlstools; port 3.8
+ - pull out parse_math
+ - windows path mgmt
+ - background trivial impl needs to access entities and not refs
+ - LciaResults can sum together if at least one has a unit node weight
+ - cleanup reference quantities; finally add node activity as canonical quantity
+ - quantity unit mismatch refactor
+
+
 0.1.7.3 2021-08-11 - fix last edit
 0.1.7.2 2021-08-11 - make lxml optional when running _find_providers
 0.1.7.1 2021-08-11 - eliminate recursion error in basic get_reference()

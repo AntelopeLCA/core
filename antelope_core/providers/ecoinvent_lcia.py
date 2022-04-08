@@ -17,7 +17,7 @@ from ..archives import BasicArchive
 from ..entities import LcQuantity
 
 import os
-import xlrd
+from xls_tools import open_xl
 import time
 
 EI_LCIA_VERSION = '3.1'
@@ -61,6 +61,18 @@ class EcoinventLcia(BasicArchive):
 
     _drop_columns = ['Change?']
 
+    _units_sheet = {
+        None: 'units',
+        '3.8': 'Indicators'
+    }
+    def _get_units(self):
+        try:
+            n = self._units_sheet[self._version]
+        except KeyError:
+            n = self._units_sheet[None]
+        b = self._xls.sheet_by_name(n)
+        return self._sheet_to_rows(b)
+
     @staticmethod
     def _sheet_to_rows(sheet):
         g = sheet.get_rows()
@@ -72,7 +84,7 @@ class EcoinventLcia(BasicArchive):
             for i, h in enumerate(headings):
                 if h in EcoinventLcia._drop_columns:
                     continue
-                d[h] = row[i].value
+                d[h.lower()] = row[i].value
             rows.append(d)
         return rows
 
@@ -114,13 +126,14 @@ class EcoinventLcia(BasicArchive):
             self.add(mass)
             self._mass = mass
         else:
+            self._ei_archive.load_flows()
             self._mass = None
 
     @property
     def _xls(self):
         if self._wb is None:
             start = time.time()
-            self._wb = xlrd.open_workbook(self.source)
+            self._wb = open_xl(self.source)
             print('Opened workbook; Elapsed time %.3f' % (time.time() - start))
         return self._wb
 
@@ -135,8 +148,8 @@ class EcoinventLcia(BasicArchive):
     @property
     def _value_tag(self):
         if float(self._version) >= 3.7:
-            return 'CF'
-        return 'CF %s' % self._version
+            return 'cf'
+        return 'cf %s' % self._version
 
     @property
     def _sheet_name(self):
@@ -167,14 +180,16 @@ class EcoinventLcia(BasicArchive):
         if float(self._version) <= 3.2:
             self._create_all_quantities_3_2()
         else:
-            if float(self._version) >= 3.7:
-                rowname = 'unitName'
+            if float(self._version) >= 3.8:
+                unit_col = 'unit'
+            elif float(self._version) >= 3.7:
+                unit_col = 'unitname'
             else:
-                rowname = 'impact score unit'
-            b = self._xls.sheet_by_name('units')
-            qs = self._sheet_to_rows(b)
+                unit_col = 'impact score unit'
+            qs = self._get_units()
             for row in qs:
-                row['unit'] = row[rowname]
+                if unit_col != 'unit':
+                    row['unit'] = row[unit_col]
                 self._create_quantity(row)
 
     def _create_all_quantities_3_2(self):
@@ -182,7 +197,7 @@ class EcoinventLcia(BasicArchive):
         This should not be used-- quantities should be taken from the source file
         :return:
         """
-        x = xlrd.open_workbook(Ecoinvent_Indicators)
+        x = open_xl(Ecoinvent_Indicators)
         w = x.sheet_by_index(0)
 
         qs = self._sheet_to_rows(w)
