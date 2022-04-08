@@ -197,8 +197,14 @@
       "Name": "Vehicle transport",
       "UnitConversion": {
         "Items*km": 1.0,
+        "p*km": 1.0,
+        "person*km": 1.0,
         "Items*mi": 0.621371192237334,
-        "Items*nmi": 0.5399568034557235
+        "Items*nmi": 0.5399568034557235,
+        "p*mi": 0.621371192237334,
+        "p*nmi": 0.5399568034557235,
+        "person*mi": 0.621371192237334,
+        "person*nmi": 0.5399568034557235
       },
       "entityId": "1cc347a0-3bd1-46db-a308-2707c68d2351",
       "entityType": "quantity",

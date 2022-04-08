@@ -154,7 +154,7 @@ class LcResource(object):
     def check(self, catalog):
         if self._archive is None:
             # TODO: try/catch exceptions or return false
-            # print('QQQQQQQQQQQQQQQQQQ %s QQQQQQQQQQQQQQQQQQ' % self.reference)
+            print('QQQQQQQQQQQQQQQQQQ %s QQQQQQQQQQQQQQQQQQ' % self.origin)
             self._instantiate(catalog)
             self.apply_config(catalog)  # can't remember why I set this to happen recurrently- but it's no good
         return True

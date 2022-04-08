@@ -2,7 +2,7 @@
 This object replaces the LciaResult types spelled out in Antelope-- instead, it serializes to an LCIA result directly.
 
 """
-from antelope import comp_dir, CatalogRef, ExchangeRef
+from antelope import comp_dir  # , CatalogRef, ExchangeRef
 from .exchanges import ExchangeValue, DissipationExchange
 from .autorange import AutoRange
 from numbers import Number
@@ -863,6 +863,7 @@ class LciaResult(object):
         for ent, agg in aggs.items():
             if hasattr(ent, 'entity_type'):
                 if ent.entity_type == 'fragment':
+                    # TODO: come up with a way for fragment entities to appear like LciaSummary (node weight x score)
                     k = key(ent.top())
                     l.add_component(k, entity=ent.top())
                     for d in agg.details():
@@ -885,7 +886,7 @@ class LciaResult(object):
         aggregated scores return themselves, summary scores accumulate node weight by entity
         :param weight:
         :return:
-        """
+"""
         aggs = dict()
         scores = defaultdict(float)
         for c in self.components():
