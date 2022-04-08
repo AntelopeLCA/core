@@ -4,9 +4,11 @@ This is a writeup to demonstrate how to use Antelope software with ecoinvent and
 
 ## 1. Prepare the source data
 
-### 1.1 Create a data directory to store the ecoinvent data. Mine is in (home directory)/ecoinvent. 
+### 1.1 Create a data directory to store the ecoinvent data. 
 
-    (home directort)/ecoinvent/3.7.1/
+Mine is in (home directory)/ecoinvent. 
+
+    (home directory)/ecoinvent/3.7.1/
 
 Then create a sub-directory with the ecoinvent version and download the desired database from the ecoinvent website. I am going to use ecoinvent 3.7.1 cutoff.
 
@@ -20,7 +22,9 @@ The directory structure should now look like:
     (home directory)/ecoinvent/3.7.1/ecoinvent 3.7.1_cutoff_ecoSpold02/MasterData/....
     (home directory)/ecoinvent/3.7.1/ecoinvent 3.7.1_cutoff_ecoSpold02.7z
 
-### 1.3 create a new subdirectory called LCIA, put the ecoinvent LCIA implementation in that subdirectory, and extract it:
+### 1.3 Get the LCIA implementation
+
+create a new subdirectory called LCIA, put the ecoinvent LCIA implementation in that subdirectory, and extract it:
 
 	(home directory)/ecoinvent/3.7.1/ecoinvent 3.7.1_cutoff_ecoSpold02/datasets/....
 	(home directory)/ecoinvent/3.7.1/ecoinvent 3.7.1_cutoff_ecoSpold02/MasterData/....
@@ -32,7 +36,9 @@ The directory structure should now look like:
 
 ## 2. Prepare the antelope software.
 
-### 2.1 Create virtualenv. I am putting mine in (home directory)/virtualenvs/antelope_ecoinvent
+### 2.1 Create virtualenv. 
+
+I am putting mine in (home directory)/virtualenvs/antelope_ecoinvent
 
 	$ python3 -m venv (home directory)/virtualenvs/antelope_ecoinvent
 	$ source (home directory)/virtualenvs/antelope_ecoinvent/bin/activate
@@ -136,8 +142,8 @@ This is a challenge because the version 3.8 LCI is not installed. But it is easy
 
 ### 4.1 Choose a process.
 
+	>>> from antelope import enum   # this is just a handy way to list things for interactive use
 	>>> q371 = cat.query('local.ecoinvent.3.7.1.cutoff')   # hold on to the query
-	>>> from antelope import enum   # this is just a handy way to list processes
 	>>> yogurt = enum(q371.processes(Name='yogurt'))
 	 [00] [local.ecoinvent.3.7.1.cutoff] yogurt production, from cow milk [RoW]
 	 [01] [local.ecoinvent.3.7.1.cutoff] market for yogurt, from cow milk [GLO]
