@@ -6,7 +6,7 @@ python:
 env:
   - ANTELOPE_CATALOG_ROOT="./CATALOG_ROOT"
 before_install:
-  - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then pip install pip==20.1; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.7 ]]; then pip install -U pluggy; fi
 install:
   - pip install coverage coveralls
   - pip install -r requirements.txt
