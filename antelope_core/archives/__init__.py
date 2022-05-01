@@ -25,7 +25,7 @@ class Qdb(BasicArchive):
         Create a Quantity database containing the ILCD reference quantities.  Specify a ref if desired.
         :param ref: ['local.qdb']
         """
-        return cls.from_file(REF_QTYS, ref=ref)
+        return cls.from_file(REF_QTYS, ref=ref, static=True)
 
     def _fetch(self, entity, **kwargs):
         return self.__getitem__(entity)

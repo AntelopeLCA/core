@@ -9,7 +9,7 @@ from numbers import Number
 from math import isclose
 from collections import defaultdict
 
-from .models import DetailedLciaResult as DetailedLciaResultModel
+#from .models import DetailedLciaResult as DetailedLciaResultModel
 # from lcatools.interfaces import to_uuid
 
 
