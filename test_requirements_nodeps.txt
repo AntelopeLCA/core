@@ -1,1 +1,1 @@
-git+git://github.com/AntelopeLCA/background@master#egg=antelope_background
+antelope_background>=0.1.8

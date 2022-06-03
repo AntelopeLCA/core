@@ -8,6 +8,7 @@ EI_LCIA_SPREADSHEETS = {
     '3.5': 'LCIA_implementation_3.5.xlsx',
     '3.6': 'LCIA_implementation_3.6.xlsx',
     '3.7': 'LCIA_implementation_3.7.1.xlsx',
+    '3.8': 'LCIA Implementation v3.8.xlsx',
 }
 
 

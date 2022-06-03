@@ -1,6 +1,8 @@
 language: python
 python:
   - "3.7"
+  - "3.8"
+  - "3.9"
 env:
   - ANTELOPE_CATALOG_ROOT="./CATALOG_ROOT"
 install:
@@ -11,4 +13,4 @@ install:
 script:
   - coverage run --source=antelope_core -m unittest
 after_success:
-  coveralls
+  - coveralls

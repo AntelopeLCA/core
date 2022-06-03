@@ -1,12 +1,4 @@
-try:
-    import xlrd
-except ImportError:
-    xlrd = False
-
-try:
-    import openpyxl
-except ImportError:
-    openpyxl = False
+from xls_tools import open_xl
 
 
 class XlDict(object):
@@ -82,35 +74,6 @@ class XlDict(object):
         return units
 
 
-class XlsxDict(XlDict):
-    """
-    Compatibility adapter to use openpyxl spreadsheets instead
-
-    """
-    @classmethod
-    def from_sheetname(cls, workbook, sheetname, **kwargs):
-        return cls(workbook[sheetname], **kwargs)
-
-    def _row_gen(self):
-        return self._sheet.iter_rows()
-
-
 def xl_dict(file, sheetname, **kwargs):
-    f = []
-    if xlrd:
-        try:
-            wb = xlrd.open_workbook(file)
-            return XlDict.from_sheetname(wb, sheetname, **kwargs)
-        except AttributeError:
-            f.append('xlrd')
-    if openpyxl:
-        try:
-            wb = openpyxl.load_workbook(file)
-            return XlsxDict.from_sheetname(wb, sheetname, **kwargs)
-        except TypeError:
-            f.append('openpyxl')
-    if len(f) == 0:
-        raise ImportError('Unable to import any excel file readers')
-    else:
-        raise TypeError('%s failed to open file' % ', '.join(f))
-
+    wb = open_xl(file)
+    return XlDict.from_sheetname(wb, sheetname, **kwargs)
