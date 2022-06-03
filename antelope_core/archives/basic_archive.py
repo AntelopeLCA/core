@@ -257,7 +257,10 @@ class BasicArchive(EntityStore):
         if 'referenceQuantity' in entity_j:
             rq = entity_j.pop('referenceQuantity')
         else:
-            rq = next(c['quantity'] for c in chars if 'isReference' in c and c['isReference'] is True)
+            try:
+                rq = next(c['quantity'] for c in chars if 'isReference' in c and c['isReference'] is True)
+            except StopIteration:
+                rq = None
         if rq is None:
             print('Warning: no reference quantity for flow %s' % ext_ref)
             ref_q = None

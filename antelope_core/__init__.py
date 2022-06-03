@@ -84,5 +84,5 @@ def add_antelope_providers(mod, provs=None):
 
 from .catalog import StaticCatalog, LcCatalog
 from .lc_resource import LcResource
-from .file_accessor import FileAccessor
+from .file_accessor import FileAccessor, ResourceLoader
 from .data_sources.local import make_config

@@ -249,6 +249,8 @@ class XlsxUpdater(object):
 
         for row in range(1, fp.nrows):
             rowdata = {headers[i]: self._grab_value(k) for i, k in enumerate(fp.row(row)[:len(headers)])}
+            if len(rowdata) == 0:
+                continue
             try:
                 flow = self.get_flow(rowdata['flow'])
             except EntityNotFound:
@@ -320,7 +322,8 @@ class XlsxUpdater(object):
                     continue
 
     _vn = {'flow': 'flows',
-           'quantity': 'quantities'}
+           'quantity': 'quantities',
+           'flows': '_flows'}
 
     def _sheet_accessor(self, sheetname):
         """
@@ -358,6 +361,8 @@ class XlsxUpdater(object):
 
         for row in range(1, sh.nrows):
             rowdata = {headers[i]: self._grab_value(k) for i, k in enumerate(sh.row(row))}
+            if len(rowdata) == 0:
+                continue
             ent = self.ar[rowdata['external_ref']]
             if etype == 'quantity' and ent is None:
                 try:
