@@ -183,14 +183,22 @@
       "Name": "Number of items",
       "UnitConversion": {
         "Dozen(s)": 0.08333333333333333,
-        "Item(s)": 1.0
+        "Item(s)": 1.0,
+        "item": 1.0,
+        "Items": 1.0,
+        "items": 1.0,
+        "Count": 1.0,
+        "count": 1.0
       },
       "entityId": "01846770-4cfe-4a25-8ad9-919d8d378345",
       "entityType": "quantity",
       "externalId": "01846770-4cfe-4a25-8ad9-919d8d378345",
       "origin": "elcd.3.2",
       "referenceUnit": "Item(s)",
-      "synonyms": ["flowproperties/01846770-4cfe-4a25-8ad9-919d8d378345"]
+      "synonyms": ["flowproperties/01846770-4cfe-4a25-8ad9-919d8d378345",
+        "Count",
+        "Items"
+      ]
     },
     {
       "Comment": "This is NOT an ILCD reference flow property.",
@@ -220,6 +228,7 @@
       "UnitConversion": {
         "GJ": 0.001,
         "J": 1000000.0,
+        "KJ": 1000.0,
         "MJ": 1.0,
         "MWh": 0.0002777777777777778,
         "TCE": 3.412084237535657e-05,
@@ -334,6 +343,7 @@
       "UnitConversion": {
         "GWh": 0.000001,
         "MWh": 0.001,
+        "KJ": 3600.0,
         "MJ": 3.6
       },
       "Synonyms": [
@@ -350,7 +360,7 @@
     {
       "Comment": "",
       "Name": "Exergy",
-      "UnitConversion": {
+      "InverseUnitConversion": {
         "Btu": 0.0010550971744497668,
         "GJ": 1000.0,
         "GWh": 3599971.200230398,
@@ -453,7 +463,7 @@
       "Comment": "",
       "Indicator": "Cumulative energy demand (MJ) (net calorific value) (renewable)",
       "Name": "Energy from renewable raw materials (net cal. value)",
-      "UnitConversion": {
+      "InverseUnitConversion": {
         "Btu": 0.0010550971744497668,
         "GJ": 1000.0,
         "GWh": 3599971.200230398,
@@ -518,6 +528,7 @@
       "UnitConversion": {
         "GJ": 0.001,
         "J": 1000000.0,
+        "KJ": 1000.0,
         "MJ": 1.0,
         "MWh": 0.0002777777777777778,
         "TCE": 3.412084237535657e-05,
@@ -554,6 +565,7 @@
         "l": 1000.0,
         "m3": 1.0,
         "ml": 1000000.0,
+        "mL": 1000000.0,
         "pt (Imp)": 1759.7539863927022,
         "pt (US dry)": 1816.1659685377117,
         "pt (US fl)": 2113.376418865187,
@@ -572,6 +584,7 @@
       "UnitConversion": {
         "GJ": 0.001,
         "J": 1000000.0,
+        "KJ": 1000.0,
         "MJ": 1.0,
         "MWh": 0.0002777777777777778,
         "TCE": 3.412084237535657e-05,
@@ -649,6 +662,7 @@
         "l": 1000.0,
         "m3": 1.0,
         "ml": 1000000.0,
+        "mL": 1000000.0,
         "pt (Imp)": 1759.7539863927022,
         "pt (US dry)": 1816.1659685377117,
         "pt (US fl)": 2113.376418865187,
@@ -668,6 +682,7 @@
       "UnitConversion": {
         "GJ": 0.001,
         "J": 1000000.0,
+        "KJ": 1000.0,
         "MJ": 1.0,
         "MWh": 0.0002777777777777778,
         "TCE": 3.412084237535657e-05,

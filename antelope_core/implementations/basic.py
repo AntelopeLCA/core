@@ -91,7 +91,7 @@ class BasicImplementation(object):
             return self._archive[external_ref]
         try:
             return self._archive.retrieve_or_fetch_entity(external_ref, **kwargs)
-        except (KeyError, NotImplementedError):
+        except (KeyError, NotImplementedError, IndexError):
             return None
 
     '''
@@ -107,6 +107,8 @@ class BasicImplementation(object):
         :param kwargs:
         :return: entity or None
         """
+        if external_ref is None:
+            raise EntityNotFound(None)
         e = self._fetch(external_ref, **kwargs)
         if e is not None:
             return e

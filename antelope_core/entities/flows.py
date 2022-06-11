@@ -57,6 +57,9 @@ class LcFlow(LcEntity, Flow):
             if k not in self._d:
                 self._d[k] = ''
 
+        if self.reference_entity is None:
+            print('Warning: no reference quantity for flow %s' % external_ref)
+
     def make_ref(self, query):
         if self._query_ref is None:
             d = dict()

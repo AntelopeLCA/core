@@ -3,7 +3,8 @@ from xls_tools import open_xl
 
 class XlDict(object):
     """
-    wrapper class for xlrd that exposes a simple pandas-like interface to access tabular spreadsheet data with iterrows.
+    wrapper class for xlrd-like API that exposes a simple pandas-like interface to access tabular spreadsheet
+    data with iterrows.
     """
     @classmethod
     def from_sheetname(cls, workbook, sheetname, **kwargs):

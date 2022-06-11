@@ -629,6 +629,8 @@ class TermManager(object):
         return None
 
     def get_canonical(self, quantity):
+        if quantity == 'kg':  # for THIS UNIT ONLY
+            quantity = 'mass'
         try:
             return self._canonical_q(quantity)
         except KeyError:

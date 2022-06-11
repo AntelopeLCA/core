@@ -381,7 +381,10 @@ class StaticCatalog(object):
         :return:
         """
 
-        next(self._resolver.resolve(origin, strict=strict))
+        try:
+            next(self._resolver.resolve(origin, strict=strict))
+        except StopIteration:
+            raise UnknownOrigin(origin, strict)
 
         if refresh or (origin not in self._queries):
             self._queries[origin] = self._query_type(origin, catalog=self, **kwargs)

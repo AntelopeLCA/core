@@ -131,6 +131,8 @@ class LcCatalogResolver(object):
         :param strict: [False] if true, only yields interface for which req matches ref
         :return:
         """
+        if req is None:
+            return
         terms = req.split('.')
         origin_found = False
         for ref, res_list in self._resources.items():

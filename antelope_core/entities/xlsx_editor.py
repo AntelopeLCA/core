@@ -256,6 +256,9 @@ class XlsxUpdater(object):
             except EntityNotFound:
                 self._print('Skipping unknown flow %s' % rowdata['flow'])
                 continue
+            if flow is None:
+                self._print('Skipping unknown flow %s' % rowdata['flow'])
+                continue
             rq_spec = rowdata.pop('ref_quantity', None)
             if rq_spec is not None:
                 try:
@@ -299,7 +302,7 @@ class XlsxUpdater(object):
                 try:
                     value *= convert(rq, to=refunit)
                 except KeyError as e:
-                    print(e.args)
+                    print('row: %d %s' % (row, e.args))
                     continue
 
             unit = rowdata.pop('unit', None)
@@ -307,7 +310,7 @@ class XlsxUpdater(object):
                 try:
                     value *= convert(qq, from_unit=unit)
                 except KeyError as e:
-                    print(e.args)
+                    print('row: %d %s' % (row, e.args))
                     continue
 
             if self._merge == 'overwrite':

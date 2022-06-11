@@ -262,13 +262,12 @@ class BasicArchive(EntityStore):
             except StopIteration:
                 rq = None
         if rq is None:
-            print('Warning: no reference quantity for flow %s' % ext_ref)
             ref_q = None
         else:
             try:
                 ref_q = self.tm.get_canonical(rq)
             except EntityNotFound:
-                ref_q = self._entities[rq]
+                ref_q = None
         return LcFlow(ext_ref, referenceQuantity=ref_q, **entity_j)
 
     def _add_char(self, flow, q, v):
