@@ -302,7 +302,7 @@ class XlsxUpdater(object):
                 try:
                     value *= convert(rq, to=refunit)
                 except KeyError as e:
-                    print('row: %d %s' % (row, e.args))
+                    print('flowproperties|row: %d ref unit %s' % (row+1, e.args))
                     continue
 
             unit = rowdata.pop('unit', None)
@@ -310,7 +310,7 @@ class XlsxUpdater(object):
                 try:
                     value *= convert(qq, from_unit=unit)
                 except KeyError as e:
-                    print('row: %d %s' % (row, e.args))
+                    print('flowproperties|row: %d: target unit %s' % (row+1, e.args))
                     continue
 
             if self._merge == 'overwrite':

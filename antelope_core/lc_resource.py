@@ -200,11 +200,11 @@ class LcResource(object):
         """
         Ensures that:
          - interfaces spec can be string or list
-         - 'basic' appears
+         X 'basic' appears -- we don't want a basic interface on every resource
         :param interfaces:
         :return:
         """
-        self.add_interface('basic')
+        # self.add_interface('basic')
         if interfaces is None:
             return
         if isinstance(interfaces, str):
@@ -220,7 +220,7 @@ class LcResource(object):
         :param origin: semantic reference to data origin
         :param source: physical data source; 'None' allowed if 'downloadLink' argument provided
         :param ds_type: data source type
-        :param interfaces: list which can include 'entity', 'foreground', or 'background'. Default 'foreground'
+       :param interfaces: list which can include 'entity', 'foreground', or 'background'. Default 'foreground'
         :param privacy: Ignored / No longer used.
         :param priority: [50] priority level.. numeric (nominally 0-100), lowest priority resource is loaded first
         :param static: [False] if True, load_all() after initializing
@@ -356,8 +356,8 @@ class LcResource(object):
         if isinstance(ifaces, str):
             ifaces = [ifaces]
         for i in ifaces:
-            if i == 'basic':
-                return True
+            # if i == 'basic':
+            #     return True
             if i in self._interfaces:
                 return True
         return False
