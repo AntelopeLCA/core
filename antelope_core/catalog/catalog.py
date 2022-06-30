@@ -192,6 +192,12 @@ class StaticCatalog(object):
         res = LcResource.from_archive(qdb, interfaces=('index', 'quantity'), store=False)
         self._resolver.add_resource(res, store=False)
 
+    def get_canonical(self, arg):
+        return self.lcia_engine.get_canonical(arg)
+
+    def synonyms(self, arg):
+        return self.lcia_engine.synonyms(arg)
+
     '''
     The thing that distinguishes a catalog from an archive is its centralized handling of quantities via the qdb
     '''
