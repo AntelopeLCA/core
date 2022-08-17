@@ -1,4 +1,4 @@
-from xls_tools import open_xl
+from xlstools import open_xl
 
 
 class XlDict(object):

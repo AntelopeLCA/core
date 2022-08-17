@@ -748,7 +748,3 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
         p = self._archive.retrieve_or_fetch_entity(process)
         return do_lcia(quantity_ref, p.inventory(ref_flow=ref_flow),
                        locale=p['SpatialScope'])
-
-    def fragment_lcia(self, fragment, quantity_ref, scenario=None, refresh=False, **kwargs):
-        frag = self._archive.retrieve_or_fetch_entity(fragment)
-        return frag.top().fragment_lcia(quantity_ref, scenario=scenario, refresh=refresh, **kwargs)

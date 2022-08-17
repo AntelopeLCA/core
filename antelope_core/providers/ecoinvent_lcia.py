@@ -17,7 +17,7 @@ from ..archives import BasicArchive
 from ..entities import LcQuantity
 
 import os
-from xls_tools import open_xl
+from xlstools import open_xl
 import time
 
 EI_LCIA_VERSION = '3.1'
