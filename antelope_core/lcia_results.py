@@ -531,7 +531,7 @@ class LciaResult(object):
         """
         assert isinstance(value, bool), 'cannot set autorange to %s of type %s' % (value, type(value))
         if value:
-            self._autorange = AutoRange(self.range())
+            self._autorange = AutoRange(self.span)
         else:
             self._autorange = None
 
@@ -687,8 +687,19 @@ class LciaResult(object):
     def total(self):
         return sum([i.cumulative_result for i in self._LciaScores.values()])
 
-    def range(self):
+    @property
+    def span(self):
         return sum([abs(i.cumulative_result) for i in self._LciaScores.values()])
+
+    def range(self):
+        _pos = _neg = 0.0
+        for v in self._LciaScores.values():
+            val = v.cumulative_result
+            if val > 0:
+                _pos += val
+            elif val < 0:
+                _neg += val
+        return _neg, _pos
 
     def add_component(self, key, entity=None):
         if entity is None:
@@ -706,6 +717,7 @@ class LciaResult(object):
         self._LciaScores[key].add_detailed_result(exchange, qrresult)
 
     def add_summary(self, key, entity, node_weight, unit_score):
+        summary = SummaryLciaResult(self, entity, node_weight, unit_score)
         if key in self._LciaScores.keys():
             # raise DuplicateResult('Key %s is already present' % key)
             '''
@@ -721,11 +733,14 @@ class LciaResult(object):
                                                                                  node_weight, uss))
             '''
             try:
-                self._LciaScores[key] += SummaryLciaResult(self, entity, node_weight, unit_score)
+                self._LciaScores[key] += summary
+            except TypeError:  # AggregateLciaScore doesn't know how to add-- summary takes over
+                summary += self._LciaScores[key]
+                self._LciaScores[key] = summary
             except InconsistentSummaries:
-                self._failed.append(SummaryLciaResult(self, entity, node_weight, unit_score))
+                self._failed.append(summary)
         else:
-            self._LciaScores[key] = SummaryLciaResult(self, entity, node_weight, unit_score)
+            self._LciaScores[key] = summary
 
     @property
     def failed_summaries(self):
@@ -856,28 +871,33 @@ class LciaResult(object):
     def __str__(self):
         return '%s %s' % (number(self.total()), self.quantity)
 
-
-    def terminal_nodes(self, key=lambda x: x.name):
+    def terminal_nodes(self, key=lambda x: x.link):
         aggs, scores = self._terminal_nodes()
-        l = LciaResult(self.quantity)
+        l = LciaResult(self.quantity, scenario=self.scenario)  #, private=self._private, scale=self._scale)  # not sure about these
         for ent, agg in aggs.items():
             if hasattr(ent, 'entity_type'):
-                if ent.entity_type == 'fragment':
-                    # TODO: come up with a way for fragment entities to appear like LciaSummary (node weight x score)
-                    k = key(ent.top())
-                    l.add_component(k, entity=ent.top())
-                    for d in agg.details():
-                        x = ExchangeValue(d.exchange.process, d.exchange.flow, d.exchange.direction,
-                                          value=d.value * scores[ent], termination=d.exchange.termination)
-                        l.add_score(k, x, d.factor)
-                elif ent.entity_type == 'process':
-                    k = key(ent)
-                    l.add_summary(k, ent, scores[ent], agg.cumulative_result)
-            else:
                 k = key(ent)
+                if ent.entity_type == 'fragment':
+                    if isinstance(agg, SummaryLciaResult):
+                        l.add_summary(k, ent, scores[ent], agg.cumulative_result)
+                    else:  # direct foreground emission: aggregate to parent
+                        # TODO: come up with a way for fragment entities to appear like LciaSummary (node weight x score)
+                        parent = ent.reference_entity or ent
+                        k = key(parent)
+                        l.add_component(k, entity=parent)
+                        for d in agg.details():
+                            x = ExchangeValue(d.exchange.process, d.exchange.flow, d.exchange.direction,
+                                              value=d.value * scores[ent], termination=d.exchange.termination)
+                            l.add_score(k, x, d.factor)
+                elif ent.entity_type == 'process':
+                    l.add_summary(k, ent, scores[ent], agg.cumulative_result)
+                else:
+                    raise TypeError(ent)
+            else:
+                k = str(ent)
                 l.add_summary(k, ent, scores[ent], agg.cumulative_result)
-        return l
 
+        return l
 
     def _terminal_nodes(self, weight=1.0):
         """
@@ -885,8 +905,25 @@ class LciaResult(object):
         returns a mapping of entity to (score and accumulated node weight)
         aggregated scores return themselves, summary scores accumulate node weight by entity
         :param weight:
-        :return:
-"""
+        :return: mapping of node to component, mapping of node to accumulated weight
+        "node" can be either an entity (process or fragment) or a string
+        """
+        '''
+        Further explanation:
+         we are dis-aggregating our own internal score and re-aggregating it by terminal nodes.  aggs is a dictionary
+         that maps the terminal node to the component, and scores maps the terminal node to the cumulative *weight* of 
+         the terminal node.  Why we called it 'scores' is unclear.
+         Procedure: we go through our components and for each:
+          - If it is an AggregateLciaScore (i.e. a true LCIA computation), then it becomes a terminal node
+          - If it is a static Summary, then we can't disaggregate and it also becomes a terminal node
+          - If it is a dynamic summary, we recurse on it, and we take its terminal nodes and parse them out.
+        For this to work, each terminal node must have the same unit score. If we find non-matching scores for the 
+        same terminal node, we raise an error.
+        Now we are seeing those errors and I don't know why.
+        UPDATE: it is because two different fragments use the same process, but one is derived from an lci() and the 
+        other is from a sys_lci() with a subtracted flow.  So naturally their scores are different.. No easy way to
+        deal with that....
+        '''
         aggs = dict()
         scores = defaultdict(float)
         for c in self.components():
@@ -899,19 +936,35 @@ class LciaResult(object):
                     aggs[c.entity] = c
                 scores[c.entity] += weight
             else:  # Summary
+                rec_weight = weight * c.node_weight
                 if c.static:
                     if c.entity in aggs:
                         if aggs[c.entity].cumulative_result != c.cumulative_result:
                             raise KeyError(c)
                     else:
                         aggs[c.entity] = c
+                    scores[c.entity] += rec_weight
                 else:
-                    rec_weight = weight * c.node_weight
                     rec_aggs, rec_scores = c._internal_result._terminal_nodes(weight=rec_weight)
                     for k, v in rec_aggs.items():
+                        if v.cumulative_result == 0:
+                            continue
                         if k in aggs:
                             if aggs[k].cumulative_result != v.cumulative_result:
-                                raise ValueError(k)
+                                # hunt for a distinct name to give a node with this score
+                                idx = ord('A')
+                                name = str(k)
+                                while name in aggs:
+                                    if aggs[name].cumulative_result == v.cumulative_result:
+                                        break  # found one
+                                    name = '.'.join([str(k), chr(idx)])
+                                    idx += 1
+
+                                    if idx > ord('Z'):
+                                        raise InconsistentScores(c, k)  # something is wrong if we get to this point (?)
+
+                                k = name
+                                aggs[k] = v
                         else:
                             aggs[k] = v
                         scores[k] += rec_scores[k]
