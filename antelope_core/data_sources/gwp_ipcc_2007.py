@@ -27,7 +27,7 @@ class GwpIpcc2007(DataSource):
         yield IPCC_2007_TRACI_REF
 
     def interfaces(self, ref=IPCC_2007_TRACI_REF):
-        for i in ('index', 'quantity'):
+        for i in ('basic', 'index', 'quantity'):
             yield i
 
     def make_resources(self, ref=IPCC_2007_TRACI_REF):

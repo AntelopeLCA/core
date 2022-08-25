@@ -164,7 +164,7 @@ INFO = {
 class UsLciConfig(DataSource):
 
     prefix = 'local.uslci'
-    _ifaces = ('exchange', 'quantity')
+    _ifaces = ('basic', 'exchange', 'quantity')
 
     def _ref(self, fmt):
         return '.'.join([self.prefix, fmt])

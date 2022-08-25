@@ -2,8 +2,6 @@
 Import ecospold2 files
 """
 
-from __future__ import print_function, unicode_literals
-
 from collections import namedtuple
 from time import time
 

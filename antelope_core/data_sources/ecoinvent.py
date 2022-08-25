@@ -49,7 +49,7 @@ class Ecoinvent2Base(DataSource):
         :param ref:
         :return:
         """
-        for k in ('exchange', 'quantity'):
+        for k in ('basic', 'exchange', 'quantity'):
             yield k
 
     @property
@@ -94,6 +94,7 @@ class Ecoinvent3Base(DataSource):
             yield x
 
     def interfaces(self, ref):
+        yield 'basic'
         yield 'exchange'
 
     def make_resources(self, ref):

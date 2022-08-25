@@ -29,7 +29,7 @@ from ..archives import InterfaceError, EntityExists
 from ..lcia_engine import LciaDb
 
 
-from antelope import CatalogRef, UnknownOrigin  # , EntityNotFound
+from antelope import CatalogRef, UnknownOrigin, InvalidQuery  # , EntityNotFound
 from ..catalog_query import CatalogQuery, INTERFACE_TYPES, zap_inventory
 from .lc_resolver import LcCatalogResolver
 from ..lc_resource import LcResource
@@ -142,7 +142,7 @@ class StaticCatalog(object):
         if source is None:
             return None
         if source.startswith(self._rootdir):
-            #return re.sub('^%s' % self._rootdir, '$CAT_ROOT', source)
+            # return re.sub('^%s' % self._rootdir, '$CAT_ROOT', source)
             # Should work on both mac and windows
             return os.path.join('$CAT_ROOT', os.path.relpath(source, self._rootdir))
         return source
@@ -151,7 +151,7 @@ class StaticCatalog(object):
         if os.path.isabs(rel_path):
             return rel_path
         elif rel_path.startswith('$CAT_ROOT'):
-            #return re.sub('^\$CAT_ROOT', self.root, rel_path)
+            # return re.sub('^\$CAT_ROOT', self.root, rel_path)
             # Should work on both mac and windows
             return os.path.abspath(os.path.join(self.root, os.path.relpath(rel_path, '$CAT_ROOT')))
         return os.path.abspath(os.path.join(self.root, rel_path))
@@ -189,7 +189,7 @@ class StaticCatalog(object):
         qdb = LciaDb.new(source=self._reference_qtys, contexts=self._contexts, flowables=self._flowables,
                          strict_clookup=strict_clookup, **kwargs)
         self._qdb = qdb
-        res = LcResource.from_archive(qdb, interfaces=('index', 'quantity'), store=False)
+        res = LcResource.from_archive(qdb, interfaces=('basic', 'index', 'quantity'), store=False)
         self._resolver.add_resource(res, store=False)
 
     def get_canonical(self, arg):
@@ -393,7 +393,11 @@ class StaticCatalog(object):
             raise UnknownOrigin(origin, strict)
 
         if refresh or (origin not in self._queries):
-            self._queries[origin] = self._query_type(origin, catalog=self, **kwargs)
+            query = self._query_type(origin, catalog=self, **kwargs)
+            if query.validate():
+                self._queries[origin] = query
+            else:
+                raise InvalidQuery(origin)
         return self._queries[origin]
 
     def lookup(self, catalog_ref, keep_properties=False):

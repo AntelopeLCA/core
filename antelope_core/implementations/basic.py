@@ -19,6 +19,12 @@ class BasicImplementation(object):
         All of these requirements are met by the standard ArchiveImplementation, with the exception of the _fetch
         abstract method.
 
+        Since a recent change that removed the 'basic' interface as a default for all resources, this must be
+        explicitly assigned to at least one resource in order for a query to be valid.  The basic interface should
+        be assigned to the resource that meets the following requirements:
+         - most comprehensive source of information about entity properties (e.g. documentary pseudo-interface)
+         - easiest to load (e.g. a non-static)
+
         :param archive: an LcArchive
         :param privacy: No longer used. Privacy is enforced at the server and not the resource (where it was phony
         from the beginning)

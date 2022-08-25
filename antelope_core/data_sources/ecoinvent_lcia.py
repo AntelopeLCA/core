@@ -19,7 +19,7 @@ E_CFG = {'hints': [  # cover elementary contexts that need directional hints
 
 
 class EcoinventLciaConfig(DataSource):
-    _ifaces = ('index', 'quantity')
+    _ifaces = ('basic', 'index', 'quantity')
     _ds_type = 'EcoinventLcia'
 
     def __init__(self, data_root, version, **kwargs):

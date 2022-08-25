@@ -106,7 +106,7 @@ class FileAccessor(object):
                 source = os.path.join(ds_path, fn)
                 yield source
 
-    def create_resource(self, source):
+    def create_resource(self, source, basic=False):
         if not source.startswith(self._path):
             raise ValueError('Path not contained within our filespace')
         rel_source = source[len(self._path)+1:]
@@ -120,6 +120,9 @@ class FileAccessor(object):
         for ad in cfg.pop('add_interfaces', ()):
             if ad in INTERFACE_TYPES:
                 iface += (ad, )
+        if basic:
+            if 'basic' not in iface:
+                iface += ('basic', )
 
         return LcResource(org, source, ds_type, interfaces=iface, priority=priority, **cfg)
 
@@ -146,13 +149,17 @@ class ResourceLoader(FileAccessor):
                 cat.add_resource(res)
                 if check:
                     res.check(cat)
+        try:
+            next(cat.gen_interfaces(org, 'basic'))
+        except StopIteration:
+            print('Warning: %s: no basic interface (add manually and save)' % org)
         if check:
             try:
                 return cat.query(org).check_bg()
             except BackgroundRequired:
                 return False
         else:
-            return False
+            return None
 
     def load_resources(self, cat, origin=None, check=False):
         """

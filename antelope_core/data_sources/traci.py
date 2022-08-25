@@ -23,7 +23,7 @@ E_CFG = {'hints': [  # cover elementary contexts that need directional hints
 class TraciConfig(DataSource):
 
     _prefix = 'local.lcia.traci'
-    _ifaces = ('index', 'quantity')
+    _ifaces = ('basic', 'index', 'quantity')
 
     @property
     def origins(self):
