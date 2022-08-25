@@ -249,7 +249,7 @@ def do_lcia(quantity, inventory, locale=None, group=None, dist=2, **kwargs):
         group = lambda _x: _x.process
     for x in inventory:
         xt = x.type
-        if xt in ('cutoff', 'reference'):
+        if xt == 'reference':  # in ('cutoff', 'reference'):
             res.add_cutoff(x)
             continue
         elif xt == 'self':
