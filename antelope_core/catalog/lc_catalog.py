@@ -94,6 +94,13 @@ class LcCatalog(StaticCatalog):
         self.lcia_engine.save_flowables(self._flowables)
         self.lcia_engine.save_contexts(self._contexts)
 
+    def restore_contexts(self, really=False):
+        if really:
+            print('Overwriting local contexts')
+            copy2(DEFAULT_CONTEXTS, self._contexts)
+        else:
+            print('pass really=True if you really want to overwrite local contexts')
+
     def restore_qdb(self, really=False):
         if really:
             copy2(REF_QTYS, self._reference_qtys)
