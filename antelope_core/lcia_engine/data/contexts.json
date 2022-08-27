@@ -16,12 +16,14 @@
         "Emission to air",
         "Emission to air, unspecified",
         "Group NMVOC to air",
+        "Group PAH to air",
         "Halogenated organic emissions to air",
         "Heavy metals to air",
         "Inorganic emissions to air",
         "Organic emissions to air (group VOC)",
         "Other emissions to air",
         "Particles to air",
+        "Pesticides to air",
         "Radioactive emissions to air"
       ],
       "parent": "Emissions"
@@ -108,6 +110,8 @@
       "synonyms": [
         "Emissions to agricultural soil",
         "Heavy metals to agricultural soil",
+        "Inorganic emissions to agricultural soil",
+        "Organic emissions to agricultural soil",
         "Other emissions to agricultural soil",
         "Pesticides to agricultural soil",
         "agricultural"
@@ -120,7 +124,10 @@
         "Emissions to industrial soil",
         "Emissions to non-agricultural soil",
         "Heavy metals to industrial soil",
+        "Inorganic emissions to industrial soil",
+        "Organic emissions to industrial soil",
         "Other emissions to industrial soil",
+        "Pesticides to industrial soil",
         "industrial"
       ],
       "parent": "to ground"
@@ -148,11 +155,14 @@
       "synonyms": [
         "Analytical measures to fresh water",
         "Emissions to fresh water",
+        "Halogenated organic emissions to fresh water",
         "Heavy metals to fresh water",
+        "Hydrocarbons to fresh water",
         "Inorganic emissions to fresh water",
         "Organic emissions to fresh water",
         "Other emissions to fresh water",
         "Particles to fresh water",
+        "Pesticides to fresh water",
         "Radioactive emissions to fresh water",
         "freshwater",
         "to fresh water"
@@ -210,6 +220,14 @@
         "Emissions to sea water",
         "Heavy metals to sea water",
         "Other emissions to sea water",
+        "Analytical measures to sea water",
+        "Halogenated organic emissions to sea water",
+        "Hydrocarbons to sea water",
+        "Inorganic emissions to sea water",
+        "Organic emissions to sea water",
+        "Particles to sea water",
+        "Pesticides to sea water",
+        "Radioactive emissions to sea water",
         "sea water"
       ],
       "parent": "to water"
@@ -220,12 +238,14 @@
         "natural resource",
         "renewable",
         "resource",
+        "Non renewable elements",
         "Non renewable energy resources",
         "Non renewable resources",
         "Renewable energy resources",
         "Renewable resources",
         "Energy resources",
-        "Material resources"
+        "Material resources",
+        "Minerals"
       ],
       "sense": "Source"
     },
@@ -267,6 +287,7 @@
       "name": "Resources from biosphere",
       "synonyms": [
         "Renewable energy resources from biosphere",
+        "Biomass fuels",
         "biotic"
       ],
       "parent": "Resources"
@@ -286,18 +307,28 @@
       "name": "from ground",
       "synonyms": [
         "Non-renewable element resources from ground",
-        "Non-renewable energy resources from ground",
         "Non-renewable material resources from ground",
         "Renewable energy resources from ground",
         "Renewable material resources from ground",
         "Resources from ground",
-        "Natural gas (resource)",
-	"Crude oil (resource)",
         "Uranium (resource)",
-        "fossil-",
         "in ground"
       ],
       "parent": "Resources"
+    },
+    {
+      "name": "fossil",
+      "synonyms": [
+        "Fossil fuels",
+        "fossil-",
+        "Non-renewable energy resources from ground",
+        "Crude oil (resource)",
+        "Hard coal (resource)",
+        "Lignite (resource)",
+        "Natural gas (resource)",
+        "Peat (resource)"
+      ],
+      "parent": "from ground"
     },
     {
       "name": "from water",
