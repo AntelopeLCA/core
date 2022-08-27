@@ -61,7 +61,7 @@ class LciaEngine(TermManager):
         self._fm = FlowablesDict()
 
         self._fm.new_entry('carbon dioxide', '124-38-9')
-        self._fm.new_entry('Water', '7732-18-5')
+        self._water = self._fm.new_entry('Water', '7732-18-5')
         # we store the child object and use it to signify biogenic CO2 to optionally quell
         # this strategy depends on the ability to set a query flow's name-- i.e. FlowInterface
         self._bio_co2 = self._fm.new_entry('carbon dioxide (biotic)', '124-38-9', create_child=True)
@@ -231,6 +231,16 @@ class LciaEngine(TermManager):
         """
         return flow.synonyms
 
+    def _check_fb_map(self, fb_map):
+        """
+        flowable match curation:
+         - We don't want to merge any incoming terms with "water" because it makes flow-based water footprinting
+            impossible
+        :param fb_map: the dict being used to manage
+        :return:
+        """
+        fb_map.pop(self._water, None)
+
     def _add_to_existing_flowable(self, fb, new_terms):
         """
         Harvest biogenic co2 synonyms (not worth correcting for other biogenic substances??)
@@ -244,7 +254,7 @@ class LciaEngine(TermManager):
             if biog and self.is_biogenic(term):
                 self._bio_co2.add_term(term)  # ensure that bio term is a biogenic synonym
 
-    def _add_flow_terms(self, flow, merge_strategy=None):
+    def add_flow_terms(self, flow, merge_strategy=None):
         """
         Subclass handles two problems: tracking flowables by origin and biogenic CO2.
 
@@ -254,9 +264,10 @@ class LciaEngine(TermManager):
 
         biogenic: if ANY of the flow's terms match the biogenic regex AND the flow is CO2, set its name
         :param flow:
+        :param merge_strategy:
         :return:
         """
-        fb = super(LciaEngine, self)._add_flow_terms(flow, merge_strategy=merge_strategy)
+        fb = super(LciaEngine, self).add_flow_terms(flow, merge_strategy=merge_strategy)
         self._fb_by_origin[flow.origin].add(str(fb))
         if '124-38-9' in fb:
             try:

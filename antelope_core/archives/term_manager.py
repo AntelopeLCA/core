@@ -402,6 +402,15 @@ class TermManager(object):
         """
         return flow.name, flow.link
 
+    @staticmethod
+    def _check_fb_map(fb_map):
+        """
+        This function was created because we want to be able to manage the list of flowables to merge with
+        :param fb_map:
+        :return:
+        """
+        pass
+
     def flows_for_flowable(self, fb):
         if fb in self._flow_map:
             for f in self._flow_map[fb]:
@@ -411,7 +420,7 @@ class TermManager(object):
         for term in new_terms:
             self._fm.add_synonym(str(fb), term)
 
-    def _add_flow_terms(self, flow, merge_strategy=None):
+    def add_flow_terms(self, flow, merge_strategy=None):
         """
         This process takes in an inbound FlowInterface instance, identifies the flowable(s) that match its terms, and
         adds new terms to the existing or new flowable.  May update a flow's name in case of conflict.
@@ -425,6 +434,8 @@ class TermManager(object):
             # make a list of all the existing flowables that match the incoming flow
             fb_map[self._fm.get(syn)].append(syn)
         new_terms = fb_map.pop(None, [])
+
+        self._check_fb_map(fb_map)  # allow subclasses to curate fb_map
 
         if len(fb_map) == 0:  # all new terms
             if len(new_terms) == 0:
@@ -510,7 +521,7 @@ class TermManager(object):
         cx = self._check_context(flow)
         if cx is NullContext:
             merge_strategy = 'distinct'  # keep distinct terms for null-context flows
-        return self._add_flow_terms(flow, merge_strategy=merge_strategy)
+        return self.add_flow_terms(flow, merge_strategy=merge_strategy)
 
     def add_characterization(self, flowable, ref_quantity, query_quantity, value, context=None, origin=None,
                              location=None, overwrite=False):
@@ -587,7 +598,8 @@ class TermManager(object):
 
                 # this recurses to add a cf between our flow's ref quantity and the ref quantity of the already-seen cf
                 try:
-                    self.add_characterization(fb, rq, cf.ref_quantity, factor, context=cx, origin=origin, location=location)
+                    self.add_characterization(fb, rq, cf.ref_quantity, factor, context=cx, origin=origin,
+                                              location=location, overwrite=overwrite)
                 except DuplicateCharacterizationError as e:
                     print((qq.link, fb, cx.as_list(), origin, flowable, location))
                     print('recursing to %s %s' % (cf.ref_quantity.name, cf.ref_quantity.uuid))
