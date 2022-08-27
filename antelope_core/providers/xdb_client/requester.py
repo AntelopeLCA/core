@@ -1,6 +1,7 @@
 from antelope_core.models import ResponseModel, OriginMeta
 from .rest_client import RestClient
 
+
 class XdbRequester(RestClient):
     def __init__(self, api_root, origin=None, token=None, quiet=False):
         super(XdbRequester, self).__init__(api_root, token=token, quiet=quiet)

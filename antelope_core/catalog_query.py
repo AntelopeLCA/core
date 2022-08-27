@@ -8,8 +8,9 @@ from antelope import (IndexInterface, BackgroundInterface, ExchangeInterface, Qu
 #                      )
 from antelope.refs.exchange_ref import RxRef
 
-INTERFACE_TYPES = {'basic', 'index', 'exchange', 'background', 'quantity', 'foreground'}
+INTERFACE_TYPES = ('basic', 'index', 'exchange', 'background', 'quantity', 'foreground')
 READONLY_INTERFACE_TYPES = {'basic', 'index', 'exchange', 'background', 'quantity'}
+
 
 def zap_inventory(interface, warn=False):
     if interface == 'inventory':
@@ -32,7 +33,7 @@ class BadInterfaceSpec(Exception):
     pass
 
 
-class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface): # , ForegroundInterface):
+class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface):  # , ForegroundInterface):
     """
     A CatalogQuery is a class that performs any supported query against a supplied catalog.
     Supported queries are defined in the lcatools.interfaces, which are all abstract.
@@ -114,8 +115,10 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             return self
         return self._catalog.query(origin)
 
+    '''
     def __str__(self):
         return '%s for %s (catalog: %s)' % (self.__class__.__name__, self.origin, self._catalog.root)
+    '''
 
     def _iface(self, itype, strict=False):
         self._debug('Origin: %s' % self.origin)
@@ -141,19 +144,21 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             raise BadInterfaceSpec(itype, attrname)  # itype = 'basic'  # fetch, get properties, uuid, reference
 
         self._debug('Performing %s query, iface %s' % (attrname, itype))
+        message = 'itype %s required for attribute %s' % (itype, attrname)
         try:
             for iface in self._iface(itype, strict=strict):
                 try:
                     self._debug('Attempting %s query on iface %s' % (attrname, iface))
                     result = getattr(iface, attrname)(*args, **kwargs)
+                    message = '(%s) %s' % (itype, attrname)  # implementation found
                 except exc:  # allow nonimplementations to pass silently
                     continue
-                if result is not None:  #successful query must return something
+                if result is not None:  # successful query must return something
                     return result
         except NotImplementedError:
             pass
 
-        raise exc('itype %s required for attribute %s | %s' % (itype, attrname, args))
+        raise exc('%s: %s | %s' % (self.origin, message, args))
 
     def resolve(self, itype=INTERFACE_TYPES, strict=False):
         """
@@ -184,7 +189,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         # flow: quantity
         # process: list
         # fragment: fragment
-        #[context: context]
+        # [context: context]
         if ref is None:
             deref = None
         elif isinstance(ref, list):
@@ -261,6 +266,6 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
                 except EntityNotFound:
                     self._catalog.register_entity_ref(e_ref)
                     return self._tm.get_canonical(entity)
-                return self._tm.add_quantity(entity) # this will be identical to _ unless there is a unit conflict
+                return self._tm.add_quantity(entity)  # this will be identical to _ unless there is a unit conflict
         else:
             return e_ref

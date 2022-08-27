@@ -114,30 +114,27 @@ class LcResource(object):
         if 'foreground' in self.interfaces:
             kwargs['catalog'] = catalog
 
-        if 0: # self.ds_type.lower() in ('foreground', 'lcforeground'):
-            pass
-            # self._archive = LcForeground(src, catalog=catalog, ref=self.reference, **kwargs)
-        else:
-            if self.ds_type.lower() == 'ecoinventlcia':
-                # this is a GIANT HACK
-                # we need to bring along a local ecoinvent archive to lookup flow reference qtys-
-                # Partial solution to the hack: reference entity is QUERYABLE from a basic query which the catalog
-                # can provide- still need to specify
-                ei_ref = '.'.join(['local', 'ecoinvent', kwargs['version']])
-                try:
-                    res = catalog.get_resource(ei_ref, iface='exchange', strict=False)
-                    res.check(catalog)
-                    if hasattr(res.archive, 'load_flows'):
-                        res.archive.load_flows()
-                    kwargs['ei_archive'] = res.archive
-                except UnknownOrigin:
-                    pass
-
+        if self.ds_type.lower() == 'ecoinventlcia':
+            # this is a GIANT HACK
+            # we need to bring along a local ecoinvent archive to lookup flow reference qtys-
+            # Partial solution to the hack: reference entity is QUERYABLE from a basic query which the catalog
+            # can provide- still need to specify
+            ei_ref = '.'.join(['local', 'ecoinvent', kwargs['version']])
             try:
-                self._archive = create_archive(src, self.ds_type, ref=self.origin,
-                                               factory=herd_factory, **kwargs)
-            except FileNotFoundError as e:
-                raise ResourceInvalid('%s: %s' % (self.origin, e.filename))
+                res = catalog.get_resource(ei_ref, iface='exchange', strict=False)
+                res.check(catalog)
+                if hasattr(res.archive, 'load_flows'):
+                    res.archive.load_flows()
+                kwargs['ei_archive'] = res.archive
+            except UnknownOrigin:
+                pass
+
+        try:
+            self._archive = create_archive(src, self.ds_type, factory=herd_factory,
+                                           ref=self.origin, **kwargs)
+        except FileNotFoundError as e:
+            raise ResourceInvalid('%s: %s' % (self.origin, e.filename))
+
         if catalog is not None and os.path.exists(catalog.cache_file(self.source)):
             update_archive(self._archive, catalog.cache_file(self.source))
         self._static |= self._archive.static
@@ -361,6 +358,17 @@ class LcResource(object):
             if i in self._interfaces:
                 return True
         return False
+
+    def add_hint(self, hint_type, term, matches, catalog=None):
+        if hint_type in ('context', 'flowable', 'quantity'):
+            self._add_config('hints', hint_type, term, matches)
+            if catalog:
+                catalog.lcia_engine.apply_hints(self._archive.catalog_names, [(hint_type, term, matches)])
+                self.save(catalog)
+            else:
+                print('Hint is neither saved nor applied')
+        else:
+            raise TypeError('Invalid hint type %s' % hint_type)
 
     def _add_config(self, config, *args):
         """

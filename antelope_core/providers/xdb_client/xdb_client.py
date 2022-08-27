@@ -15,6 +15,7 @@ from .rest_client import HttpError
 from .implementation import XdbImplementation
 from .xdb_entities import XdbEntity
 
+
 class XdbTermManager(object):
     def __init__(self, requester):
         """

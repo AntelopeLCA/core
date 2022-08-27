@@ -136,10 +136,14 @@ class BasicImplementation(object):
         :param kwargs:
         :return:
         """
-        return self._archive.tm.is_lcia_engine
+        if hasattr(self._archive, 'tm'):
+            return self._archive.tm.is_lcia_engine
+        return False
 
     def synonyms(self, item, **kwargs):
-        return self._archive.tm.synonyms(item)
+        if hasattr(self._archive, 'tm'):
+            return self._archive.tm.synonyms(item)
+        yield from ()
 
     def properties(self, external_ref, **kwargs):
         e = self._dereference_entity(external_ref)
