@@ -266,6 +266,9 @@ def do_lcia(quantity, inventory, locale=None, group=None, dist=2, **kwargs):
             res.add_cutoff(x)
         else:
             raise TypeError('Unknown qrr type %s' % qrr)
+    e = len(list(res.errors()))
+    if e:
+        print('%s: %d CF errors encountered' % (quantity, e))
     return res
 
 

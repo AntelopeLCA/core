@@ -324,7 +324,7 @@ class StaticCatalog(object):
     '''
     def _sorted_resources(self, origin, interfaces, strict):
         for res in sorted(self._resolver.resolve(origin, interfaces, strict=strict),
-                          key=lambda x: (x.priority, len(x.origin))): #
+                          key=lambda x: (x.priority, len(x.origin))):  #
             '''
             sort key was formerly: (not (x.is_loaded and x.static), x.priority, x.origin != origin)):
             What were we thinking overriding priority with whether a static resource was loaded?
@@ -336,6 +336,23 @@ class StaticCatalog(object):
             just that.  
             '''
             yield res
+
+    def resources(self, loaded=None):
+        """
+        Generate a list of resources known to the resolver.  Optionally filter by whether the resource has been loaded.
+        :param loaded: True | False | [None]
+        :return:
+        """
+        def _match_loaded(_res):
+            ldd = bool(_res.archive is not None)
+            if loaded is None:
+                return True
+            if ldd is loaded:
+                return True
+            return False
+        for res in self._resolver.resources:
+            if _match_loaded(res):
+                yield res
 
     def gen_interfaces(self, origin, itype=None, strict=False):
         """

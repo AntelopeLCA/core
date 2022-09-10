@@ -51,6 +51,12 @@ class LcCatalogResolver(object):
                     seen.add(res.source)
                     yield res.source
 
+    @property
+    def resources(self):
+        for v in self._resources.values():
+            for res in v:
+                yield res
+
     def _update_semantic_ref(self, org):
         path = os.path.join(self._resource_dir, org)
         try:

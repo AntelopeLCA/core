@@ -17,20 +17,29 @@ from .from_json import from_json, to_json
 from .archives import archive_factory, ArchiveError
 
 FOUND_PROVIDERS = LowerDict()
+
+
 def _find_providers():
     for ant in [__name__] + antelope_herd:
-        try:
-            importlib.import_module('.', package=ant)
-        except ModuleNotFoundError:
-            continue
-        p = importlib.import_module('.providers', package=ant)
-        try:
-            provs = getattr(p, 'PROVIDERS')
-        except AttributeError:
+        found = []
+
+        def _add_found_providers(_found, _the):
+            try:
+                _pkg = importlib.import_module(_the, package=ant)
+            except ModuleNotFoundError:
+                return
+            if hasattr(_pkg, 'PROVIDERS'):
+                provs = getattr(_pkg, 'PROVIDERS')
+                for ds_type in provs:
+                    FOUND_PROVIDERS[ds_type] = _pkg
+                    _found.append(ds_type)
+
+        for look in ('.', '.providers'):
+            _add_found_providers(found, look)
+
+        if len(found) == 0:
             print('No PROVIDERS found in %s' % ant)
             continue
-        for ds_type in provs:
-            FOUND_PROVIDERS[ds_type] = p
 
     print('Found Antelope providers:' )
     for k, v in FOUND_PROVIDERS.items():

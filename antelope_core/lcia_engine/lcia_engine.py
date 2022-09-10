@@ -239,7 +239,8 @@ class LciaEngine(TermManager):
         :param fb_map: the dict being used to manage
         :return:
         """
-        fb_map.pop(self._water, None)
+        if len(fb_map) > 1:
+            fb_map.pop(self._water, None)
 
     def _add_to_existing_flowable(self, fb, new_terms):
         """

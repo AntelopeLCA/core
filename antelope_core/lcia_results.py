@@ -135,9 +135,14 @@ class DetailedLciaResult(object):
             dirn_mod = '*'
         else:
             dirn_mod = ' '
+
+        if self._qr.value is None:
+            cf = '(CF error)'
+        else:
+            cf = number(self._qr.value * self._lc.autorange)
         return '%s%s = %-s  x %-s [%s] %s, %s' % (dirn_mod,
                                                   number(self.result * self._lc.autorange),
-                                                  number(self._qr.value * self._lc.autorange),
+                                                  cf,
                                                   number(self.value),
                                                   self._qr.locale,
                                                   self.flowable,
@@ -869,7 +874,10 @@ class LciaResult(object):
         return s
 
     def __str__(self):
-        return '%s %s' % (number(self.total()), self.quantity)
+        err = ''
+        if len(self._errors) > 0:
+            err = '\n[%d Flow Conversion Errors]' % len(self._errors)
+        return '%s %s%s' % (number(self.total()), self.quantity, err)
 
     def terminal_nodes(self, key=lambda x: x.link):
         aggs, scores = self._terminal_nodes()

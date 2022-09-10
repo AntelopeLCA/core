@@ -143,7 +143,7 @@ class BasicImplementation(object):
     def synonyms(self, item, **kwargs):
         if hasattr(self._archive, 'tm'):
             return self._archive.tm.synonyms(item)
-        yield from ()
+        # yield from ()
 
     def properties(self, external_ref, **kwargs):
         e = self._dereference_entity(external_ref)

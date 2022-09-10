@@ -433,9 +433,9 @@ class TermManager(object):
         for syn in self._flow_terms(flow):  # we rely on SynonymSet.terms yielding flow.name first
             # make a list of all the existing flowables that match the incoming flow
             fb_map[self._fm.get(syn)].append(syn)
-        new_terms = fb_map.pop(None, [])
-
         self._check_fb_map(fb_map)  # allow subclasses to curate fb_map
+
+        new_terms = fb_map.pop(None, [])
 
         if len(fb_map) == 0:  # all new terms
             if len(new_terms) == 0:
