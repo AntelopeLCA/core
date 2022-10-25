@@ -824,13 +824,21 @@ class LciaResult(object):
         self._header()
         print('%s' % self)
 
-    def show_components(self):
+    def show_components(self, percent=False):
         self._header()
         if not self._private:
             for v in sorted(self._LciaScores.values(), key=lambda x: x.cumulative_result, reverse=True):
-                print('%s' % v)
+                if percent:
+                    pct = (v.cumulative_result / self.total()) * 100
+                    pfx = '%5.2f %% ' % pct
+                else:
+                    pfx = ''
+                print('%s%s' % (pfx, v))
             print('==========')
-        print('%s' % self)
+        if percent:
+            print('%5.2f %% %s' % (100, self))
+        else:
+            print('%s' % self)
 
     def show_details(self, key=None, **kwargs):
         """

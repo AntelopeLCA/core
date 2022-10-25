@@ -226,6 +226,24 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
                 raise
         return q_can
 
+    def clear_seen_characterizations(self, quantity):
+        """
+        An ugly hack to deal with the absolutely terrible way we are working around our slow-ass Qdb implementation
+        the proper solution is for qdb lookup to be local,  fast and correct, so as to not require caching at all.
+        :param quantity:
+        :return:
+        """
+        for i in self._iface_cache.values():
+            if i._archive:
+                for f in i._archive.entities_by_type('flow'):
+                    k = [cf for cf in f._chars_seen.keys() if cf[0] is quantity]
+                    for cf in k:
+                        f.pop_char(*cf)
+                    if f._query_ref:
+                        k = [cf for cf in f._query_ref._chars_seen.keys() if cf[0] is quantity]
+                        for cf in k:
+                            f._query_ref.pop_char(*cf)
+
     def make_ref(self, entity):
         if isinstance(entity, list):
             return [self.make_ref(k) for k in entity]
