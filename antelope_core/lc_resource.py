@@ -46,7 +46,7 @@ class LcResource(object):
         Returns a single LcResource loaded from a dict.  only required field is 'dataSourceType'.
         other fields are passed to the constructor and either interpreted directly or added as supplemental args
 
-        If 'dataSource' is not present
+        If 'dataSource' is not present, one had better hope that url is present in the dict to download the source
         :param ref:
         :param d:
         :return:
@@ -54,7 +54,7 @@ class LcResource(object):
         source = d.pop('dataSource', None)
         ds_type = d.pop('dataSourceType')
 
-        # patch to deal with changing Background extension handling
+        # patch to deal with changing Background extension handling-- this is WACKO
         filetype = d.pop('filetype', None)
         if filetype is not None:
             if not source.endswith(filetype):
@@ -63,7 +63,7 @@ class LcResource(object):
         return cls(ref, source, ds_type, **d)
 
     @classmethod
-    def from_json(cls, file):
+    def from_file(cls, file):
         """
         generates LcResources contained in the named file, sorted by increasing priority.  The filename and
         the reference must be the same.
@@ -73,7 +73,10 @@ class LcResource(object):
         ref = os.path.basename(file)
         with open(file, 'r') as fp:
             j = json.load(fp)
+        return cls.from_json(j, ref)
 
+    @classmethod
+    def from_json(cls, j, ref):
         return sorted([cls.from_dict(ref, d) for d in j[ref]], key=lambda x: x.priority)
 
     def _instantiate(self, catalog=None):

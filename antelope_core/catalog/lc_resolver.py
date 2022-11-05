@@ -16,11 +16,12 @@ class LcCatalogResolver(object):
     The Catalog supplies a request and a level requirement
      It also acts as a factory for those resources, so when a request is provided, it is answered with a live archive.
 
-     Then the Catalog turns that into a static archive and keeps a list of it. The catalog also keeps a separate
+    Then the Catalog turns that into a static archive and keeps a list of it. The catalog also keeps a separate
      list of foreground foregrounds (which are not static; which contain fragments). These can be converted into static
      archives by turning the fragments into processes.
 
-
+    This file could probably be re-thought, especially in the era of resources delivered via web.  For now, we will
+     monkeypatch.
     """
     def __init__(self, resource_dir):
         self._resource_dir = resource_dir
@@ -28,6 +29,16 @@ class LcCatalogResolver(object):
             os.makedirs(resource_dir)
         self._resources = defaultdict(list)
         self.index_resources()
+
+    def delete_origin(self, origin):
+        """
+        remove all resources for a given origin.
+
+        :param origin:
+        :return:
+        """
+        if self._resources.pop(origin, None):
+            self._write_or_delete_resource_file(origin, [])
 
     @property
     def origins(self):
@@ -60,7 +71,7 @@ class LcCatalogResolver(object):
     def _update_semantic_ref(self, org):
         path = os.path.join(self._resource_dir, org)
         try:
-            resources = LcResource.from_json(path)
+            resources = LcResource.from_file(path)
         except json.JSONDecodeError:
             print('Skipping Invalid resource file %s' % path)
             # os.remove(path)
@@ -185,6 +196,14 @@ class LcCatalogResolver(object):
         return matches[0]
 
     def _write_or_delete_resource_file(self, ref, resources):
+        """
+        Writes the resource file into the resource_dir containing only the resources that are both
+        (1) provided to the method and (2) already present in the resource_dir.  The purpose of this is to allow
+        deletion of single resources for a particular origin.
+        :param ref:
+        :param resources:
+        :return:
+        """
         j = [k.serialize() for k in resources if k.exists(self._resource_dir)]
         if len(j) == 0:
             os.remove(os.path.join(self._resource_dir, ref))

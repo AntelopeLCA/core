@@ -6,11 +6,13 @@ class XdbRequester(RestClient):
     def __init__(self, api_root, origin=None, token=None, quiet=False):
         super(XdbRequester, self).__init__(api_root, token=token, quiet=quiet)
 
+        # I don't understand what's going on here
         if origin:
             self._org = origin  # '/'.join([api_root, origin])  # we prepend the API_ROOT now in the parent class
             self._origins = sorted((OriginMeta(**k) for k in self._get_endpoint(self._org)),
                                    key=lambda x: len(x.origin))
         else:
+            # this does not seem valid, given all the commentary about "prepend the API_ROOT"
             self._org = api_root
             self._origins = sorted((OriginMeta(**k) for origin in self._get_endpoint(api_root, 'origins')
                                     for k in self._get_endpoint(api_root, origin)),

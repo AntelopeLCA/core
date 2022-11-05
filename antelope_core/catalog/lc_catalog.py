@@ -2,12 +2,14 @@ from .catalog import StaticCatalog
 from ..archives import REF_QTYS, archive_from_json
 from ..lc_resource import LcResource
 from ..lcia_engine import DEFAULT_CONTEXTS, DEFAULT_FLOWABLES
+from ..providers.xdb_client.rest_client import RestClient
 
 import requests
 
 from shutil import copy2, rmtree
 import os
 import hashlib
+import getpass
 
 TEST_ROOT = os.path.join(os.path.dirname(__file__), 'cat-test')  # volatile, inspectable
 
@@ -176,6 +178,54 @@ class LcCatalog(StaticCatalog):
         """
         res = LcResource.from_archive(archive, interfaces, source=self._localize_source(archive.source), **kwargs)
         self._resolver.add_resource(res, store=store)
+
+    def get_blackbook_resources(self, blackbook_url, origin, username=None, password=None, token=None):
+        """
+        Use a blackbook server to obtain resources for a given origin. Credentials can either be provided to the
+        method as arguments, or if omitted, they can be obtained through a form.  If a token is provided, it is
+        used in lieu of a password workflow
+
+        There may be a need or value to storing either a list of origins, or a set (or sets) of blackbook credentials,
+        or etc. for now we assume that is handled in a client somewhere.
+        :param blackbook_url:
+        :param origin:
+        :param username:
+        :param password:
+        :param token:
+        :return:
+        """
+        if token is None:
+            if username is None:
+                username = input('Enter username to access blackbook server at %s: ' % blackbook_url)
+            if password is None:
+                password = getpass.getpass('Enter password to access blackbook server at %s: ' % blackbook_url)
+            tresp = requests.post('/'.join([blackbook_url, 'auth', 'token']), form={'username': username,
+                                                                                    'password': password})
+            token = tresp.content['access_token']  # this needs to be worked through
+        bb_client = RestClient(blackbook_url, token=token)
+        resource = bb_client.get_one(dict, 'origins', origin, 'resource')
+        return self._finish_get_blackbook_resources(resource)
+
+    def get_blackbook_resources_by_client(self, bb_client, username, origin):
+        """
+        this uses the local maintenance client rather than the REST client
+        :param bb_client:
+        :param username:
+        :param origin:
+        :return:
+        """
+        resource = bb_client.retrieve_resource(username, origin)
+        return self._finish_get_blackbook_resources(resource)
+
+    def _finish_get_blackbook_resources(self, resource):
+
+        rtn = []
+
+        for recv_origin, res_list in resource.items():
+            self._resolver.delete_origin(recv_origin)
+            for res in res_list:
+                rtn.append(self._resolver.add_resource(LcResource.from_dict(recv_origin, res)))
+        return rtn
 
     '''
     Manage resources locally

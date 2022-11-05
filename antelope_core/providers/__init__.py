@@ -22,7 +22,7 @@ from .openlca_jsonld import OpenLcaJsonLdArchive
 from .traci import Traci21Factors
 from .xdb_client import XdbClient
 
-PROVIDERS = _prov + ['EcoinventLcia', 'OpenLcaJsonLdArchive', 'Traci21Factors']
+PROVIDERS = _prov + ['EcoinventLcia', 'OpenLcaJsonLdArchive', 'Traci21Factors', 'XdbClient']
 
 ''' # this has all been folded into archive.__init__
 class ArchiveError(Exception):

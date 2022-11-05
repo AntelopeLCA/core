@@ -1,1 +1,1 @@
-from .xdb_client import XdbClient
+from .xdb_client import XdbClient, BlackbookClient

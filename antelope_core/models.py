@@ -40,16 +40,6 @@ class OriginCount(ResponseModel):
     count: dict
 
 
-class Resource(ResponseModel):
-    origin: str
-    source: str
-    ds_type: str
-    interfaces: List[str]
-    static: bool
-    options: Dict  # includes: priority=int, download={url: str, md5sum: Optional[str]}, possibly other ds-specific
-    config: Dict[str, List[List]]  # must be a dict of config key: list of config value tuples (list of lists)
-
-
 class EntityRef(ResponseModel):
     origin: str
     entity_id: str

@@ -34,6 +34,9 @@ class XdbTermManager(object):
         self._flows = set()
         self._quantities = set()
 
+    def update_requester(self, requester):
+        self._requester = requester
+
     @property
     def is_lcia_engine(self, org=None):
         valid_orgs = [k for k in self._requester.origins if 'quantity' in k.interfaces]
@@ -126,11 +129,18 @@ class XdbTermManager(object):
 
 
 class XdbClient(LcArchive):
+    """
+    An XdbClient accesses xdb at a named URL using an access token.
+    """
     def __init__(self, source, ref=None, token=None):
         self._requester = XdbRequester(source, ref, token=token)
         if ref is None:
             ref = 'qdb'
         super(XdbClient, self).__init__(source, ref=ref, term_manager=XdbTermManager(self._requester))
+
+    def refresh_auth(self, new_source, new_token):
+        self._requester = XdbRequester(new_source, new_token)
+        self.tm.update_requester(self._requester)
 
     @property
     def r(self):
