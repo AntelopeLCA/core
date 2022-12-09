@@ -14,7 +14,7 @@ alt_archive_path = os.path.join(os.path.dirname(__file__), 'blast_furnace_test.j
 ar = LcArchive.from_file(alt_archive_path)
 test_ref = ar.ref
 
-cat.add_existing_archive(ar, interfaces='inventory', store=False)
+cat.add_existing_archive(ar, interfaces=('basic', 'inventory'), store=False)
 
 
 class ProcessRefTest(unittest.TestCase):

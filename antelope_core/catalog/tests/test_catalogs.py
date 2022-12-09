@@ -78,8 +78,8 @@ class LcCatalogFixture(unittest.TestCase):
         This adds a resource
         :return:
         """
-        r = self._cat.new_resource('test.my.dummy', '/dev/null', 'LcArchive')
-        self.assertIn('basic', r.interfaces)
+        r = self._cat.new_resource('test.my.dummy', '/dev/null', 'LcArchive', interfaces='basic')
+        self.assertIn('basic', r.interfaces)  # we used to switch this on by default for all impls, but now we don't
         self.assertIn('test.my.dummy', self._cat.origins)
         self.assertNotIn('test.my.doofus', self._cat.origins)
 
