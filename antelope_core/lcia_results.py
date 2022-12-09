@@ -240,6 +240,14 @@ class SummaryLciaResult(object):
     def cumulative_result(self):
         return self.node_weight * self.unit_score
 
+    @property
+    def result(self):
+        """
+        must workalike with both AggregateLciaScores and DetailedLciaResults
+        :return:
+        """
+        return self.cumulative_result
+
     def components(self):
         if self.static:
             yield self

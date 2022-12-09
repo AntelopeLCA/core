@@ -45,6 +45,10 @@ class EntityRef(ResponseModel):
     entity_id: str
     entity_type: Optional[str]
 
+    @classmethod
+    def from_entity(cls, entity):
+        return cls(origin=entity.origin, entity_id=entity.external_ref, entity_type=entity.entity_type)
+
 
 class Entity(EntityRef):
     entity_type: str
@@ -162,7 +166,7 @@ class FlowSpec(ResponseModel):
 
     @classmethod
     def from_exchange(cls, x, locale=None):
-        if  x.type == 'context':
+        if x.type == 'context':
             cx = list(x.termination)
         elif x.type in ('reference', 'cutoff'):
             cx = None

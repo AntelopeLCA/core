@@ -7,11 +7,12 @@ class AuthModel(BaseModel):
 
 
 JWT_SCOPES = {
-'in' : 'index',
-'ex' : 'exchange',
-'ba' : 'background',
-'qu' : 'quantity',
-'fo' : 'foreground'
+'bas' : 'basic',
+'ind' : 'index',
+'exc' : 'exchange',
+'bac' : 'background',
+'qua' : 'quantity',
+'for' : 'foreground'
 }
 
 
@@ -54,28 +55,29 @@ class AuthorizationGrant(AuthModel):
 
         origin.dot.separated[:interface[,f]*]
 
-        interfaces only need to be two-letter, according to:
-         in-dex
-         ex-change
-         ba-ckground
-         qu-antity
-         fo-reground
+        interfaces only need to be three-letter, according to:
+         bas-ic
+         ind-ex
+         exc-hange
+         bac-kground
+         qua-ntity
+         for-eground
 
         ,-separated Flags follow:
          v - values
          w - writable
          m - metered
 
-        The origin 'qdb' is special and refers to antelope cloud qdb and is short for "qdb:quantity,v"
+        The origin 'qdb' is special and refers to antelope cloud qdb and is short for "qdb:basic:quantity,v"
         (lots of DNS TXT record vibes here)
 
         An example of a verbose, precise specification would be:
 
-        antelope: "ecoinvent.3.6.cut-off:index:exchange,v:background,v,m qdb:quantity,v"
+        antelope: "ecoinvent.3.6.cut-off:basic:index:exchange,v:background,v,m qdb:quantity,v"
 
         An example of a terse, broad specification would be:
 
-        antelope: "ecoinvent:in:ex,v:ba,v qdb"
+        antelope: "ecoinvent:bas:ind:exc,v:bac,v,m qdb"
 
         The __str__ function for Grant objects the components between the colons in canonical (2-letter) form
         """
@@ -105,10 +107,10 @@ class AuthorizationGrant(AuthModel):
             origin = clauses[0]
             ifaces = clauses[1:]
             if origin == 'qdb' and len(ifaces) == 0:
-                ifaces = ['quantity,v']
+                ifaces = ['basic', 'quantity,v']
             for iface in ifaces:
                 specs = iface.split(',')
-                access = JWT_SCOPES[specs[0][:2]]
+                access = JWT_SCOPES[specs[0][:3]]
                 values = 'v' in specs
                 update = 'u' in specs
 
