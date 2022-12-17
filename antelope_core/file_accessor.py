@@ -21,8 +21,6 @@ from .lc_resource import LcResource, INTERFACE_TYPES
 from antelope import BackgroundRequired
 
 
-
-
 DEFAULT_PRIORITIES = {
     'exchange': 20,
     'quantity': 20,
@@ -78,7 +76,7 @@ class FileAccessor(object):
         for iface in os.listdir(opath):
             ipath = os.path.join(opath, iface)
             for ds_type in os.listdir(ipath):
-                dc = os.path.join(ipath, ds_type, 'config.json')
+                dc = os.path.join(ipath, ds_type, 'config.json')  # don't understand why this is an error
                 if os.path.exists(dc):
                     os.remove(dc)
 
@@ -116,15 +114,18 @@ class FileAccessor(object):
         priority = cfg.pop('priority', DEFAULT_PRIORITIES[iface])
 
         # do this last
-        iface = (iface,)
+        ifaces = set()
+        ifaces.add(iface)
         for ad in cfg.pop('add_interfaces', ()):
             if ad in INTERFACE_TYPES:
-                iface += (ad, )
+                ifaces.add(ad)
         if basic:
-            if 'basic' not in iface:
-                iface += ('basic', )
+            ifaces.add('basic')
+        if iface == 'index':
+            # TODO: WORKAROUND: automatically add 'basic' to index interfaces until we have it sorted out
+            ifaces.add('basic')
 
-        return LcResource(org, source, ds_type, interfaces=iface, priority=priority, **cfg)
+        return LcResource(org, source, ds_type, interfaces=tuple(ifaces), priority=priority, **cfg)
 
 
 class ResourceLoader(FileAccessor):
@@ -138,28 +139,35 @@ class ResourceLoader(FileAccessor):
 
     def _load_origin(self, cat, org, check):
         """
-
+        Crawls the data path at the specified origin and creates a resource for each source found.
+        TODO: figure out whether basic should be a standalone resource // how to handle documentation
         :param org:
-        :param check:
+        :param check: Whether to instantiate the interfaces
         :return:
         """
+        check_bg = False
         for iface in ('exchange', 'index', 'background', 'quantity'):
             for i, source in enumerate(self.gen_sources(org, iface)):
                 res = self.create_resource(source)
                 cat.add_resource(res)
                 if check:
                     res.check(cat)
+                    if iface == 'background':
+                        check_bg = True
         try:
             next(cat.gen_interfaces(org, 'basic'))
+            valid = True
         except StopIteration:
             print('Warning: %s: no basic interface (add manually and save)' % org)
-        if check:
+            valid = False
+        if check_bg:
             try:
-                return cat.query(org).check_bg()
+                bg = cat.query(org).check_bg()
             except BackgroundRequired:
-                return False
+                bg = False
+            return valid and bg
         else:
-            return None
+            return valid
 
     def load_resources(self, cat, origin=None, check=False):
         """

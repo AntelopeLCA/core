@@ -7,15 +7,13 @@ class AuthModel(BaseModel):
 
 
 JWT_SCOPES = {
-'bas' : 'basic',
-'ind' : 'index',
-'exc' : 'exchange',
-'bac' : 'background',
-'qua' : 'quantity',
-'for' : 'foreground'
+    'bas': 'basic',
+    'ind': 'index',
+    'exc': 'exchange',
+    'bac': 'background',
+    'qua': 'quantity',
+    'for': 'foreground'
 }
-
-
 
 
 class AuthorizationGrant(AuthModel):

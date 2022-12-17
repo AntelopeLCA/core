@@ -4,4 +4,3 @@ xlstools>=0.1.0
 python-magic>=0.4.18
 requests>=2.25
 pydantic>=1.8.2
-matplotlib>=3.5
