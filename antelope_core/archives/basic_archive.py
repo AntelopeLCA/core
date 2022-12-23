@@ -108,7 +108,10 @@ class BasicArchive(EntityStore):
         old_ref = j.pop('dataReference', ref)
         existing_ref = kwargs.pop('dataReference', old_ref)  # this will be the latest of init[dataRef], [dataRef], ref
 
-        source = j.pop('dataSource')
+        if filename is None:
+            source = j.pop('dataSource')
+        else:
+            source = filename
         ar = cls(source, ref=existing_ref, ns_uuid=ns_uuid, static=True, **kwargs)
         if ref != ar.ref:
             ar.set_origin(ref)

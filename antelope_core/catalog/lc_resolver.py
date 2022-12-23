@@ -93,7 +93,7 @@ class LcCatalogResolver(object):
             # do nothing
             print('Resource already exists')
             return
-        if store:
+        if store and os.path.exists(self._resource_dir):
             resource.write_to_file(self._resource_dir)
         self._resources[resource.origin].append(resource)
 
@@ -204,6 +204,8 @@ class LcCatalogResolver(object):
         :param resources:
         :return:
         """
+        if not os.path.exists(self._resource_dir):
+            return
         j = [k.serialize() for k in resources if k.exists(self._resource_dir)]
         if len(j) == 0:
             os.remove(os.path.join(self._resource_dir, ref))

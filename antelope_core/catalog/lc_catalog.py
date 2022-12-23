@@ -1,3 +1,5 @@
+import tempfile
+
 from .catalog import StaticCatalog
 from ..archives import REF_QTYS, archive_from_json
 from ..lc_resource import LcResource
@@ -11,7 +13,8 @@ import os
 import hashlib
 import getpass
 
-TEST_ROOT = os.path.join(os.path.dirname(__file__), 'cat-test')  # volatile, inspectable
+# TEST_ROOT = os.path.join(os.path.dirname(__file__), 'cat-test')  # volatile, inspectable
+
 
 def download_file(url, local_file, md5sum=None):
     r = requests.get(url, stream=True)
@@ -64,12 +67,19 @@ class LcCatalog(StaticCatalog):
 
     @classmethod
     def make_tester(cls, **kwargs):
-        rmtree(TEST_ROOT, ignore_errors=True)
-        return cls(TEST_ROOT, **kwargs)
+        """
+        Sets a flag that tells the rootdir to be deleted when the catalog is garbage collected
+        :param kwargs:
+        :return:
+        """
+        tmp = tempfile.mkdtemp()
+        return cls(tmp, _test=True, **kwargs)
 
+    """
     @classmethod
     def load_tester(cls):
         return cls(TEST_ROOT)
+    """
 
     @property
     def _dirs(self):
@@ -86,10 +96,15 @@ class LcCatalog(StaticCatalog):
         if not os.path.exists(self._reference_qtys):
             copy2(REF_QTYS, self._reference_qtys)
 
-    def __init__(self, rootdir, **kwargs):
+    def __init__(self, rootdir, _test=False, **kwargs):
         self._rootdir = os.path.abspath(rootdir)
         self._make_rootdir()  # this will be a git clone / fork;; clones reference quantities
+        self._test = _test
         super(LcCatalog, self).__init__(self._rootdir, **kwargs)
+
+    def __del__(self):
+        if self._test:
+            rmtree(self.root)
 
     def save_local_changes(self):
         self._qdb.write_to_file(self._reference_qtys, characterizations=True, values=True)
@@ -199,7 +214,7 @@ class LcCatalog(StaticCatalog):
                 username = input('Enter username to access blackbook server at %s: ' % blackbook_url)
             if password is None:
                 password = getpass.getpass('Enter password to access blackbook server at %s: ' % blackbook_url)
-            tresp = requests.post('/'.join([blackbook_url, 'auth', 'token']), form={'username': username,
+            tresp = requests.post('/'.join([blackbook_url, 'auth', 'token']), data={'username': username,
                                                                                     'password': password})
             token = tresp.content['access_token']  # this needs to be worked through
         bb_client = RestClient(blackbook_url, token=token)
@@ -280,7 +295,6 @@ class LcCatalog(StaticCatalog):
                 # so golly gee we just delete-first.
                 print('deleting %s' % stale.origin)
                 self.delete_resource(stale)
-
 
         the_index = res.make_index(inx_file, force=force)
         self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=stored, interfaces='index',

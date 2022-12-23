@@ -393,7 +393,7 @@ class EntityStore(object):
         This should be avoided and I should probably test for it when setting catalog_names.
         :return:
         """
-        names = {v: k  for k, s in self._catalog_names.items() for v in s}
+        names = {v: k for k, s in self._catalog_names.items() for v in s}
         return names
 
     def get_sources(self, name):
