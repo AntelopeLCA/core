@@ -1,4 +1,4 @@
-from antelope import EntityNotFound, NoAccessToEntity
+from antelope import EntityNotFound, NoAccessToEntity, NullEntity
 
 
 class BasicImplementation(object):
@@ -82,6 +82,8 @@ class BasicImplementation(object):
         if entity.entity_type == 'process':
             # need to get actual references with exchange values-- not the reference_entity
             return [x for x in entity.references()]
+        if entity.reference_entity is None:
+            return NullEntity(self.origin)
         return entity.reference_entity
 
     def get_uuid(self, external_ref):

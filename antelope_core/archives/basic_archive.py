@@ -267,6 +267,7 @@ class BasicArchive(EntityStore):
             try:
                 ref_q = self.tm.get_canonical(rq)
             except EntityNotFound:
+                print('canonical reference quantity %s not found!' % rq)
                 ref_q = None
         return LcFlow(ext_ref, referenceQuantity=ref_q, **entity_j)
 

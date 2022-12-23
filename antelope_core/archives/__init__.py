@@ -92,6 +92,9 @@ def create_archive(source, ds_type, factory=archive_factory, **kwargs):
 
 
 class CheckTerms(object):
+    """
+    A utility for reviewing the integrity of exchanges in an archive
+    """
     def __init__(self, query):
         self._check = defaultdict(list)
         self._p = 0
