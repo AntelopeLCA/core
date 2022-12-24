@@ -214,7 +214,7 @@ class LcResource(object):
                 self.add_interface(k)
 
     def __init__(self, origin, source, ds_type, interfaces=None, privacy=0, priority=50, static=False,
-                 preload_archive=None, **kwargs):
+                 preload_archive=None, config=None, **kwargs):
         """
 
         :param origin: semantic reference to data origin
@@ -228,6 +228,8 @@ class LcResource(object):
         :param kwargs: additional keyword arguments to constructor. Some interesting ones:
           download: a dict containing 'url' and optional 'md5sum' fields
           prefix: often used when accessing zipped archives
+          token: a jwt used for authenticating to xdb
+          'options': popped with values used as kwargs (per ResourceSpec)
 
 
         """
@@ -237,6 +239,9 @@ class LcResource(object):
         '''
 
         self._archive = preload_archive
+
+        options = kwargs.pop('options', dict())
+        kwargs.update(options)
 
         self._org = origin
         if source is None:
@@ -257,7 +262,6 @@ class LcResource(object):
 
         self._config = defaultdict(set)
 
-        config = kwargs.pop('config', None)
         if config:
             for k, v in config.items():
                 for q in v:

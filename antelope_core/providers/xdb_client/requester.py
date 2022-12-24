@@ -3,17 +3,26 @@ from .rest_client import RestClient
 
 
 class XdbRequester(RestClient):
-    def __init__(self, api_root, origin=None, token=None, quiet=False):
+    """
+    A RestClient that encapsulates translating the HTTP responses to Pydantic models
+     -get_one
+     -get_many
+     -qdb_get_one
+     -qdb_get_many
+     -post_return_one
+     -post_return_many
+    """
+    def __init__(self, api_root, ref=None, token=None, quiet=False):
         super(XdbRequester, self).__init__(api_root, token=token, quiet=quiet)
 
-        # I don't understand what's going on here
-        if origin:
-            self._org = origin  # '/'.join([api_root, origin])  # we prepend the API_ROOT now in the parent class
+        if ref:
+            # we make a list of all the endpoint's origins that match our ref
+            self._org = ref  # '/'.join([api_root, origin])  # we prepend the API_ROOT now in the parent class
             self._origins = sorted((OriginMeta(**k) for k in self._get_endpoint(self._org)),
                                    key=lambda x: len(x.origin))
         else:
-            # this does not seem valid, given all the commentary about "prepend the API_ROOT"
-            self._org = api_root
+            # we make a list of all the endpoint's origins- user just has to supply origin as an argument
+            self._org = ''
             self._origins = sorted((OriginMeta(**k) for origin in self._get_endpoint(api_root, 'origins')
                                     for k in self._get_endpoint(api_root, origin)),
                                    key=lambda x: x.origin)
@@ -27,11 +36,16 @@ class XdbRequester(RestClient):
     @property
     def origins(self):
         """
+        This generates OriginMeta cached from the server for origins granted by our token
         Returns OriginMeta data-- this should probably include config information !
         :return:
         """
         for org in self._origins:
             yield org
+
+    @property
+    def is_lcia_engine(self):
+        return any(k.is_lcia_engine for k in self._origins)
 
     def get_raw(self, *args, **kwargs):
         return self._get_endpoint(self._org, *args, **kwargs)

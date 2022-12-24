@@ -17,7 +17,7 @@ from .xdb_entities import XdbEntity
 
 
 class XdbTermManager(object):
-    def __init__(self, requester):
+    def __init__(self, requester: XdbRequester):
         """
         The key question here: should I at least cache remote contexts? for now let us cache nothing
 
@@ -30,7 +30,7 @@ class XdbTermManager(object):
         """
         self._requester = requester
         self._cm = ContextManager()
-        self._bad_contexts= set()
+        self._bad_contexts = set()
         self._flows = set()
         self._quantities = set()
 
@@ -38,11 +38,8 @@ class XdbTermManager(object):
         self._requester = requester
 
     @property
-    def is_lcia_engine(self, org=None):
-        valid_orgs = [k for k in self._requester.origins if 'quantity' in k.interfaces]
-        if org is None:
-            valid_orgs = list(filter(lambda x: x.origin.startswith(org), valid_orgs))
-        return any(k.is_lcia_engine for k in valid_orgs)
+    def is_lcia_engine(self):
+        return self._requester.is_lcia_engine
 
     def _fetch_context_model(self, item):
         return self._requester.get_one(ContextModel, 'contexts', item)

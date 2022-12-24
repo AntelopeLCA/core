@@ -281,7 +281,6 @@ class StaticCatalog(object):
         else:
             raise KeyError('Source %s not found' % source)
 
-
     def has_resource(self, res):
         return self._resolver.has_resource(res)
 

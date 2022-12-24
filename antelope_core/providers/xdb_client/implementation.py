@@ -47,7 +47,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
             return [RxRef(p, self.get(r.flow), r.direction, comment=r.comment) for r in rs]
 
     def properties(self, external_ref, **kwargs):
-        return self._archive.r.get_many(str, 'properties', _ref(external_ref))
+        return self._archive.r.get_many(str, _ref(external_ref), 'properties')
 
     def get_item(self, external_ref, item):
         return self._archive.r.get_raw(_ref(external_ref), 'doc', item)
