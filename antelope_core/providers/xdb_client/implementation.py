@@ -225,6 +225,23 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
             facs = self._archive.r.get_many(CharacterizationModel, quantity, 'factors')
         return list(self._resolve_cf(cf) for cf in facs)
 
+    def cf(self, flow, quantity, ref_quantity=None, context=None, locale='GLO', **kwargs):
+        """
+        We still want to retain the ability to ask the remote server for CFs, even if we may prefer to get that
+        info locally for local flows
+        :param flow:
+        :param quantity:
+        :param ref_quantity:
+        :param context:
+        :param locale:
+        :param kwargs:
+        :return:
+        """
+        try:
+            return self._archive.r.get_one(float, _ref(flow), 'cf', _ref(quantity), context=context, locale=locale)
+        except HTTPError:
+            return 0.0
+
     @staticmethod
     def _result_from_model(quantity, exch_map, res_m: DetailedLciaResult):
         res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
