@@ -320,14 +320,17 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 if q is None:
                     raise
                 return self._archive.tm.get_canonical(q.external_ref)
-#            elif hasattr(quantity, 'entity_type') and quantity.entity_type == 'quantity':
-#                self._archive.add_entity_and_children(quantity)
-#                return self._archive.tm.get_canonical(quantity)
+            elif hasattr(quantity, 'entity_type') and quantity.entity_type == 'quantity':
+                # this is reimplementing CatalogQuery.get_canonical() -> catalog.register_entity_ref()
+                if quantity.is_entity:
+                    raise TypeError('Supplied argument is an entity')
+                self._archive.add(quantity)
+                return self._archive.tm.get_canonical(quantity)
             else:
                 raise
 
     def factors(self, quantity, flowable=None, context=None, dist=0):
-        q = self.get_canonical(quantity)
+        q = self.get_canonical(quantity)  # get_canonical AUDIT
         for cf in self._archive.tm.factors_for_quantity(q, flowable=flowable, context=context, dist=dist):
             yield cf
 
@@ -451,8 +454,8 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 return qr_results, qr_geog, qr_mismatch
 
         for cf in self._archive.tm.factors_for_flowable(fb, quantity=qq, context=cx, **kwargs):
+            res = QuantityConversion(cf.query(locale), query=qq, context=cx)
             try:
-                res = QuantityConversion(cf.query(locale), query=qq, context=cx)
                 qr_results.append(self._ref_qty_conversion(rq, fb, cx, res, locale))
             except ConversionReferenceMismatch:
                 qr_mismatch.append(QuantityConversionError(res, rq))

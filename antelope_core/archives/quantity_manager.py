@@ -45,7 +45,7 @@ class QuantitySynonyms(SynonymSet):
 
     @classmethod
     def new(cls, quantity):
-        return cls(*quantity.quantity_terms(), quantity=quantity)
+        return cls(quantity.name, quantity=quantity)
 
     def _validate_quantity(self, quantity):
         if not hasattr(quantity, 'entity_type'):

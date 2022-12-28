@@ -4,11 +4,13 @@ from antelope import IndexInterface, ExchangeInterface, QuantityInterface, Backg
 from antelope import comp_dir, ExchangeRef, RxRef
 from antelope_core.implementations import BasicImplementation
 from antelope_core.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceExchange, UnallocatedExchange,
-                                  DetailedLciaResult, AllocatedExchange)
+                                  DetailedLciaResult, AllocatedExchange, Characterization as CharacterizationModel,
+                                  ExchangeValues)
 from antelope_core.lcia_results import LciaResult
-from antelope_core.characterizations import QRResult
+from antelope_core.characterizations import Characterization, QRResult
 
 from .xdb_entities import XdbEntity
+from requests.exceptions import HTTPError
 
 
 class BadClientRequest(Exception):
@@ -16,6 +18,12 @@ class BadClientRequest(Exception):
 
 
 class RemoteExchange(Exchange):
+    @property
+    def is_reference(self):
+        return self.type == 'reference'
+
+
+class RemoteExchangeValues(ExchangeValues):
     @property
     def is_reference(self):
         return self.type == 'reference'
@@ -36,21 +44,31 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
     """
     The implementation is very thin, so pile everything into one class
     """
+    def setup_bm(self, query):
+        return True
+
     def get_reference(self, key):
-        rs = self._archive.r.get_one(list, _ref(key), 'references')
-        if isinstance(rs[0], str):
-            return rs[0]  # quantity - unitstring
-        elif 'entity_id' in rs[0]:
-            return self.get(rs[0]['entity_id'])
+        p = self.get(key)
+        if p.entity_type == 'process':
+            rs = self._archive.r.get_many(ReferenceExchange, _ref(key), 'references')
+            return [RxRef(p, self.get(r.flow.external_ref), r.direction, comment=r.comment) for r in rs]
+        elif p.entity_type == 'flow':
+            return self._archive.r.get_one(Entity, _ref(key), 'reference')
+        elif p.entity_type == 'quantity':
+            return self._archive.r.get_one(str, _ref(key), 'reference')
         else:
-            p = self.get(key)
-            return [RxRef(p, self.get(r.flow), r.direction, comment=r.comment) for r in rs]
+            raise TypeError(p.entity_type)
 
     def properties(self, external_ref, **kwargs):
         return self._archive.r.get_many(str, _ref(external_ref), 'properties')
 
     def get_item(self, external_ref, item):
-        return self._archive.r.get_raw(_ref(external_ref), 'doc', item)
+        try:
+            return self._archive.r.get_raw(_ref(external_ref), 'doc', item)
+        except HTTPError as e:
+            if e.args[0] == 404:
+                raise KeyError(external_ref, item)
+            raise e
 
     def get_uuid(self, external_ref):
         """
@@ -86,37 +104,58 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         return self._archive.tm.contexts(**kwargs)
 
     def get_context(self, term, **kwargs):
-        if isinstance(term, list):
+        if isinstance(term, list) or isinstance(term, tuple):
             return self._archive.tm.get_context(term[-1])
         return self._archive.tm.get_context(term)
 
     def targets(self, flow, direction=None, **kwargs):
-        tgts = self._archive.r.get_many(ReferenceExchange, _ref(flow), 'targets')
-        return [RxRef(self.get(tgt.process), self.get(tgt.flow), tgt.direction, tgt.comment) for tgt in tgts]
+        return [XdbEntity(k, self._archive) for k in self._archive.r.get_many(Entity, _ref(flow), 'targets')]
 
     '''
     Exchange routes
     '''
     def _resolve_ex(self, ex):
+        self.get_canonical(ex.flow.quantity_ref)
         ex.flow = XdbEntity(FlowEntity.from_exchange_model(ex), self._archive)  # must get turned into a ref with make_ref
+
         if ex.type == 'context':
             ex.termination = self.get_context(ex.context)
         elif ex.type == 'cutoff':
             ex.termination = None
         return ex
 
+    def _resolve_exv(self, exv: ExchangeValues):
+        exv = self._resolve_ex(exv)
+        if 'null' in exv.values:
+            exv.values[None] = exv.values.pop('null')
+        return exv
+
     def exchanges(self, process, **kwargs):
         """
-        Client code already turns them into ExchangeRefs
+        Client code (process_ref.ProcessRef) already turns them into ExchangeRefs
         :param process:
         :param kwargs:
         :return:
         """
         return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(RemoteExchange, _ref(process), 'exchanges'))
 
+    def exchange_values(self, process, flow, direction=None, termination=None, reference=None, **kwargs):
+        """
+
+        :param process:
+        :param flow:
+        :param direction:
+        :param termination:
+        :param reference:
+        :param kwargs:
+        :return:
+        """
+        return list(self._resolve_exv(exv) for exv in self._archive.r.get_many(RemoteExchangeValues, _ref(process),
+                                                                               'exchanges', _ref(flow)))
+
     def inventory(self, node, ref_flow=None, scenario=None, **kwargs):
         """
-        Client code already turns them into ExchangeRefs
+        Client code (process_ref.ProcessRef) already turns them into ExchangeRefs
         :param node:
         :param ref_flow: if node is a process, optionally provide its reference flow
         :param scenario: if node is a fragment, optionally provide a scenario- as string or tuple
@@ -154,9 +193,40 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         :param kwargs:
         :return:
         """
-        return self._archive.r.qdb_get_one(Entity, _ref(quantity))
+        return self._archive.retrieve_or_fetch_entity(quantity, **kwargs)
 
-    def _result_from_model(self, quantity, exch_map, res_m: DetailedLciaResult):
+    def _resolve_cf(self, cf: CharacterizationModel) -> Characterization:
+        """
+
+        :param cf:
+        :return:
+        """
+        rq = self.get_canonical(cf.ref_quantity)
+        qq = self.get_canonical(cf.query_quantity)
+        cx = self.get_context(cf.context)
+        c = Characterization(cf.flowable, rq, qq, cx, origin=cf.origin)
+        for k, v in cf.value.items():
+            c[k] = v
+        return c
+
+    def factors(self, quantity, flowable=None, context=None, **kwargs):
+        """
+        We need to construct operable characterizations with quantities that are recognized by the LciaEngine- in other
+        words, with refs from our archive
+        :param quantity:
+        :param flowable:
+        :param context: not implemented at the API
+        :param kwargs:
+        :return:
+        """
+        if flowable:
+            facs = self._archive.r.get_many(CharacterizationModel, quantity, 'factors', flowable)
+        else:
+            facs = self._archive.r.get_many(CharacterizationModel, quantity, 'factors')
+        return list(self._resolve_cf(cf) for cf in facs)
+
+    @staticmethod
+    def _result_from_model(quantity, exch_map, res_m: DetailedLciaResult):
         res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
         nodes = set(v.process for v in exch_map.values())
         for c in res_m.components:
@@ -191,4 +261,3 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
 
         ress = self._archive.r.post_return_many(exchanges, DetailedLciaResult, _ref(quantity), 'do_lcia')
         return [self._result_from_model(quantity, exch_map, res) for res in ress]
-

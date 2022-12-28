@@ -1,5 +1,7 @@
 import tempfile
 
+from antelope.xdb_tokens import ResourceSpec
+
 from .catalog import StaticCatalog
 from ..archives import REF_QTYS, archive_from_json
 from ..lc_resource import LcResource
@@ -7,9 +9,11 @@ from ..lcia_engine import DEFAULT_CONTEXTS, DEFAULT_FLOWABLES
 from ..providers.xdb_client.rest_client import RestClient
 
 import requests
+from requests.exceptions import HTTPError
 
 from shutil import copy2, rmtree
 import os
+import json
 import hashlib
 import getpass
 
@@ -100,11 +104,19 @@ class LcCatalog(StaticCatalog):
         self._rootdir = os.path.abspath(rootdir)
         self._make_rootdir()  # this will be a git clone / fork;; clones reference quantities
         self._test = _test
+        self._blackbook_client = None
         super(LcCatalog, self).__init__(self._rootdir, **kwargs)
 
     def __del__(self):
+        """
+        This is unreliable- temp directories tend to accumulate
+        :return:
+        """
+        if self._blackbook_client:
+            self._blackbook_client.close()
         if self._test:
-            rmtree(self.root)
+            # print('tryna delete %s' % self.root)
+            rmtree(self.root, ignore_errors=True)
 
     def save_local_changes(self):
         self._qdb.write_to_file(self._reference_qtys, characterizations=True, values=True)
@@ -194,31 +206,41 @@ class LcCatalog(StaticCatalog):
         res = LcResource.from_archive(archive, interfaces, source=self._localize_source(archive.source), **kwargs)
         self._resolver.add_resource(res, store=store)
 
-    def get_blackbook_resources(self, blackbook_url, origin, username=None, password=None, token=None):
+    def blackbook_authenticate(self, blackbook_url, username=None, password=None, token=None):
         """
-        Use a blackbook server to obtain resources for a given origin. Credentials can either be provided to the
+        Opens an authenticated session with the designated blackbook server.  Credentials can either be provided to the
         method as arguments, or if omitted, they can be obtained through a form.  If a token is provided, it is
         used in lieu of a password workflow
-
-        There may be a need or value to storing either a list of origins, or a set (or sets) of blackbook credentials,
-        or etc. for now we assume that is handled in a client somewhere.
         :param blackbook_url:
-        :param origin:
         :param username:
         :param password:
         :param token:
         :return:
         """
+        if self._blackbook_client:
+            self._blackbook_client.close()
         if token is None:
+            client = RestClient(blackbook_url, auth_route='auth/token')
             if username is None:
                 username = input('Enter username to access blackbook server at %s: ' % blackbook_url)
             if password is None:
                 password = getpass.getpass('Enter password to access blackbook server at %s: ' % blackbook_url)
-            tresp = requests.post('/'.join([blackbook_url, 'auth', 'token']), data={'username': username,
-                                                                                    'password': password})
-            token = tresp.content['access_token']  # this needs to be worked through
-        bb_client = RestClient(blackbook_url, token=token)
-        resource = bb_client.get_one(dict, 'origins', origin, 'resource')
+            try:
+                client.authenticate(username, password)
+            except HTTPError:
+                client.close()
+                raise
+        else:
+            client = RestClient(blackbook_url, token=token, auth_route='auth/token')
+        self._blackbook_client = client
+
+    def get_blackbook_resources(self, origin):
+        """
+        Use a blackbook server to obtain resources for a given origin.
+        :param origin:
+        :return:
+        """
+        resource = self._blackbook_client.get_one(dict, 'origins', origin, 'resource')
         return self._finish_get_blackbook_resources(resource)
 
     def get_blackbook_resources_by_client(self, bb_client, username, origin):
@@ -239,8 +261,25 @@ class LcCatalog(StaticCatalog):
         for recv_origin, res_list in resource.items():
             self._resolver.delete_origin(recv_origin)
             for res in res_list:
-                rtn.append(self._resolver.add_resource(LcResource.from_dict(recv_origin, res)))
+                if isinstance(res, ResourceSpec):
+                    r = LcResource(**res.dict())
+                else:
+                    r = LcResource(**res)
+
+                self.add_resource(r)
+                rtn.append(r)
         return rtn
+
+    def refresh_xdb_tokens(self, origin):
+        """
+        requires an active blackbook client (try blackbook_authenticate() if it has expired)
+        :param origin:
+        :return:
+        """
+        tok = self._blackbook_client.get_one(str, 'origins', origin, 'token')
+        for res in self._resolver.resources:
+            if res.origin == origin and hasattr(res.archive, 'r'):
+                res.archive.r.set_token(tok)
 
     '''
     Manage resources locally

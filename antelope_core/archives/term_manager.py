@@ -138,6 +138,7 @@ class TermManager(object):
      _fq_map: reverse-maps flowable canonical name to a set of quantities that characterize it
     """
     is_lcia_engine = False
+
     def __init__(self, contexts=None, flowables=None, quantities=None, merge_strategy='graft', quiet=True):
         """
         :param contexts: optional filename to initialize CompartmentManager

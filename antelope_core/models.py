@@ -15,6 +15,7 @@ TODO: decide on a consistent structure / format for entity identification.  Curr
 
 from pydantic import BaseModel
 from pydantic.typing import List, Dict, Optional
+from synonym_dict import LowerDict
 
 
 class ResponseModel(BaseModel):
@@ -59,16 +60,20 @@ class Entity(EntityRef):
         obj = cls(origin=entity.origin,
                   entity_id=entity.external_ref,
                   entity_type=entity.entity_type,
-                  properties=dict())
+                  properties=LowerDict())
 
         for key, val in kwargs.items():
-            obj.properties[key] = entity[key]
+            obj.properties[key.lower()] = entity[key]
 
         obj.properties['name'] = entity['name']  # entity.name is doctored
 
         if entity.entity_type == 'quantity':
             obj.properties['unit'] = entity.unit
-            obj.properties['is_lcia_method'] = entity.is_lcia_method
+            # if entity.is_lcia_method:
+            #     obj.properties['indicator'] = entity['indicator']  # this should be handled by signature_fields()
+
+        if entity.uuid is not None:
+            obj.properties['uuid'] = entity.uuid
         return obj
 
     @classmethod
@@ -243,7 +248,7 @@ class ExchangeValues(Exchange):
 
 
 class UnallocatedExchange(Exchange):
-    is_reference: bool=False
+    is_reference: bool = False
     value: float
     uncertainty: Optional[Dict]
 
@@ -344,6 +349,8 @@ def generate_pydantic_inventory(xs, mode=None, values=False, ref_flow=None):
 """
 Quantity Types
 """
+
+
 class Characterization(ResponseModel):
     origin: str
     flowable: str

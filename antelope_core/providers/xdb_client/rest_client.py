@@ -1,5 +1,5 @@
 import requests
-from requests.structures import CaseInsensitiveDict
+from requests.exceptions import HTTPError
 import json
 from time import time
 from pydantic import BaseModel
@@ -9,12 +9,9 @@ class OAuthToken(BaseModel):
     token_type: str
     access_token: str
 
-
-class HttpError(Exception):
-    """
-    Escalate HTTP errors
-    """
-    pass
+    @property
+    def auth(self):
+        return '%s %s' % (self.token_type, self.access_token)
 
 
 class RestClient(object):
@@ -23,6 +20,7 @@ class RestClient(object):
     """
 
     auth_route = 'login'
+    _token = None
 
     def _print(self, *args, cont=False):
         if not self._quiet:
@@ -31,20 +29,50 @@ class RestClient(object):
             else:
                 print(*args)
 
-    def __init__(self, api_root, token=None, quiet=False):
+    def __init__(self, api_root, token=None, quiet=False, auth_route=None):
         self._s = requests.Session()
+        self._s.headers['Accept'] = "application/json"
         self._quiet = quiet
-        self._token = token
+        if auth_route:
+            self.auth_route = auth_route
+        if token:
+            self.set_token(token)
 
         while api_root[-1] == '/':
             api_root = api_root[:-1]  # strip trailing /
 
         self._api_root = api_root
 
+    def close(self):
+        self._s.close()
+
+    def set_token(self, token):
+        """
+        we accept:
+        - a string with a plain token
+        - a string with 'token_type token'
+        - an OauthToken
+        :param token:
+        :return:
+        """
+        if isinstance(token, OAuthToken):
+            self._token = token
+        elif isinstance(token, str):
+            toks = token.split(' ')
+            if len(toks) == 1:
+                self._token = OAuthToken(token_type='bearer', access_token=token)
+            elif len(toks) == 2:
+                self._token = OAuthToken(token_type=toks[0], access_token=toks[1])
+            else:
+                raise ValueError('invalid token specification')
+        else:
+            raise ValueError('Invalid token type')
+        self._s.headers['Authorization'] = self._token.auth
+
     def authenticate(self, username, password, **kwargs):
         """
         POSTs an OAuth2-compliant form to obtain a bearer token.
-        Be sure to set the 'auth_route' property either in a subclass or manually
+        Be sure to set the 'auth_route' property either in a subclass or manually (e.g. on init)
         :param username:
         :param password:
         :param kwargs:
@@ -56,30 +84,16 @@ class RestClient(object):
             "password": password,
         }
         data.update(kwargs)
-        self._token = self.post_return_one(data, OAuthToken, self.auth_route, form=True)
-
-    @property
-    def headers(self):
-        h = CaseInsensitiveDict()
-        h["Accept"] = "application/json"
-        if self._token is not None:
-            if isinstance(self._token, OAuthToken):
-                _token = self._token.dict()
-                ttype = _token.get('token_type', None)
-                tok = _token.get('access_token')
-                if ttype == 'bearer':
-                    auth = "Bearer %s" % tok
-                else:
-                    # TODO: make this support other kinds of authentication
-                    raise TypeError('Unknown token type %s' % ttype)
-            elif isinstance(self._token, str):
-                auth = "Bearer %s" % self._token
-            else:
-                raise TypeError('Unrecognized token type %s' % type(self._token))
-            h["Authorization"] = auth
-        return h
+        self.set_token(self.post_return_one(data, OAuthToken, self.auth_route, form=True))
 
     def _request(self, verb, route, **kwargs):
+        """
+        Returns JSON-translated content
+        :param verb:
+        :param route:
+        :param kwargs:
+        :return:
+        """
         url = '/'.join([self._api_root, route])
         endp = {
             'GET': self._s.get,
@@ -90,11 +104,11 @@ class RestClient(object):
         }[verb]
         self._print('%s %s' % (verb, url), cont=True)
         t = time()
-        resp = endp(url, headers=self.headers, **kwargs)
+        resp = endp(url, **kwargs)
         el = time() - t
         self._print('%d [%.2f sec]' % (resp.status_code, el))
         if resp.status_code >= 400:
-            raise HttpError(resp.status_code, resp.content)
+            raise HTTPError(resp.status_code, resp)
         return json.loads(resp.content)
 
     def _get_endpoint(self, route, *args, **params):

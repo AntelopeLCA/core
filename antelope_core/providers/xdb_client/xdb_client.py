@@ -11,9 +11,10 @@ from antelope_core.catalog_query import READONLY_INTERFACE_TYPES
 from antelope_core.contexts import ContextManager, NullContext
 
 from .requester import XdbRequester
-from .rest_client import HttpError
 from .implementation import XdbImplementation
 from .xdb_entities import XdbEntity
+
+from requests.exceptions import HTTPError
 
 
 class XdbTermManager(object):
@@ -74,13 +75,15 @@ class XdbTermManager(object):
         except KeyError:
             try:
                 c_model = self._fetch_context_model(item)
-            except HttpError as e:
+            except HTTPError as e:
                 if e.args[0] == 404:
                     self._bad_contexts.add(item)
                     return None
                 else:
                     raise
             c_actual = self._build_context(c_model, item)
+            # this escapes the PROTECTED_TERM restrictions- which is OK because our CM is captive
+            self._cm.add_synonym(c_actual.name, item)
             return c_actual
 
     def is_context(self, item):
@@ -99,6 +102,7 @@ class XdbTermManager(object):
     def get_context(self, item):
         return self.__getitem__(item) or NullContext
 
+    '''
     def get_canonical(self, item):
         """
         again, to avoid premature optimization, the initial policy is no caching anything
@@ -107,11 +111,12 @@ class XdbTermManager(object):
         """
         try:
             return self._requester.get_one(Entity, 'quantities', item)
-        except HttpError as e:
+        except HTTPError as e:
             if e.args[0] == 404:
                 raise EntityNotFound(item)
             else:
-                raise
+                raise e
+    '''
 
     def synonyms(self, term):
         return self._requester.get_many(str, 'synonyms', term=term)
@@ -135,6 +140,9 @@ class XdbClient(LcArchive):
             ref = 'qdb'
         super(XdbClient, self).__init__(source, ref=ref, term_manager=XdbTermManager(self._requester))
 
+    def refresh_token(self, new_token):
+        self._requester.set_token(new_token)
+
     def refresh_auth(self, new_source, new_token):
         self._requester = XdbRequester(new_source, new_token)
         self.tm.update_requester(self._requester)
@@ -148,5 +156,8 @@ class XdbClient(LcArchive):
             return XdbImplementation(self)
         raise InterfaceError(iface)
 
-    def _fetch(self, entity, **kwargs):
-        return self.query.make_ref(XdbEntity(self._requester.get_one(Entity, entity), self))
+    def _fetch(self, key, **kwargs):
+        ref = self.query.make_ref(XdbEntity(self._requester.get_one(Entity, key), self))
+        if key not in self._entities:
+            self._entities[key] = ref
+        return ref

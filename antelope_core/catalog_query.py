@@ -61,7 +61,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
 
     def _debug(self, *args):
         if self._dbg:
-            print(*args)
+            print(self.__class__.__name__, *args)
 
     def __init__(self, origin, catalog=None, debug=False):
         self._origin = origin
@@ -119,6 +119,12 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
     def __str__(self):
         return '%s for %s (catalog: %s)' % (self.__class__.__name__, self.origin, self._catalog.root)
     '''
+    def _setup_background(self, bi):
+        self._debug('Setting up background interface')
+        try:
+            bi.setup_bm(self)
+        except AttributeError:
+            raise BackgroundSetup('Failed to configure background')
 
     def _iface(self, itype, strict=False):
         self._debug('Origin: %s' % self.origin)
@@ -129,11 +135,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             yield self._iface_cache[itype]
         for i in self._catalog.gen_interfaces(self._origin, itype, strict=strict):
             if itype == 'background':  # all our background implementations must provide setup_bm(query)
-                self._debug('Setting up background interface')
-                try:
-                    i.setup_bm(self)
-                except AttributeError:
-                    raise BackgroundSetup('Failed to configure background')
+                self._setup_background(i)
 
             self._debug('yielding %s' % i)
             self._iface_cache[itype] = i  # only cache the most recent iface
@@ -225,6 +227,28 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             else:
                 raise
         return q_can
+
+    def characterize(self, flowable, ref_quantity, query_quantity, value, context=None, location='GLO', **kwargs):
+        """
+        This is an Xdb innovation: we do not need or want an implementation-specific characterize routine-- just like
+        with make_ref, the point of the catalog query is to localize all characterizations to the LciaEngine.
+
+        We simply duplicate the characterize() code from the core QuantityImplementation
+        :param flowable:
+        :param ref_quantity:
+        :param query_quantity:
+        :param value:
+        :param context:
+        :param location:
+        :param kwargs:
+        :return:
+        """
+        rq = self.get_canonical(ref_quantity)
+        qq = self.get_canonical(query_quantity)
+        origin = kwargs.pop('origin', self.origin)
+        print('@@@ going characterization-commando')
+        return self._tm.add_characterization(flowable, rq, qq, value, context=context, location=location,
+                                             origin=origin, **kwargs)
 
     def clear_seen_characterizations(self, quantity):
         """
