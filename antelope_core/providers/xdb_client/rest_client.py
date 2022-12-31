@@ -108,7 +108,7 @@ class RestClient(object):
         el = time() - t
         self._print('%d [%.2f sec]' % (resp.status_code, el))
         if resp.status_code >= 400:
-            raise HTTPError(resp.status_code, resp)
+            raise HTTPError(resp.status_code, resp.content)
         return json.loads(resp.content)
 
     def _get_endpoint(self, route, *args, **params):

@@ -390,7 +390,7 @@ class StaticCatalog(object):
             return False
         return True
 
-    def query(self, origin, strict=False, refresh=False, **kwargs):
+    def query(self, origin, strict=False, refresh=False, cache=True, **kwargs):
         """
         Returns a query using the first interface to match the origin.
         :param origin:
@@ -399,6 +399,7 @@ class StaticCatalog(object):
          whereas if strict=True, only a resource matching 'local.traci' exactly will be returned
         :param refresh: [False] by default, the catalog stores a CatalogQuery instance for every requested origin.  With
          refresh=True, any prior instance will be replaced with a fresh one.
+        :param cache: [True] whether to retain the query
         :param kwargs:
         :return:
         """
@@ -408,13 +409,20 @@ class StaticCatalog(object):
         except StopIteration:
             raise UnknownOrigin(origin, strict)
 
-        if refresh or (origin not in self._queries):
-            query = self._query_type(origin, catalog=self, **kwargs)
-            if query.validate():
-                self._queries[origin] = query
-            else:
-                raise InvalidQuery(origin)
-        return self._queries[origin]
+        if refresh:
+            self._queries.pop(origin, None)
+
+        if cache and origin in self._queries:
+            return self._queries[origin]
+
+        query = self._query_type(origin, catalog=self, **kwargs)
+        if query.validate():
+            pass
+        else:
+            raise InvalidQuery(origin)
+        if cache:
+            self._queries[origin] = query
+        return query
 
     def lookup(self, catalog_ref, keep_properties=False):
         """
