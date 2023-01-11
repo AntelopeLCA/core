@@ -104,13 +104,14 @@ class FileAccessor(object):
                 source = os.path.join(ds_path, fn)
                 yield source
 
-    def create_resource(self, source, basic=False):
+    def create_resource(self, source, basic=False, **kwargs):
         if not source.startswith(self._path):
             raise ValueError('Path not contained within our filespace')
         rel_source = source[len(self._path)+1:]
         org, iface, ds_type, fn = rel_source.split(os.path.sep)  # note os.pathsep is totally different
 
         cfg = self.read_config(source)
+        cfg.update(kwargs)
         priority = cfg.pop('priority', DEFAULT_PRIORITIES[iface])
 
         # do this last
