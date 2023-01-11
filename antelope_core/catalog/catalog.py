@@ -336,9 +336,11 @@ class StaticCatalog(object):
             '''
             yield res
 
-    def resources(self, loaded=None):
+    def resources(self, origin=None, loaded=None):
         """
-        Generate a list of resources known to the resolver.  Optionally filter by whether the resource has been loaded.
+        Generate a list of resources known to the resolver.  Optionally filter by origin prefix and
+        by whether the resource has been loaded.
+        :param origin:
         :param loaded: True | False | [None]
         :return:
         """
@@ -350,6 +352,9 @@ class StaticCatalog(object):
                 return True
             return False
         for res in self._resolver.resources:
+            if origin:
+                if not res.origin.startswith(origin):
+                    continue
             if _match_loaded(res):
                 yield res
 
