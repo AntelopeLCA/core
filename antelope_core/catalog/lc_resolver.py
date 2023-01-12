@@ -162,6 +162,13 @@ class LcCatalogResolver(object):
                     if res.satisfies(interfaces):
                         yield res
         if not origin_found:
+            # resolver should just ignore 'local' prefix if it can't find a local match
+            if (not strict) and terms[0] == 'local':
+                nl = '.'.join(terms[1:])
+                for i in self.resolve(nl, interfaces=interfaces):
+                    origin_found = True
+                    yield i
+        if not origin_found:
             raise UnknownOrigin(req)
 
     def get_resource(self, ref=None, iface=None, source=None, strict=True, include_internal=True):

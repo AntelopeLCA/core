@@ -9,9 +9,15 @@ from .basic import BasicImplementation
 from ..characterizations import QRResult, LocaleMismatch
 from ..contexts import NullContext
 from ..lcia_results import LciaResult
+from ..entities.quantities import new_quantity
+from ..entities.flows import new_flow
 
 
 class RefQuantityRequired(Exception):
+    pass
+
+
+class UnknownRefQuantity(Exception):
     pass
 
 
@@ -62,6 +68,11 @@ class QuantityConversion(object):
                     and self.locale == other.locale and self.value == other.value)
         except AttributeError:
             return False
+
+    def __bool__(self):
+        if self.value != 0.0:
+            return True
+        return False
 
     def invert(self):
         inv_qrr = type(self)(query=self.ref)
@@ -299,6 +310,38 @@ def try_convert(flowable, rq, qq, context, locale):
 
 
 class QuantityImplementation(BasicImplementation, QuantityInterface):
+
+    def new_quantity(self, name, ref_unit=None, **kwargs):
+        """
+
+        :param name:
+        :param ref_unit:
+        :param kwargs:
+        :return:
+        """
+        q = new_quantity(name, ref_unit, **kwargs)
+        self._archive.add(q)
+        return q
+
+    def new_flow(self, name, ref_quantity=None, **kwargs):
+        """
+
+        :param name:
+        :param ref_quantity: defaults to "Number of items"
+        :param context: [None] pending context refactor
+        :param kwargs:
+        :return:
+        """
+        if ref_quantity is None:
+            ref_quantity = 'Number of items'
+        try:
+            ref_q = self.get_canonical(ref_quantity)
+        except EntityNotFound:
+            raise UnknownRefQuantity(ref_quantity)
+        f = new_flow(name, ref_q, **kwargs)
+        self._archive.add_entity_and_children(f)
+        return self.get(f.link)
+
     """
     Uses the archive's term manager to index cfs, by way of the canonical quantities
     """

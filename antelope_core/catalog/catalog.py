@@ -479,7 +479,9 @@ class StaticCatalog(object):
         try:
             q = self.query(origin)
         except UnknownOrigin:
-            return CatalogRef(origin, external_ref, entity_type=entity_type, **kwargs)
+            ref = CatalogRef(origin, external_ref, entity_type=entity_type, **kwargs)
+            print('Ungrounded catalog ref %s' % ref.link)
+            return ref
         return q.get(external_ref)
         # except EntityNotFound:  why would we catch this?
         #     return CatalogRef.from_query(external_ref, q, entity_type=entity_type, **kwargs)
