@@ -23,7 +23,7 @@ From the catalog_ref file, the catalog should meet the following spec:
 import os
 # import re
 import hashlib
-# from collections import defaultdict
+from collections import defaultdict
 
 from ..archives import InterfaceError, EntityExists
 from ..lcia_engine import LciaDb
@@ -182,6 +182,7 @@ class StaticCatalog(object):
         self._nicknames = dict()  # keep a collection of shorthands for sources
 
         self._queries = dict()  # keep a collection of CatalogQuery instances for each origin
+        self._bad_origins = defaultdict(set)
 
         '''
         LCIA: 
@@ -197,6 +198,15 @@ class StaticCatalog(object):
 
     def synonyms(self, arg):
         return self.lcia_engine.synonyms(arg)
+
+    @property
+    def bad_origins(self):
+        for o in self._bad_origins.keys():
+            yield o
+
+    def bad_refs(self, origin):
+        for y in self._bad_origins[origin]:
+            yield y
 
     '''
     The thing that distinguishes a catalog from an archive is its centralized handling of quantities via the qdb
@@ -479,8 +489,10 @@ class StaticCatalog(object):
         try:
             q = self.query(origin)
         except UnknownOrigin:
+
             ref = CatalogRef(origin, external_ref, entity_type=entity_type, **kwargs)
             print('Ungrounded catalog ref %s' % ref.link)
+            self._bad_origins[origin].add(ref)
             return ref
         return q.get(external_ref)
         # except EntityNotFound:  why would we catch this?

@@ -381,6 +381,19 @@ class SummaryLciaResult(object):
         return j
 
 
+class SummaryLciaMissing(SummaryLciaResult):
+    @property
+    def name(self):
+        return 'Missing %s' % self.entity
+
+    is_null = False
+
+    def __str__(self):
+        return '%s = %-s x (MISSING)  | %s' % (
+        number(self.cumulative_result * self._lc.autorange), number(self.node_weight),
+        self.entity)
+
+
 class AggregateLciaScore(object):
     """
     contains an entityId which should be either a process or a fragment (fragment stages show up as fragments??)
@@ -480,7 +493,6 @@ class AggregateLciaScore(object):
                 j['details'] = []
             j['details'] = [p.serialize(detailed=False) for p in self.LciaDetails]
         return j
-
 
 
 def show_lcia(lcia_results):
@@ -624,8 +636,8 @@ class LciaResult(object):
                 entity_id = 'aggregated result'
             agg_result.add_summary(entity_id, entity_id, 1.0, self.total())
         else:
-            for v in self._LciaScores.values():
-                keystring = 'other'
+            for k, v in self._LciaScores.items():
+                keystring = k
                 try:
                     keystring = key(v.entity)
                 finally:
@@ -752,6 +764,13 @@ class LciaResult(object):
                 self._LciaScores[key] = summary
             except InconsistentSummaries:
                 self._failed.append(summary)
+        else:
+            self._LciaScores[key] = summary
+
+    def add_missing(self, key, missing, node_weight):
+        summary = SummaryLciaMissing(self, missing, node_weight, 0.0)
+        if key in self._LciaScores.keys():
+            self._LciaScores[key] += summary
         else:
             self._LciaScores[key] = summary
 
