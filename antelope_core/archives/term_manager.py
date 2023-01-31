@@ -67,8 +67,10 @@ class FactorCollision(Exception):
     pass
 
 
+''' # cannot figure out what this is supposed to guard against
 class QuantityConflict(Exception):
     pass
+'''
 
 
 class FlowableConflict(Exception):
@@ -229,8 +231,10 @@ class TermManager(object):
             raise TypeError('Must be quantity type')
         try:
             ex = self._qm[quantity.link]
+            ''' # can't understand what this was supposed to guard against-- and the test that used it was removed so
             if not ex is quantity:
                 raise QuantityConflict('Incoming %s does not match existing\n%s' % (ex, quantity))
+            '''
         except KeyError:
             self._qm.add_quantity(quantity)
         return self._canonical_q(quantity)

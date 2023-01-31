@@ -1,4 +1,4 @@
-from ..term_manager import TermManager, QuantityConflict
+from ..term_manager import TermManager  # QuantityConflict
 from ...entities import LcQuantity, LcFlow
 from ...contexts import Context
 import unittest

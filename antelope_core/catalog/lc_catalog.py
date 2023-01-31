@@ -240,8 +240,12 @@ class LcCatalog(StaticCatalog):
         :param origin:
         :return:
         """
-        resource = self._blackbook_client.get_one(dict, 'origins', origin, 'resource')
-        return self._finish_get_blackbook_resources(resource)
+        res = list(self.resources(origin))
+        if len(res) > 0:
+            return self.refresh_xdb_tokens(origin)
+        else:
+            resource_dict = self._blackbook_client.get_one(dict, 'origins', origin, 'resource')
+            return self._finish_get_blackbook_resources(resource_dict)
 
     def get_blackbook_resources_by_client(self, bb_client, username, origin):
         """
@@ -251,15 +255,15 @@ class LcCatalog(StaticCatalog):
         :param origin:
         :return:
         """
-        resource = bb_client.retrieve_resource(username, origin)
-        return self._finish_get_blackbook_resources(resource)
+        resource_dict = bb_client.retrieve_resource(username, origin)
+        return self._finish_get_blackbook_resources(resource_dict)
 
-    def _finish_get_blackbook_resources(self, resource):
+    def _finish_get_blackbook_resources(self, resource_dict):
 
         rtn = []
 
-        for recv_origin, res_list in resource.items():
-            self._resolver.delete_origin(recv_origin)
+        for recv_origin, res_list in resource_dict.items():
+            # self._resolver.delete_origin(recv_origin)
             for res in res_list:
                 if isinstance(res, ResourceSpec):
                     r = LcResource(**res.dict())
@@ -277,9 +281,15 @@ class LcCatalog(StaticCatalog):
         :return:
         """
         tok = self._blackbook_client.get_one(str, 'origins', origin, 'token')
+        rtn = []
         for res in self._resolver.resources:
-            if res.origin == origin and hasattr(res.archive, 'r'):
-                res.archive.r.set_token(tok)
+            if res.origin == origin:  # and hasattr(res.archive, 'r'):
+                if res.archive is None:
+                    res.check(self)
+                if hasattr(res.archive, 'r'):
+                    res.archive.r.set_token(tok)
+                rtn.append(res)
+        return rtn
 
     '''
     Manage resources locally

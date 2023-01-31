@@ -179,7 +179,7 @@ class StaticCatalog(object):
         _names :=  ref:interface -> source
         _nicknames := nickname -> source
         """
-        self._nicknames = dict()  # keep a collection of shorthands for sources
+        self._nicknames = dict()  # keep a collection of shorthands for origins
 
         self._queries = dict()  # keep a collection of CatalogQuery instances for each origin
         self._bad_origins = defaultdict(set)
@@ -266,6 +266,10 @@ class StaticCatalog(object):
 
     '''
     Nicknames
+    
+    These are vestigial from the very earliest days of the catalog-- at the time we thought it made sense to assign 
+    a nickname to a specific SOURCE but in practice, the only thing we have ever wanted to do was assign a nickname
+    to an ORIGIN. so we are going to make that official.
     '''
     @property
     def names(self):
@@ -276,20 +280,20 @@ class StaticCatalog(object):
         for k, ifaces in self._resolver.origins:
             for iface in ifaces:
                 yield ':'.join([k, iface])
-        for k in self._nicknames.keys():
-            yield k
 
-    def add_nickname(self, source, nickname):
+    def add_nickname(self, nickname, origin, interface=None):
         """
-        quickly refer to a specific data source already present in the archive
-        :param source:
-        :param nickname:
+        alternate names for origins (optional interface) in the catalog
+        :param nickname: short name to be used
+        :param origin: origin to refer to
+        :param interface: [None] interface to specify
         :return:
         """
-        if self._resolver.known_source(source):
-            self._nicknames[nickname] = source
-        else:
-            raise KeyError('Source %s not found' % source)
+        try:
+            next(self._resolver.resolve(origin, interfaces=interface))
+        except UnknownOrigin:
+            raise KeyError('Origin %s not found' % origin)
+        self._nicknames[nickname] = (origin, interface)
 
     def has_resource(self, res):
         return self._resolver.has_resource(res)
@@ -315,7 +319,9 @@ class StaticCatalog(object):
         :return:
         """
         if name in self._nicknames:
-            return self._resolver.get_resource(source=self._nicknames[name], strict=strict)
+            # return self._resolver.get_resource(source=self._nicknames[name], strict=strict)
+            name, nick_i = self._nicknames[name]
+            iface = iface or nick_i
         iface = zap_inventory(iface, warn=True)  # warn when requesting the wrong interface
         return self._resolver.get_resource(ref=name, iface=iface, source=source, strict=strict)
 
@@ -418,6 +424,8 @@ class StaticCatalog(object):
         :param kwargs:
         :return:
         """
+        if origin in self._nicknames:
+            origin, _ = self._nicknames[origin]
 
         try:
             next(self._resolver.resolve(origin, strict=strict))
