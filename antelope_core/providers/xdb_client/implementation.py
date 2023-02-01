@@ -92,13 +92,16 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         return sum(k.count[entity_type] for k in self._archive.r.get_many(OriginCount, 'count'))
 
     def processes(self, **kwargs):
-        return [XdbEntity(k, self._archive) for k in self._archive.r.get_many(Entity, 'processes', **kwargs)]
+        llargs = {k.lower(): v for k, v in kwargs.items()}
+        return [XdbEntity(k, self._archive) for k in self._archive.r.get_many(Entity, 'processes', **llargs)]
 
     def flows(self, **kwargs):
-        return [XdbEntity(k, self._archive) for k in self._archive.r.get_many(FlowEntity, 'flows', **kwargs)]
+        llargs = {k.lower(): v for k, v in kwargs.items()}
+        return [XdbEntity(k, self._archive) for k in self._archive.r.get_many(FlowEntity, 'flows', **llargs)]
 
     def quantities(self, **kwargs):
-        return [XdbEntity(k, self._archive) for k in self._archive.r.get_many(Entity, 'quantities', **kwargs)]
+        llargs = {k.lower(): v for k, v in kwargs.items()}
+        return [XdbEntity(k, self._archive) for k in self._archive.r.get_many(Entity, 'quantities', **llargs)]
 
     def contexts(self, **kwargs):
         return self._archive.tm.contexts(**kwargs)
