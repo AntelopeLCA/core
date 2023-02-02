@@ -285,6 +285,7 @@ class LcCatalog(StaticCatalog):
         for res in self._resolver.resources:
             if res.origin == origin:  # and hasattr(res.archive, 'r'):
                 if res.archive is None:
+                    res.init_args['token'] = tok
                     res.check(self)
                 if hasattr(res.archive, 'r'):
                     res.archive.r.set_token(tok)

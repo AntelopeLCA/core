@@ -23,7 +23,7 @@ except ImportError:
     from urlparse import urljoin
     from urllib2 import urlopen
 
-_ext = re.compile('\.([^.]+)$')
+_ext = re.compile('\.([^./\\\]+)$')
 protocol = re.compile('^(\w+)://')
 
 
