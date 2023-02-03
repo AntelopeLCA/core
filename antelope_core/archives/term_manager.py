@@ -445,14 +445,16 @@ class TermManager(object):
         if len(fb_map) == 0:  # all new terms
             if len(new_terms) == 0:
                 raise AttributeError('Flow appears to have no terms: %s' % flow)
-            fb = self._create_flowable(flow.name)
+            fb = self._create_flowable(flow.name, *new_terms)
+            new_terms = []  # these have all been added
 
         elif merge_strategy in ('prune', 'distinct'):
             # fb = self._add_distinct_terms(flow, new_terms)
-            try:
-                fb = self._create_flowable(new_terms.pop(0), prune=True)  # new_terms cannot be 0
-            except IndexError:
+            if len(new_terms) == 0:
                 fb = self._fm.get(flow.link)  # um, I guess if there are no new terms...
+            else:
+                fb = self._create_flowable(*new_terms, prune=True)  # new_terms cannot be 0
+                new_terms = []  # these have all been added or pruned
 
         elif len(fb_map) == 1:  # one existing match- graft onto that
             fb = list(fb_map.keys())[0]
