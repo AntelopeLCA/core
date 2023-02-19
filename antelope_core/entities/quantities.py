@@ -114,6 +114,9 @@ class LcQuantity(LcEntity):
     def has_lcia_engine(self):
         return self._qi.is_lcia_engine()
 
+    def canonical(self):
+        return self._qi.get_canonical(self)
+
     def cf(self, flow, locale='GLO', **kwargs):
         """
         The semantics here may be confusing, but cf is flow-centered. It converts reports the amount in self that

@@ -82,7 +82,7 @@ class LciaDb(Qdb):
             if entity.is_entity and not entity.configured:  # local db is authentic source - do not masquerade
                 # print('LciaDb: Adding real entity %s' % entity.link)
                 q_masq = QuantityRef(entity.external_ref, self.query, entity.reference_entity,
-                                     Name=entity['Name'], Indicator=ind)
+                                     Name=entity['Name'], Indicator=ind)  # WHY am I not using entity.make_ref() ??
                 entity.set_qi(self.make_interface('quantity'))
             else:
                 if entity.has_lcia_engine():  # ready to go

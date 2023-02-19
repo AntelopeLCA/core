@@ -3,7 +3,7 @@ Each archive now has a TermManager which interprets query arguments as synonyms 
 can also be upgraded to an LciaEngine, which extends the synonymization strategy to quantities as well
 """
 from antelope import (QuantityInterface, NoFactorsFound, ConversionReferenceMismatch, EntityNotFound, FlowInterface,
-                      convert, NoUnitConversionTable, QuantityRequired)
+                      convert, NoUnitConversionTable, QuantityRequired, RefQuantityRequired)
 
 from .basic import BasicImplementation
 from ..characterizations import QRResult, LocaleMismatch
@@ -11,10 +11,6 @@ from ..contexts import NullContext
 from ..lcia_results import LciaResult
 from ..entities.quantities import new_quantity
 from ..entities.flows import new_flow
-
-
-class RefQuantityRequired(Exception):
-    pass
 
 
 class UnknownRefQuantity(Exception):

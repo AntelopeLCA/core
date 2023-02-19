@@ -1056,7 +1056,7 @@ class LciaResult(object):
         if autorange is not None:
             self.set_autorange(autorange)
         elif self._autorange is not None:
-                self.set_autorange()
+            self.set_autorange()
 
         bal_idx = None
         results = []

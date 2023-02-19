@@ -234,7 +234,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         info locally for local flows
         :param flow:
         :param quantity:
-        :param ref_quantity:
+        :param ref_quantity: NOT USED
         :param context:
         :param locale:
         :param kwargs:

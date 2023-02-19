@@ -616,8 +616,8 @@ class EntityStore(object):
         if entity_type is None:
             [self.check_counter(entity_type=k) for k in self._entity_types]
         else:
-            print('%d new %s entities added (%d total)' % (self._counter[entity_type], entity_type,
-                                                           self.count_by_type(entity_type)))
+            print('%d total %s entities added (%d new)' % (self.count_by_type(entity_type), entity_type,
+                                                           self._counter[entity_type]))
             self._counter[entity_type] = 0
 
     def find_partial_id(self, uid, startswith=True):
