@@ -371,6 +371,8 @@ class OpenLcaJsonLdArchive(LcArchive):
                 rx = self._get_rx(p, af['product']['@id'])
             except _NotAnRx:
                 continue
+            if rx.value == 0:
+                continue  # can't allocate to a non-flow
             if af['allocationType'] == 'CAUSAL_ALLOCATION':
                 if af['value'] == 0:
                     # Keep 0-allocation factors for non-causal
@@ -440,7 +442,6 @@ class OpenLcaJsonLdArchive(LcArchive):
             alloc = p_j.pop('allocationFactors')
         else:
             alloc = None
-
 
         p = LcProcess(p_id, Name=name, Classifications=cls, SpatialScope=ss, TemporalScope=stt, **p_j)
 

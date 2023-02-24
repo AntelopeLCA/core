@@ -552,9 +552,9 @@ class LcProcess(LcEntity):
             raise AlreadyAReference((flow, dirn))
         _x = hash((self.external_ref, flow.external_ref, dirn, termination))
         if _x in self._exchanges:
-            if value is None or value == 0:
-                return None
             e = self._exchanges[_x]
+            if value is None or value == 0:
+                return e  # the client code *never* expects None
             if reference is None:
                 if isinstance(value, dict):
                     e.update(value)
