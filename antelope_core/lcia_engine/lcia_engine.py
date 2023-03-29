@@ -1,11 +1,11 @@
 from collections import defaultdict
-import re
 import os
 
 from ..archives.term_manager import TermManager, NoFQEntry
 from ..contexts import Context, NullContext
-from .quelled_cf import QuelledCF
 from .clookup import CLookup, SCLookup
+
+from antelope.flows.flow import flowname_is_biogenic
 
 from synonym_dict import TermExists, FlowablesDict
 # from synonym_dict.example_compartments.compartment_manager import InconsistentLineage  # this is not needed
@@ -19,13 +19,13 @@ Switchable biogenic CO2:
   watch for it
 * Then the switch determines whether or not to quell the CF returned to the user, without changing the database
 '''
-biogenic = re.compile('(biotic|biogenic|non-fossil|in air)', flags=re.IGNORECASE)
 
 
 DEFAULT_CONTEXTS = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data', 'contexts.json'))
 NUM_DEFAULT_CONTEXTS = 37  # added fossil
 
 DEFAULT_FLOWABLES = os.path.abspath(os.path.join(os.path.dirname(__file__), 'data', 'flowables.json'))
+
 
 class QuantityMasqueradeError(Exception):
     pass
@@ -44,7 +44,6 @@ class LciaEngine(TermManager):
        - dist = 3: .. or any parent up to NullContext
      * quell biogenic CO2 in quantity relation lookups
     """
-    _quell_biogenic = None
     is_lcia_engine = True
 
     def _configure_flowables(self, flowables):
@@ -62,29 +61,20 @@ class LciaEngine(TermManager):
 
         self._fm.new_entry('carbon dioxide', '124-38-9')
         self._water = self._fm.new_entry('Water', '7732-18-5')
-        # we store the child object and use it to signify biogenic CO2 to optionally quell
-        # this strategy depends on the ability to set a query flow's name-- i.e. FlowInterface
-        self._bio_co2 = self._fm.new_entry('carbon dioxide (biotic)', '124-38-9', create_child=True)
-        for c in list(self._bio_co2.children):
-            self._bio_co2.remove_child(c)  # carve back the CAS number
 
         # now load + merge from file
         self._fm.load(flowables)
 
-        # now add all known "biotic" synonyms for CO2 to the biotic child
-        for k in self._fm.synonyms('124-38-9'):
-            if self.is_biogenic(k):
-                self._bio_co2.add_term(k)
         self._fq_map = {fb: set() for fb in self._fm.objects}
 
     def __init__(self, contexts=None, flowables=None, quantities=None,
-                 quell_biogenic_co2=False,
+                 quell_biogenic_co2=None,
                  strict_clookup=True,
                  **kwargs):
         """
 
         :param quantities:
-        :param quell_biogenic_co2:
+        :param quell_biogenic_co2: DEPRECATED
         :param contexts:
         :param flowables:
         :param strict_clookup: [True] whether to prohibit multiple CFs for each quantity / flowable / context tuple
@@ -105,18 +95,10 @@ class LciaEngine(TermManager):
         self._fb_by_origin = defaultdict(set)  # maps origin to flowables having that origin
         self._fb_by_origin[None] = set(str(k) for k in self._fm.objects)
 
-        # difficult problem, this
-        self.quell_biogenic_co2 = quell_biogenic_co2
+        if quell_biogenic_co2 is not None:
+            print('WARNING: quell_biogenic_co2 LciaEngine argument is DEPRECATED - it is now kwarg to lcia()')
 
         self._factors_for_later = defaultdict(bool)
-
-    @property
-    def quell_biogenic_co2(self):
-        return self._quell_biogenic
-
-    @quell_biogenic_co2.setter
-    def quell_biogenic_co2(self, value):
-        self._quell_biogenic = bool(value)
 
     def save_for_later(self, quantity):
         qc = self.get_canonical(quantity)
@@ -174,7 +156,7 @@ class LciaEngine(TermManager):
                         print('!X!X!X!X!X!X!X! conflict when applying hint %s->%s' % (term, canonical))
                         print('                canonical: %s = ' % c.quantity.link)
                         print('                extisting: %s = ' % t.quantity.link)
-                    #assert self._qm[canonical] is self._qm[term]
+                    # assert self._qm[canonical] is self._qm[term]
             elif hint_type == 'flowable':
                 print('Applying flowable hint %s -> %s' % (term, canonical))
                 try:
@@ -201,30 +183,6 @@ class LciaEngine(TermManager):
                 self._qm.add_synonym(ent, synonym)
             except KeyError:
                 raise KeyError('No entry found for %s' % existing_term)
-
-    def add_biogenic_co2_synonym(self, bio_co2_syn):
-        """
-        The bio_co2 flowable is the final authority for which flows are quelled when quell_biogenic_co2 is True.
-        These flows are only quelled if they represent an intake of resources from air (or a subcompartment) or an
-        emission.
-        This function ensures that the string is a synonym for carbon dioxide, and that it is
-        :param bio_co2_syn:
-        :return:
-        """
-        self.add_synonym('carbon dioxide', bio_co2_syn)
-        self._bio_co2.add_term(bio_co2_syn)
-
-    def remove_biogenic_co2_synonym(self, bio_co2_not_syn):
-        """
-        The bio_co2 flowable is the final authority for which flows are quelled when quell_biogenic_co2 is True.
-        These flows are only quelled if they represent an intake of resources from air (or a subcompartment) or an
-        emission.
-        This function removes a string from that set, but the string will remain a synonym for 'carbon dioxide'.
-
-        :param bio_co2_not_syn:
-        :return:
-        """
-        self._bio_co2.remove_term(bio_co2_not_syn)
 
     @staticmethod
     def _flow_terms(flow):
@@ -255,11 +213,8 @@ class LciaEngine(TermManager):
         :param new_terms:
         :return:
         """
-        biog = ('124-38-9' in fb)
         for term in new_terms:
             self._fm.add_synonym(fb, term)
-            if biog and self.is_biogenic(term):
-                self._bio_co2.add_term(term)  # ensure that bio term is a biogenic synonym
 
     def add_flow_terms(self, flow, merge_strategy=None):
         """
@@ -277,13 +232,13 @@ class LciaEngine(TermManager):
         fb = super(LciaEngine, self).add_flow_terms(flow, merge_strategy=merge_strategy)
         self._fb_by_origin[flow.origin].add(str(fb))
         if '124-38-9' in fb:
+            flow.is_co2 = True
             try:
-                bio = next(t for t in flow.synonyms if self.is_biogenic(t))
+                bio = next(t for t in flow.synonyms if flowname_is_biogenic(t))
             except StopIteration:
                 # no biogenic terms
                 return fb
             flow.name = bio  # ensure that flow's name shows up with that term
-            self._bio_co2.add_term(bio)
             self._fb_by_origin[flow.origin].add(bio)
         return fb
 
@@ -495,34 +450,6 @@ class LciaEngine(TermManager):
                     continue
             yield k
 
-    @staticmethod
-    def is_biogenic(term):
-        """
-        A method to report whether a string is considered "biogenic".  Currently just a regular expression searching
-        for the terms '
-        :param term:
-        :return:
-        """
-        return bool(biogenic.search(term))
-
-    def _quell_co2(self, flowable, context):
-        """
-        We assume that all biogenic CO2 flows will be detected via add_flow, and will have their names set to something
-        known to our _bio_co2 Flowable. So: If we are quelling, and if the flowable (string) is synonym to _bio_co2,
-        we ask if it is a resource from air, or if it is any emission.
-        :param flowable: orig, not looked-up in _fm
-        :param context: from CF
-        :return: bool
-        """
-        if self._quell_biogenic is False:
-            return False
-        if flowable in self._bio_co2:
-            if context.is_subcompartment(self._cm['from air']):
-                return True
-            if context.is_subcompartment(self._cm['Emissions']):
-                return True
-        return False
-
     def _factors_for_flowable(self, fb, qq, cx, **kwargs):
         """
         detach lookup for cleanness. canonical everything
@@ -543,34 +470,6 @@ class LciaEngine(TermManager):
         else:
             for v in cl.find(cx, **kwargs):
                 yield v
-
-    def factors_for_flowable(self, flowable, quantity=None, context=None, **kwargs):
-        """
-        Here we deal with biogenic CO2 detection
-        :param flowable:
-        :param quantity:
-        :param context:
-        :param kwargs:
-        :return:
-        """
-        ''' # this is done in the super method
-        try:
-            fb = self._fm[flowable]
-        except KeyError:
-            return
-        '''
-        '''  # this does not do anything helpful
-        if fb == self._fm['Water']:
-            try:
-                context = self._cm['flow-%s' % flowable]
-            except KeyError:
-                pass
-        '''
-        for k in super(LciaEngine, self).factors_for_flowable(flowable, quantity=quantity, context=context, **kwargs):
-            if self._quell_co2(flowable, context):
-                yield QuelledCF.from_cf(k, flowable=self._bio_co2)
-            else:
-                yield k
 
     def factors_for_quantity(self, quantity, flowable=None, context=None, **kwargs):
         self._check_factors(self._canonical_q(quantity))

@@ -5,6 +5,8 @@ can also be upgraded to an LciaEngine, which extends the synonymization strategy
 from antelope import (QuantityInterface, NoFactorsFound, ConversionReferenceMismatch, EntityNotFound, FlowInterface,
                       convert, NoUnitConversionTable, QuantityRequired, RefQuantityRequired)
 
+from antelope.flows.flow import QuelledCO2
+
 from .basic import BasicImplementation
 from ..characterizations import QRResult, LocaleMismatch
 from ..contexts import NullContext
@@ -269,6 +271,8 @@ def do_lcia(quantity, inventory, locale=None, group=None, dist=2, **kwargs):
                 res.add_score(group(x), x, qrr)
         elif isinstance(qrr, QuantityConversionError):
             res.add_error(x, qrr)
+        elif isinstance(qrr, QuelledCO2):
+            res.add_zero(x)
         elif qrr is None:
             res.add_cutoff(x)
         else:

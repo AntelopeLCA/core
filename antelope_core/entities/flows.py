@@ -50,7 +50,9 @@ class LcFlow(LcEntity, Flow):
         LcEntity.origin.fset(self, value)
         self._flowable.add_term(self.link)
 
-    def __init__(self, external_ref, **kwargs):
+    def __init__(self, external_ref, is_co2=None, **kwargs):
+        if is_co2:
+            self.is_co2 = True
         super(LcFlow, self).__init__('flow', external_ref, **kwargs)
 
         for k in self._new_fields:
@@ -75,7 +77,6 @@ class LcFlow(LcEntity, Flow):
                 self._query_ref._chars_seen[k] = v  # this is hacky obv
 
         return self._query_ref
-
 
     def __str__(self):
         cas = self.get('CasNumber')
