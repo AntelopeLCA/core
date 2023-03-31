@@ -390,8 +390,8 @@ class SummaryLciaMissing(SummaryLciaResult):
 
     def __str__(self):
         return '%s = %-s x (MISSING)  | %s' % (
-        number(self.cumulative_result * self._lc.autorange), number(self.node_weight),
-        self.entity)
+            number(self.cumulative_result * self._lc.autorange), number(self.node_weight),
+            self.entity)
 
 
 class AggregateLciaScore(object):

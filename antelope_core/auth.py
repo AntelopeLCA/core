@@ -2,6 +2,7 @@ from pydantic import BaseModel
 from typing import List
 from antelope.xdb_tokens import JwtGrant
 
+
 class AuthModel(BaseModel):
     pass
 
@@ -105,6 +106,7 @@ class AuthorizationGrant(AuthModel):
             origin = clauses[0]
             ifaces = clauses[1:]
             if origin == 'qdb' and len(ifaces) == 0:
+                origin = 'local.qdb'
                 ifaces = ['basic', 'quantity,v']
             for iface in ifaces:
                 specs = iface.split(',')

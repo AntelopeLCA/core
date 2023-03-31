@@ -196,6 +196,15 @@ class ExteriorFlow(ResponseModel):
     locale: Optional[str] = 'GLO'  # ???
 
 
+class DirectedFlow(ResponseModel):
+    flow: FlowSpec
+    direction: str
+
+    @classmethod
+    def from_exchange(cls, obj):
+        return cls(flow=FlowSpec.from_flow(obj.flow), direction=obj.direction)
+
+
 class Exchange(ResponseModel):
     """
     Do we need to add locale??

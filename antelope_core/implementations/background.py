@@ -196,14 +196,13 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
             yield x
 
     def sys_lci(self, node, demand, **kwargs):
-        raise NotImplementedError
-
-    def bg_lcia(self, process, query_qty, ref_flow=None, **kwargs):
-        p = self._archive.retrieve_or_fetch_entity(process)
-        lci = self.lci(p, ref_flow=ref_flow)
-        res = query_qty.do_lcia(lci, locale=p['SpatialScope'], **kwargs)
         """
-        if self.privacy > 0:
-            return res.aggregate('*', entity_id=p.link)
+        For LCI, we simply yield process direct exchanges as LCI.
+        For sys_lci, we should just do the same. yield the supplied demand as a degenerate LCI.
+        :param node:
+        :param demand:
+        :param kwargs:
+        :return:
         """
-        return res
+        for y in demand:
+            yield y
