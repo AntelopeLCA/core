@@ -73,6 +73,12 @@ class XdbRequester(RestClient):
 
     def post_return_one(self, postdata, model, *args, **kwargs):
         if issubclass(model, ResponseModel):
+            return model(**self._post(postdata, self._org, *args, **kwargs))
+        else:
+            return model(self._post(postdata, self._org, *args, **kwargs))
+
+    def qdb_post_return_one(self, postdata, model, *args, **kwargs):
+        if issubclass(model, ResponseModel):
             return model(**self._post_qdb(postdata, *args, **kwargs))
         else:
             return model(self._post_qdb(postdata, *args, **kwargs))

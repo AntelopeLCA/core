@@ -5,7 +5,7 @@ from antelope import comp_dir, ExchangeRef, RxRef
 from antelope_core.implementations import BasicImplementation
 from antelope_core.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceExchange, UnallocatedExchange,
                                   DetailedLciaResult, AllocatedExchange, Characterization as CharacterizationModel,
-                                  ExchangeValues)
+                                  ExchangeValues, DirectedFlow)
 from antelope_core.lcia_results import LciaResult
 from antelope_core.characterizations import Characterization, QRResult
 
@@ -186,6 +186,10 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         else:
             return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(process), 'lci'))
 
+    def sys_lci(self, demand, **kwargs):
+        dmd = [UnallocatedExchange.from_exchange(x) for x in demand]
+        return self._archive.r.post_return_many(UnallocatedExchange, dmd, 'sys_lci', **kwargs)
+
     '''
     qdb routes
     '''
@@ -246,7 +250,16 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
             return 0.0
 
     @staticmethod
-    def _result_from_model(quantity, exch_map, res_m: DetailedLciaResult):
+    def _result_from_exchanges(quantity, exch_map, res_m: DetailedLciaResult):
+        """
+        Constructs a detailed LCIA result using details provided by the backend server, populated with exchanges
+        that we provided via POST.
+
+        :param quantity:
+        :param exch_map:
+        :param res_m:
+        :return:
+        """
         res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
         nodes = set(v.process for v in exch_map.values())
         for c in res_m.components:
@@ -267,6 +280,28 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
                 res.add_summary(c.component, node, s.node_weight, s.unit_score)
         return res
 
+    def _result_from_model(self, process, quantity, res_m: DetailedLciaResult):
+        """
+        Constructs a Detailed LCIA result from a background LCIA query, when we don't have a list of exchanges
+        :param process:
+        :param quantity:
+        :param res_m:
+        :return:
+        """
+        res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
+        for c in res_m.components:
+            for d in c.details:
+                value = d.result / d.factor.value
+                ex = UnallocatedExchange(origin=process.origin, process=process, flow=d.exchange, direction='',
+                                         context=d.exchange.context, value=value)
+                rq = self.get_canonical(ex.flow.quantity_ref)
+                cf = QRResult(d.factor.flowable, rq, quantity, ex.context,
+                              d.factor.locale, d.factor.origin, d.factor.value)
+                res.add_score(c.component, ex, cf)
+            for s in c.summaries:
+                res.add_summary(c.component, process, s.node_weight, s.unit_score)
+        return res
+
     def do_lcia(self, quantity, inventory, locale='GLO', **kwargs):
         """
 
@@ -279,5 +314,33 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         exchanges = [UnallocatedExchange.from_inv(x).dict() for x in inventory]
         exch_map = {(x.flow.external_ref, x.term_ref): x for x in inventory}
 
-        ress = self._archive.r.post_return_many(exchanges, DetailedLciaResult, _ref(quantity), 'do_lcia')
-        return [self._result_from_model(quantity, exch_map, res) for res in ress]
+        ress = self._archive.r.qdb_post_return_many(exchanges, DetailedLciaResult, _ref(quantity), 'do_lcia')
+        return [self._result_from_exchanges(quantity, exch_map, res) for res in ress]
+
+    def bg_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
+        """
+        We want to override the interface implementation and send a simple request to the backend
+        :param process:
+        :param query_qty:
+        :param observed:
+        :param ref_flow:
+        :param kwargs: locale, quell_biogenic_co2
+        :return:
+        """
+        if observed:
+            obs_flows = [DirectedFlow.from_exchange(x) for x in observed]
+            if ref_flow:
+                ress = self._archive.r.post_return_many(obs_flows, DetailedLciaResult, _ref(process), _ref(ref_flow),
+                                                        'lcia', _ref(query_qty), **kwargs)
+            else:
+                ress = self._archive.r.post_return_many(obs_flows, DetailedLciaResult, _ref(process),
+                                                        'lcia', _ref(query_qty), **kwargs)
+        else:
+            if ref_flow:
+                ress = self._archive.r.get_many(DetailedLciaResult, _ref(process), _ref(ref_flow),
+                                                'lcia', _ref(query_qty), **kwargs)
+            else:
+                ress = self._archive.r.get_many(DetailedLciaResult, _ref(process),
+                                                'lcia', _ref(query_qty), **kwargs)
+
+        return [self._result_from_model(process, query_qty, res) for res in ress]

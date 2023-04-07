@@ -237,6 +237,13 @@ class SummaryLciaResult(object):
             return self._internal_result.total()
 
     @property
+    def internal_result(self):
+        if self.static:
+            return self._static_value
+        else:
+            return self._internal_result
+
+    @property
     def cumulative_result(self):
         return self.node_weight * self.unit_score
 
@@ -264,7 +271,7 @@ class SummaryLciaResult(object):
         return self.entity == other.entity
 
     def __str__(self):
-        return '%s = %-s x %-s | %s' % (number(self.cumulative_result * self._lc.autorange), number(self.node_weight),
+        return 'S%s = %-s x %-s | %s' % (number(self.cumulative_result * self._lc.autorange), number(self.node_weight),
                                         number(self.unit_score * self._lc.autorange),
                                         self.entity)
 
@@ -478,7 +485,7 @@ class AggregateLciaScore(object):
         # print('             Total score: %g ' % self.cumulative_result)
 
     def __str__(self):
-        return '%s  %s' % (number(self.cumulative_result * self._lc.autorange), self.entity)
+        return 'A%s  %s' % (number(self.cumulative_result * self._lc.autorange), self.entity)
 
     def serialize(self, detailed=False):
         j = {
@@ -504,6 +511,13 @@ def show_lcia(lcia_results):
     print('LCIA Results\n%s' % ('-' * 60))
     for r in lcia_results.values():
         print('%10.5g %s' % (r.total(), r.quantity))
+
+
+class MixedComponents(Exception):
+    """
+    We are now suddenly deciding that an LciaResult may not contain a mixture of AggregateLciaScores and SummaryLciaScores
+    """
+    pass
 
 
 class LciaResult(object):
@@ -535,6 +549,10 @@ class LciaResult(object):
         self._private = private
         self._autorange = None
         self._failed = []
+
+    @property
+    def has_summaries(self):
+        return any(isinstance(c, SummaryLciaResult) for c in self._LciaScores.values())
 
     @property
     def is_null(self):
@@ -727,6 +745,9 @@ class LciaResult(object):
         return _neg, _pos
 
     def add_component(self, key, entity=None):
+        if any(isinstance(c, SummaryLciaResult) for c in self._LciaScores.values()):
+            self.show_components()
+            raise MixedComponents
         if entity is None:
             entity = key
         if key not in self._LciaScores.keys():
@@ -742,6 +763,9 @@ class LciaResult(object):
         self._LciaScores[key].add_detailed_result(exchange, qrresult)
 
     def add_summary(self, key, entity, node_weight, unit_score):
+        if any(isinstance(c, AggregateLciaScore) for c in self._LciaScores.values()):
+            self.show_components()
+            raise MixedComponents
         summary = SummaryLciaResult(self, entity, node_weight, unit_score)
         if key in self._LciaScores.keys():
             # raise DuplicateResult('Key %s is already present' % key)

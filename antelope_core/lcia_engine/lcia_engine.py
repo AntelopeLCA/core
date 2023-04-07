@@ -100,6 +100,17 @@ class LciaEngine(TermManager):
 
         self._factors_for_later = defaultdict(bool)
 
+    def get_canonical(self, quantity):
+        """
+        We override this because here we are using canonical quantities and 'kg' is not a canonical quantity, but it
+        always means mass
+        :param quantity:
+        :return:
+        """
+        if quantity == 'kg':  # for THIS UNIT ONLY
+            quantity = 'mass'
+        return super(LciaEngine, self).get_canonical(quantity)
+
     def save_for_later(self, quantity):
         qc = self.get_canonical(quantity)
         if qc is quantity:
