@@ -195,11 +195,10 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
         for x in p.inventory(ref_flow=ref_flow):
             yield x
 
-    def sys_lci(self, node, demand, **kwargs):
+    def sys_lci(self, demand, **kwargs):
         """
         For LCI, we simply yield process direct exchanges as LCI.
         For sys_lci, we should just do the same. yield the supplied demand as a degenerate LCI.
-        :param node:
         :param demand:
         :param kwargs:
         :return:

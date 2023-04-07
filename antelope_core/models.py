@@ -282,7 +282,7 @@ class AllocatedExchange(Exchange):
         return False
 
     @classmethod
-    def from_inv(cls, x, ref_flow:str):
+    def from_inv(cls, x, ref_flow: str):
         return cls.from_exchange(x, ref_flow=ref_flow, value=x.value)
 
 

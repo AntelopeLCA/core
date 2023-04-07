@@ -44,6 +44,8 @@ class UsLciTestContainer(object):
         _bg_len = None
         _ex_len = None
         _test_case_lcia = 0.0
+        _test_case_observed_flow = None
+        _test_case_lcia_observed = 0.0
 
         _petro_name = 'Petroleum refining, at refinery [RNA]'
 
@@ -100,6 +102,10 @@ class UsLciTestContainer(object):
             rx = self._get_fg_test_case_rx()
             return [x for x in self.query.lci(rx.process.external_ref, rx.flow.external_ref)]
 
+        def _get_fg_test_case_observed(self):
+            rx = self._get_fg_test_case_rx()
+            return rx.process.exchange_values(self._test_case_observed_flow)
+
         def test_21_exchange_relation(self):
             rx = self._get_fg_test_case_rx()
             k = next(self.query.flows(Name='CUTOFF Potassium fertilizer, production mix, at plant'))
@@ -136,6 +142,21 @@ class UsLciTestContainer(object):
                 res = gwp.do_lcia(lci)
                 self.assertAlmostEqual(res.total(), self._test_case_lcia)
 
+        @unittest.skipIf(lci is False, "no background")
+        def test_41_lcia_bg(self):
+            if gwp:
+                rx = self._get_fg_test_case_rx()
+                res = rx.process.bg_lcia(gwp)
+                self.assertAlmostEqual(res.total(), self._test_case_lcia)
+
+        @unittest.skipIf(lci is False, "no background")
+        def test_42_lcia_bg_observed(self):
+            if gwp:
+                rx = self._get_fg_test_case_rx()
+                obs = self._get_fg_test_case_observed()
+                res = rx.process.bg_lcia(gwp, observed=obs)
+                self.assertAlmostEqual(res.total(), self._test_case_lcia_observed)
+
 
 class UsLciEcospoldTest(UsLciTestContainer.UsLciTestBase):
 
@@ -144,6 +165,8 @@ class UsLciEcospoldTest(UsLciTestContainer.UsLciTestBase):
     _bg_len = 38
     _ex_len = 3285
     _test_case_lcia = 0.0415466  # more robust bc of ocean freight??
+    _test_case_observed_flow = '5233'
+    _test_case_lcia_observed = 0.0247817
 
     _petro_rx_values = {0.037175, 0.049083, 0.051454, 0.051826, 0.059594, 0.061169, 0.112458, 0.252345, 0.570087}
 
@@ -161,6 +184,8 @@ class UsLciOlcaTest(UsLciTestContainer.UsLciTestBase):
     _bg_len = 36
     _ex_len = 3680  # a "Diesel, at refinery" flow was incorrectly duplicated to exterior
     _test_case_lcia = .04110577
+    _test_case_observed_flow = 'bc38e349-1ccf-3855-a615-a4f581ab875b'
+    _test_case_lcia_observed = 0.02476284
 
     # volume unit is m3 in olca, versus l in ecospold
     _petro_rx_values = {4.9e-05, 5.2e-05, 0.000112, 0.000252, 0.00057, 0.037175, 0.051454, 0.059594, 0.061169}
