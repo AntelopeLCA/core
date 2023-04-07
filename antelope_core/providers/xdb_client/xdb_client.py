@@ -4,9 +4,8 @@ Client for the xdb Antelope server
 The concept here is to pass received requests straight into the Pydantic models, and then use those for easy
 (though manual) deserialization into EntityRefs.
 """
-from antelope import EntityNotFound
+from antelope.models import Context as ContextModel, Entity
 from antelope_core.archives import LcArchive, InterfaceError
-from antelope_core.models import Context as ContextModel, Entity
 from antelope_core.catalog_query import READONLY_INTERFACE_TYPES
 from antelope_core.contexts import ContextManager, NullContext
 

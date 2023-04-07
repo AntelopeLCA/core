@@ -1,5 +1,5 @@
 from antelope import BaseEntity, CatalogRef
-from antelope_core.models import Entity, FlowEntity, ReferenceExchange
+from antelope.models import Entity, FlowEntity, ReferenceExchange
 
 
 class XdbReferenceRequired(Exception):

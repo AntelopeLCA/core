@@ -1,4 +1,4 @@
-from antelope_core.models import ResponseModel, OriginMeta
+from antelope.models import ResponseModel, OriginMeta
 from .rest_client import RestClient
 
 

@@ -2,10 +2,11 @@ from collections import defaultdict
 
 from antelope import IndexInterface, ExchangeInterface, QuantityInterface, BackgroundInterface
 from antelope import comp_dir, ExchangeRef, RxRef
+from antelope.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceExchange, UnallocatedExchange,
+                             DetailedLciaResult, AllocatedExchange, Characterization as CharacterizationModel,
+                             ExchangeValues, DirectedFlow)
+
 from antelope_core.implementations import BasicImplementation
-from antelope_core.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceExchange, UnallocatedExchange,
-                                  DetailedLciaResult, AllocatedExchange, Characterization as CharacterizationModel,
-                                  ExchangeValues, DirectedFlow)
 from antelope_core.lcia_results import LciaResult
 from antelope_core.characterizations import Characterization, QRResult
 
