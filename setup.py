@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.1.8'
+VERSION = '0.2.0'
 
 requires = [
     "synonym_dict>=0.2.0",
-    "antelope_interface>=0.1.7",
+    "antelope_interface>=0.2.0",
     "xlstools>=0.1.0",
     "python-magic>=0.4.18",
     "requests>=2.25",
@@ -14,6 +14,11 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.2.0   2023-04-07 - "release" virtualize branch. 
+                   - Add pydantic models for everything
+                   - add an XDB client implementation for remote operation
+                   - job-related changes to entity handling throughout
+
 0.1.8   2022-04-08 - PyPI release to roll up a few small changes:
  * upgrade ecoinvent_lcia to use xlstools; port 3.8
  - pull out parse_math
