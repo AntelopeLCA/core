@@ -100,7 +100,7 @@ class UsLciTestContainer(object):
 
         def _get_fg_test_case_lci(self):
             rx = self._get_fg_test_case_rx()
-            return [x for x in self.query.lci(rx.process.external_ref, rx.flow.external_ref)]
+            return list(rx.process.lci(rx.flow.external_ref))
 
         def _get_fg_test_case_observed(self):
             rx = self._get_fg_test_case_rx()

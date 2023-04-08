@@ -130,7 +130,7 @@ class RestClient(object):
         else:
             return [model(k) for k in self._get_endpoint(*args, **kwargs)]
 
-    def _post(self, postdata, route, form=False, *args, **params):
+    def _post(self, postdata, route, *args, form=False, **params):
         url = '/'.join([route, *args])
         if form:
             return self._request('POST', url, data=postdata, params=params)

@@ -177,7 +177,35 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
                         for ex in self._archive.r.get_many(AllocatedExchange, _ref(node), 'inventory',
                                                            scenario=scenario))
         else:
-            return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(node), 'inventory'))
+            return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(node),
+                                                                                'inventory'))
+
+    def dependencies(self, process, ref_flow=None, **kwargs):
+        if ref_flow:
+            # process inventory
+            return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(process),
+                                                                                _ref(ref_flow), 'dependencies'))
+        else:
+            return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(process),
+                                                                                'dependencies'))
+
+    def emissions(self, process, ref_flow=None, **kwargs):
+        if ref_flow:
+            # process inventory
+            return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(process),
+                                                                                _ref(ref_flow), 'emissions'))
+        else:
+            return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(process),
+                                                                                'emissions'))
+
+    def cutoffs(self, process, ref_flow=None, **kwargs):
+        if ref_flow:
+            # process inventory
+            return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(process),
+                                                                                _ref(ref_flow), 'cutoffs'))
+        else:
+            return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(process),
+                                                                                'cutoffs'))
 
     def lci(self, process, ref_flow=None, **kwargs):
         if ref_flow:
@@ -187,9 +215,18 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         else:
             return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(process), 'lci'))
 
+    def _to_exch_ref(self, x):
+        """
+        We can't resolve references from here! something is fucked
+        :param x:
+        :return:
+        """
+        pass
+
     def sys_lci(self, demand, **kwargs):
-        dmd = [UnallocatedExchange.from_exchange(x) for x in demand]
-        return self._archive.r.post_return_many(UnallocatedExchange, dmd, 'sys_lci', **kwargs)
+        dmd = [UnallocatedExchange.from_inv(x).dict() for x in demand]
+        return list(self._resolve_ex(ex)  # DWR! THESE ARE NOT OPERATIONAL EXCHANGES YET!!!
+                    for ex in self._archive.r.post_return_many(dmd, UnallocatedExchange, 'sys_lci', **kwargs))
 
     '''
     qdb routes
@@ -329,7 +366,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         :return:
         """
         if observed:
-            obs_flows = [DirectedFlow.from_exchange(x) for x in observed]
+            obs_flows = [DirectedFlow.from_exchange(x).dict() for x in observed]
             if ref_flow:
                 ress = self._archive.r.post_return_many(obs_flows, DetailedLciaResult, _ref(process), _ref(ref_flow),
                                                         'lcia', _ref(query_qty), **kwargs)

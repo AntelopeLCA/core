@@ -63,10 +63,10 @@ class XdbRequester(RestClient):
             return [model(k) for k in self._get_endpoint(self._org, *args, **kwargs)]
 
     def qdb_get_one(self, model, *args, **kwargs):
-            return model(**self._get_endpoint(self._qdb, *args, **kwargs))
+        return model(**self._get_endpoint(self._qdb, *args, **kwargs))
 
     def qdb_get_many(self, model, *args, **kwargs):
-            return [model(**k) for k in self._get_endpoint(self._qdb, *args, **kwargs)]
+        return [model(**k) for k in self._get_endpoint(self._qdb, *args, **kwargs)]
 
     def _post_qdb(self, postdata, *args, **params):
         return self._post(postdata, self._qdb, *args, **params)
@@ -85,7 +85,12 @@ class XdbRequester(RestClient):
 
     def post_return_many(self, postdata, model, *args, **kwargs):
         if issubclass(model, ResponseModel):
+            return [model(**k) for k in self._post(postdata, self._org, *args, **kwargs)]
+        else:
+            return [model(k) for k in self._post(postdata, self._org, *args, **kwargs)]
+
+    def qdb_post_return_many(self, postdata, model, *args, **kwargs):
+        if issubclass(model, ResponseModel):
             return [model(**k) for k in self._post_qdb(postdata, *args, **kwargs)]
         else:
             return [model(k) for k in self._post_qdb(postdata, *args, **kwargs)]
-
