@@ -1,4 +1,5 @@
 import re
+from itertools import chain
 
 from .basic import BasicImplementation
 from antelope import BackgroundInterface, ExteriorFlow, EntityNotFound, comp_dir  # , ProductFlow
@@ -205,3 +206,31 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
         """
         for y in demand:
             yield y
+
+    def bg_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
+        """
+        returns an LciaResult object, aggregated as appropriate depending on the interface's privacy level.
+        This is an ensemble function that stitches together bg functions with quantity access.
+
+        :param process:
+        :param query_qty: must be an operable quantity_ref. the process must have exchange access
+        :param observed: iterable of DirectedFlows (flow: FlowSpec, direction: str)
+        :param ref_flow:
+        :param kwargs:
+        :return:
+        """
+        p_ref = self.get(process)  # a ref
+        if observed is None:
+            observed = ()
+        obs = set((x.flow.external_ref, x.direction) for x in observed)
+        if len(obs) > 0:
+            exts = chain(p_ref.emissions(ref_flow=ref_flow),
+                         p_ref.cutoffs(ref_flow=ref_flow))
+            incl = (k for k in p_ref.dependencies(ref_flow=ref_flow) if (k.flow.external_ref, k.direction) not in obs)
+            ext = (k for k in exts if (k.flow.external_ref, k.direction) not in obs)
+            lci = chain(self.sys_lci(incl), ext)
+        else:
+            lci = p_ref.lci(ref_flow=ref_flow)
+        # aggregation
+        return query_qty.do_lcia(lci, **kwargs)
+
