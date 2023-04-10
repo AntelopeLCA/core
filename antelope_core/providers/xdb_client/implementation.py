@@ -371,9 +371,11 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         :param kwargs: locale, quell_biogenic_co2
         :return:
         """
+        obs_flows = ()
         try:
             if observed:
                 obs_flows = [DirectedFlow.from_exchange(x).dict() for x in observed]
+            if len(obs_flows) > 0:
                 if ref_flow:
                     ress = self._archive.r.post_return_many(obs_flows, DetailedLciaResult, _ref(process), _ref(ref_flow),
                                                             'lcia', _ref(query_qty), **kwargs)
