@@ -1,7 +1,7 @@
-from collections import defaultdict
-
+# from collections import defaultdict
+import json
 from antelope import IndexInterface, ExchangeInterface, QuantityInterface, BackgroundInterface
-from antelope import comp_dir, ExchangeRef, RxRef
+from antelope import ExchangeRef, RxRef, EntityNotFound, comp_dir
 from antelope.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceExchange, UnallocatedExchange,
                              DetailedLciaResult, AllocatedExchange, Characterization as CharacterizationModel,
                              ExchangeValues, DirectedFlow)
@@ -318,22 +318,25 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
                 res.add_summary(c.component, node, s.node_weight, s.unit_score)
         return res
 
-    def _result_from_model(self, process, quantity, res_m: DetailedLciaResult):
+    def _result_from_model(self, process_ref, quantity, res_m: DetailedLciaResult):
         """
         Constructs a Detailed LCIA result from a background LCIA query, when we don't have a list of exchanges
-        :param process:
+        :param process_ref:
         :param quantity:
         :param res_m:
         :return:
         """
         res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
+        process = self.get(process_ref)
+        res.add_component(process_ref, entity=process)
         for c in res_m.components:
             for d in c.details:
                 value = d.result / d.factor.value
-                ex = UnallocatedExchange(origin=process.origin, process=process, flow=d.exchange, direction='',
-                                         context=d.exchange.context, value=value)
-                rq = self.get_canonical(ex.flow.quantity_ref)
-                cf = QRResult(d.factor.flowable, rq, quantity, ex.context,
+                cx = self.get_context(d.exchange.context)
+                ex = ExchangeRef(process, self.get(d.exchange.external_ref), comp_dir(cx.sense),
+                                 termination=cx, value=value)
+                rq = self.get_canonical(d.exchange.quantity_ref)
+                cf = QRResult(d.factor.flowable, rq, quantity, cx,
                               d.factor.locale, d.factor.origin, d.factor.value)
                 res.add_score(c.component, ex, cf)
             for s in c.summaries:
@@ -354,6 +357,9 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
 
         ress = self._archive.r.qdb_post_return_many(exchanges, DetailedLciaResult, _ref(quantity), 'do_lcia')
         return [self._result_from_exchanges(quantity, exch_map, res) for res in ress]
+        if len(res_out) == 1:
+            return res_out[0]
+        return res_out
 
     def bg_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
         """
@@ -365,20 +371,26 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         :param kwargs: locale, quell_biogenic_co2
         :return:
         """
-        if observed:
-            obs_flows = [DirectedFlow.from_exchange(x).dict() for x in observed]
-            if ref_flow:
-                ress = self._archive.r.post_return_many(obs_flows, DetailedLciaResult, _ref(process), _ref(ref_flow),
-                                                        'lcia', _ref(query_qty), **kwargs)
+        try:
+            if observed:
+                obs_flows = [DirectedFlow.from_exchange(x).dict() for x in observed]
+                if ref_flow:
+                    ress = self._archive.r.post_return_many(obs_flows, DetailedLciaResult, _ref(process), _ref(ref_flow),
+                                                            'lcia', _ref(query_qty), **kwargs)
+                else:
+                    ress = self._archive.r.post_return_many(obs_flows, DetailedLciaResult, _ref(process),
+                                                            'lcia', _ref(query_qty), **kwargs)
             else:
-                ress = self._archive.r.post_return_many(obs_flows, DetailedLciaResult, _ref(process),
-                                                        'lcia', _ref(query_qty), **kwargs)
-        else:
-            if ref_flow:
-                ress = self._archive.r.get_many(DetailedLciaResult, _ref(process), _ref(ref_flow),
-                                                'lcia', _ref(query_qty), **kwargs)
+                if ref_flow:
+                    ress = self._archive.r.get_many(DetailedLciaResult, _ref(process), _ref(ref_flow),
+                                                    'lcia', _ref(query_qty), **kwargs)
+                else:
+                    ress = self._archive.r.get_many(DetailedLciaResult, _ref(process),
+                                                    'lcia', _ref(query_qty), **kwargs)
+        except HTTPError as e:
+            if e.args[0] == 404:
+                content = json.loads(e.args[1])
+                raise EntityNotFound(content['detail'])
             else:
-                ress = self._archive.r.get_many(DetailedLciaResult, _ref(process),
-                                                'lcia', _ref(query_qty), **kwargs)
-
+                raise
         return [self._result_from_model(process, query_qty, res) for res in ress]
