@@ -219,7 +219,9 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
         :param kwargs:
         :return:
         """
-        p_ref = self.get(process)  # a ref
+        p_ref = self.get(process)  # a ref-- unless this was a basic impl. hrm.
+        if p_ref.is_entity:
+            raise NotImplementedError  # we can't proceed
         if observed is None:
             observed = ()
         obs = set((x.flow.external_ref, x.direction) for x in observed)
@@ -233,4 +235,3 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
             lci = p_ref.lci(ref_flow=ref_flow)
         # aggregation
         return query_qty.do_lcia(lci, **kwargs)
-
