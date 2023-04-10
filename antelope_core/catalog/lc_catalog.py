@@ -206,7 +206,7 @@ class LcCatalog(StaticCatalog):
         res = LcResource.from_archive(archive, interfaces, source=self._localize_source(archive.source), **kwargs)
         self._resolver.add_resource(res, store=store)
 
-    def blackbook_authenticate(self, blackbook_url, username=None, password=None, token=None):
+    def blackbook_authenticate(self, blackbook_url=None, username=None, password=None, token=None, save_credentials=True):
         """
         Opens an authenticated session with the designated blackbook server.  Credentials can either be provided to the
         method as arguments, or if omitted, they can be obtained through a form.  If a token is provided, it is
@@ -218,9 +218,14 @@ class LcCatalog(StaticCatalog):
         :return:
         """
         if self._blackbook_client:
+            if blackbook_url is None:
+                self._blackbook_client.reauthenticate()  # or raise NoCredentials
+                return
             self._blackbook_client.close()
+        elif blackbook_url is None:
+            raise ValueError('Must provide a URL')
         if token is None:
-            client = RestClient(blackbook_url, auth_route='auth/token')
+            client = RestClient(blackbook_url, auth_route='auth/token', save_credentials=save_credentials)
             if username is None:
                 username = input('Enter username to access blackbook server at %s: ' % blackbook_url)
             if password is None:
@@ -231,7 +236,7 @@ class LcCatalog(StaticCatalog):
                 client.close()
                 raise
         else:
-            client = RestClient(blackbook_url, token=token, auth_route='auth/token')
+            client = RestClient(blackbook_url, token=token, auth_route='auth/token', save_credentials=save_credentials)
         self._blackbook_client = client
 
     def get_blackbook_resources(self, origin):

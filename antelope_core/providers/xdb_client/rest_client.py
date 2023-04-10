@@ -14,6 +14,10 @@ class OAuthToken(BaseModel):
         return '%s %s' % (self.token_type, self.access_token)
 
 
+class NoCredentials(Exception):
+    pass
+
+
 class RestClient(object):
     """
     A REST client that uses pydantic models to interpret response data
@@ -29,7 +33,7 @@ class RestClient(object):
             else:
                 print(*args)
 
-    def __init__(self, api_root, token=None, quiet=False, auth_route=None):
+    def __init__(self, api_root, token=None, quiet=False, auth_route=None, save_credentials=True):
         self._s = requests.Session()
         self._s.headers['Accept'] = "application/json"
         self._quiet = quiet
@@ -38,10 +42,17 @@ class RestClient(object):
         if token:
             self.set_token(token)
 
+        self._save = bool(save_credentials)
+        self._creds = None
+
         while api_root[-1] == '/':
             api_root = api_root[:-1]  # strip trailing /
 
         self._api_root = api_root
+
+    @property
+    def saved(self):
+        return (self._save and bool(self._creds))
 
     def close(self):
         self._s.close()
@@ -69,7 +80,34 @@ class RestClient(object):
             raise ValueError('Invalid token type')
         self._s.headers['Authorization'] = self._token.auth
 
-    def authenticate(self, username, password, **kwargs):
+    def _upd_save(self, save_credentials):
+        """
+        Updates the flag indicating whether we are saving credentials. None = do nothing. clears the cache if false.
+        :param save_credentials:
+        :return:
+        """
+        if save_credentials is None:
+            return
+        else:
+            self._save = bool(save_credentials)
+        if not self._save:
+            self._creds = None
+
+    def reauthenticate(self, save_credentials=None, **kwargs):
+        """
+        If we have saved credentials, pass them along. update the flag
+        :param save_credentials:
+        :param kwargs:
+        :return:
+        """
+        if self._creds is None:
+            raise NoCredentials
+        data = self._creds
+        data.update(kwargs)
+        self._upd_save(save_credentials)
+        self._post_credentials(data)
+
+    def authenticate(self, username, password, save_credentials=None, **kwargs):
         """
         POSTs an OAuth2-compliant form to obtain a bearer token.
         Be sure to set the 'auth_route' property either in a subclass or manually (e.g. on init)
@@ -84,7 +122,20 @@ class RestClient(object):
             "password": password,
         }
         data.update(kwargs)
+        self._upd_save(save_credentials)
+        self._post_credentials(data)
+
+    def _post_credentials(self, data):
+        """
+        Post the credentials, and save them if the request was successful and if thje save flag is set
+        :param data:
+        :return:
+        """
+        if not self._save:
+            self._creds = None
         self.set_token(self.post_return_one(data, OAuthToken, self.auth_route, form=True))
+        if self._save:
+            self._creds = data
 
     def _request(self, verb, route, **kwargs):
         """
