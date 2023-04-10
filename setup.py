@@ -1,11 +1,11 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.2.0'
+VERSION = '0.2.1'
 
 requires = [
     "synonym_dict>=0.2.0",
-    "antelope_interface>=0.2.0",
-    "xlstools>=0.1.0",
+    "antelope_interface>=0.2.1",
+    "xlstools>=0.1.3",
     "python-magic>=0.4.18",
     "requests>=2.25",
     "pydantic>=1.8.2"
@@ -14,6 +14,10 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.2.1   2023-04-10 - xdb passes benchmarks
+                     pydantic models moved into interface
+                     sys_lci and bg_lcia operational, both locally and remotely
+
 0.2.0   2023-04-07 - "release" virtualize branch. 
                    - Add pydantic models for everything
                    - add an XDB client implementation for remote operation
