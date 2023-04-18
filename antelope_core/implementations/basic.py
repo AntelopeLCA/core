@@ -38,6 +38,9 @@ class BasicImplementation(object):
         """
         return self.origin
 
+    def is_me(self, archive):
+        return self._archive is archive
+
     @property
     def origin(self):
         return self._archive.ref

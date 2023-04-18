@@ -12,6 +12,7 @@ from .catalog_query import INTERFACE_TYPES, NoCatalog, zap_inventory
 # from .providers import create_archive
 from . import herd_factory
 
+
 class ResourceInvalid(Exception):
     """
     resource points to an invalid filename

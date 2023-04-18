@@ -82,6 +82,11 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
     def __repr__(self):
         return self.__str__()
 
+    def purge_cache_with(self, archive):
+        for i, v in list(self._iface_cache.items()):
+            if v.is_me(archive):
+                self._iface_cache.pop(i)
+
     @property
     def origin(self):
         return self._origin

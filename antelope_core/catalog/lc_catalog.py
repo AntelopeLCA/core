@@ -162,12 +162,29 @@ class LcCatalog(StaticCatalog):
         self._resolver.add_resource(resource, store=store)
         # self._ensure_resource(resource)
 
+    def purge_resource_archive(self, resource: LcResource):
+        """
+        - find all cached queries that could return the resource
+        - check their cached ifaces to see if they use our archive
+        - delete those entries from the cache
+        :param resource:
+        :return:
+        """
+        # TODO: though this corrects our catalog queries, the entities are not connected to the catalog queries
+        for org, q in self._queries.items():
+            if resource.origin.startswith(org):
+                q.purge_cache_with(resource.archive)
+        resource.remove_archive()
+
     def delete_resource(self, resource, delete_source=None, delete_cache=True):
         """
         Removes the resource from the resolver and also removes the serialization of the resource. Also deletes the
         resource's source under the following circumstances:
          (resource is internal AND resources_with_source(resource.source) is empty AND resource.source is a file)
         This can be overridden using he delete_source param (see below)
+
+        We also need to remove any implementations that use the resource.
+
         :param resource: an LcResource
         :param delete_source: [None] If None, follow default behavior. If True, delete the source even if it is
          not internal (source will not be deleted if other resources refer to it OR if it is not a file). If False,
@@ -177,6 +194,9 @@ class LcCatalog(StaticCatalog):
         :return:
         """
         self._resolver.delete_resource(resource)
+
+        self.purge_resource_archive(resource)
+
         abs_src = self.abs_path(resource.source)
 
         if delete_source is False or resource.source is None or not os.path.isfile(abs_src):
@@ -239,7 +259,7 @@ class LcCatalog(StaticCatalog):
             client = RestClient(blackbook_url, token=token, auth_route='auth/token', save_credentials=save_credentials)
         self._blackbook_client = client
 
-    def get_blackbook_resources(self, origin):
+    def get_blackbook_resources(self, origin, store=False):
         """
         Use a blackbook server to obtain resources for a given origin.
         :param origin:
@@ -250,20 +270,27 @@ class LcCatalog(StaticCatalog):
             return self.refresh_xdb_tokens(origin)
         else:
             resource_dict = self._blackbook_client.get_one(dict, 'origins', origin, 'resource')
-            return self._finish_get_blackbook_resources(resource_dict)
+            return self._finish_get_blackbook_resources(resource_dict, store=store)
 
-    def get_blackbook_resources_by_client(self, bb_client, username, origin):
+    def get_blackbook_resources_by_client(self, bb_client, username, origin, store=False):
         """
         this uses the local maintenance client rather than the REST client
         :param bb_client:
         :param username:
         :param origin:
+        :param store:
         :return:
         """
         resource_dict = bb_client.retrieve_resource(username, origin)
-        return self._finish_get_blackbook_resources(resource_dict)
+        return self._finish_get_blackbook_resources(resource_dict, store=store)
 
-    def _finish_get_blackbook_resources(self, resource_dict):
+    def _finish_get_blackbook_resources(self, resource_dict, store=False):
+        """
+        Emerging issue here in the xdb/oryx context-- we need to be able to replace resources even if they are
+        serialized and already initialized.
+        :param resource_dict:
+        :return:
+        """
 
         rtn = []
 
@@ -275,7 +302,7 @@ class LcCatalog(StaticCatalog):
                 else:
                     r = LcResource(**res)
 
-                self.add_resource(r)
+                self.add_resource(r, store=store)
                 rtn.append(r)
         return rtn
 

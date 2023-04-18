@@ -357,9 +357,6 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
 
         ress = self._archive.r.qdb_post_return_many(exchanges, DetailedLciaResult, _ref(quantity), 'do_lcia')
         return [self._result_from_exchanges(quantity, exch_map, res) for res in ress]
-        if len(res_out) == 1:
-            return res_out[0]
-        return res_out
 
     def bg_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
         """

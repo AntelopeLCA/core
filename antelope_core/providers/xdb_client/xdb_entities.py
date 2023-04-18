@@ -1,6 +1,8 @@
 from antelope import BaseEntity, CatalogRef
 from antelope.models import Entity, FlowEntity, ReferenceExchange
 
+import re
+
 
 class XdbReferenceRequired(Exception):
     """
@@ -72,5 +74,10 @@ class XdbEntity(BaseEntity):
                 args['referenceExchange'] = [ReferenceExchange(**k) for k in args.pop('referenceExchange')]
 
         ref = CatalogRef.from_query(self.external_ref, query, self.entity_type, **args)
+        if ref.entity_type == 'flow':
+            if any(bool(re.search('carbon.dioxide', k, flags=re.I)) for k in ref.synonyms):
+                print('%s ***** CO2' % ref.link)
+                ref.is_co2 = True
+
         self._local.add(ref)
         return ref
