@@ -15,7 +15,7 @@ class XdbEntity(BaseEntity):
 
     is_entity = True  # haha, all lies!
 
-    def __init__(self, model, local):
+    def __init__(self, model):
         """
         XdbEntity is an ephemeral object, basically a way of storing pydantic models PRIOR to their getting made into
         refs (which is done by this class's make_ref() process)
@@ -34,7 +34,7 @@ class XdbEntity(BaseEntity):
         """
         assert issubclass(type(model), Entity), 'model is not a Pydantic Entity (%s)' % type(model)
         self._model = model
-        self._local = local
+        self._ref = None
 
     @property
     def reference_entity(self):
@@ -57,8 +57,9 @@ class XdbEntity(BaseEntity):
             yield k
 
     def make_ref(self, query):
-        if self._local[self.external_ref]:
-            return self._local[self.external_ref]
+        if self._ref is not None:
+            return self._ref
+
         args = {k: v for k, v in self._model.properties.items()}
         if self.entity_type == 'quantity' and 'referenceUnit' in args:
             args['reference_entity'] = args.pop('referenceUnit')
@@ -79,5 +80,5 @@ class XdbEntity(BaseEntity):
                 print('%s ***** CO2' % ref.link)
                 ref.is_co2 = True
 
-        self._local.add(ref)
+        self._ref = ref
         return ref

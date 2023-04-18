@@ -10,7 +10,6 @@ from antelope_core.implementations import BasicImplementation
 from antelope_core.lcia_results import LciaResult
 from antelope_core.characterizations import Characterization, QRResult
 
-from .xdb_entities import XdbEntity
 from requests.exceptions import HTTPError
 
 
@@ -94,15 +93,15 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
 
     def processes(self, **kwargs):
         llargs = {k.lower(): v for k, v in kwargs.items()}
-        return [XdbEntity(k, self._archive) for k in self._archive.r.get_many(Entity, 'processes', **llargs)]
+        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(Entity, 'processes', **llargs)]
 
     def flows(self, **kwargs):
         llargs = {k.lower(): v for k, v in kwargs.items()}
-        return [XdbEntity(k, self._archive) for k in self._archive.r.get_many(FlowEntity, 'flows', **llargs)]
+        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(FlowEntity, 'flows', **llargs)]
 
     def quantities(self, **kwargs):
         llargs = {k.lower(): v for k, v in kwargs.items()}
-        return [XdbEntity(k, self._archive) for k in self._archive.r.get_many(Entity, 'quantities', **llargs)]
+        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(Entity, 'quantities', **llargs)]
 
     def contexts(self, **kwargs):
         return self._archive.tm.contexts(**kwargs)
@@ -113,14 +112,14 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         return self._archive.tm.get_context(term)
 
     def targets(self, flow, direction=None, **kwargs):
-        return [XdbEntity(k, self._archive) for k in self._archive.r.get_many(Entity, _ref(flow), 'targets')]
+        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(Entity, _ref(flow), 'targets')]
 
     '''
     Exchange routes
     '''
     def _resolve_ex(self, ex):
         self.get_canonical(ex.flow.quantity_ref)
-        ex.flow = XdbEntity(FlowEntity.from_exchange_model(ex), self._archive)  # must get turned into a ref with make_ref
+        ex.flow = self._archive.get_or_make(FlowEntity.from_exchange_model(ex))  # must get turned into a ref with make_ref
 
         if ex.type == 'context':
             ex.termination = self.get_context(ex.context)

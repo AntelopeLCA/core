@@ -155,8 +155,22 @@ class XdbClient(LcArchive):
             return XdbImplementation(self)
         raise InterfaceError(iface)
 
+    def get_or_make(self, model):
+        """
+        Retrieve or create an entity, when we have already received its model data from the server
+        :param model:
+        :return:
+        """
+        key = model.entity_id
+        if key in self._entities:
+            return self._entities[key]
+        entity = XdbEntity(model)
+        self._entities[key] = entity
+        return entity
+
     def _fetch(self, key, **kwargs):
-        ref = self.query.make_ref(XdbEntity(self._requester.get_one(Entity, key), self))
-        if key not in self._entities:
-            self._entities[key] = ref
-        return ref
+        if key in self._entities:
+            return self._entities[key]
+        entity = XdbEntity(self._requester.get_one(Entity, key))
+        self._entities[key] = entity
+        return entity
