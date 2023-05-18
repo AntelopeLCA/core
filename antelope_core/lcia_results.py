@@ -531,7 +531,7 @@ class LciaResult(object):
      so is (theoretically) dynamic. This is not yet useful in practice.  LCIA Results are in sharp need of testing /
      refactoring.
     """
-    def __init__(self, quantity, scenario=None, private=False, scale=1.0):
+    def __init__(self, quantity, scenario=None, private=False, scale=1.0, autorange=False):
         """
         If private, the LciaResult will not return any unaggregated results
         :param quantity:
@@ -549,6 +549,8 @@ class LciaResult(object):
         self._private = private
         self._autorange = None
         self._failed = []
+        if autorange:
+            self.set_autorange()
 
     @property
     def has_summaries(self):
@@ -561,22 +563,23 @@ class LciaResult(object):
                 return False
         return True
 
-    def set_autorange(self, value=True):
+    def set_autorange(self, value=None):
         """
         Update the AutoRange object. Should be done before results are presented, if auto-ranging is in use.
 
         Auto-ranging affects the following outputs:
          * any show() or printed string
          * the results of contrib_new()
+
         No other outputs are affected.
+
         :param value:
         :return:
         """
-        assert isinstance(value, bool), 'cannot set autorange to %s of type %s' % (value, type(value))
         if value:
-            self._autorange = AutoRange(self.span)
+            self._autorange = AutoRange(value)
         else:
-            self._autorange = None
+            self._autorange = AutoRange(self.span)
 
     def unset_autorange(self):
         self.set_autorange(False)
@@ -729,6 +732,13 @@ class LciaResult(object):
 
     def total(self):
         return sum([i.cumulative_result for i in self._LciaScores.values()])
+
+    def a_total(self):
+        """
+        I don't want any logic in total()
+        :return:
+        """
+        return self.total() * self.autorange
 
     @property
     def span(self):
