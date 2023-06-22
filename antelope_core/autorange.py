@@ -23,14 +23,14 @@ metric_offsets = {
 }
 
 
-numerals = ['', 'billion', 'million', 'thousand']  # 0 = nothing -1 = thousand
+numerals = ['', 'trillion', 'billion', 'million', 'thousand']  # 0 = nothing -1 = thousand
 
 
 metric_prefixes = dict([(v, k) for k, v in metric_offsets.items()])
 metric_prefixes[0] = ''
 
 
-DISALLOW = ('mol', 'MT')  # units that start with these phrases should NOT use inferred prefix
+DISALLOW = {'mol', 'MT', 'PM'}  # units that start with these phrases should NOT use inferred prefix
 
 
 class AutoRange(object):
@@ -38,27 +38,37 @@ class AutoRange(object):
         self._shift = 0
         r = log10(self._range)
         while True:
-            if r < 0:
+            if r < self.bias:
                 r += 3
                 self._shift += 1
-            elif r > 3:
+            elif r > 3 + self.bias:
                 r -= 3
                 self._shift -= 1
             else:
                 return
 
-    def __init__(self, rng, kg_to_t=True, disallow_prefix=DISALLOW):
+    def __init__(self, rng, bias=0, kg_to_t=True, disallow_prefix=None):
         """
         creates an object for computing auto-ranged values.  The input argument should be the largest value that
-        is expected to appear in the context.  It will be ranged to fall between 0-1000 (absolute value).
+        is expected to appear in the context.  It will be ranged to fall between 0-1000 (absolute value); this
+        can be adjusted with the 'bias' param: one order per integer value up (pos) or down (neg)
         :param rng: either a scalar (abs) or an iterable (max(abs))
+        :param bias: [0] default range is 0-1000.  bias=1: 10-10,000; bias=-1: 0.1-100; etc; floats are operable
         :param kg_to_t: [True] correct kg to t in cases where the results are scaled up
         example: with kg_to_t = True, a unit of 'kg' autoranged to 'Mg' or larger will be converted to 't',
         'Gg' to 'kt', etc, but a unit of 'kg' or smaller will not
         with kg_to_t False, no alteration is performed
-        :param disallow_prefix: prefixes to exclude from metric prefix auto-detection. defaults: ('MT', 'mol')
+        :param disallow_prefix: preifx(es) to add to DISALLOW ('MT', 'mol', 'PM'). can be string or iterable.
         """
-        self.disallow_prefix = set(disallow_prefix)
+        self.bias = bias
+        self.disallow_prefix = set(DISALLOW)
+        if disallow_prefix:
+            if isinstance(disallow_prefix, str):
+                self.disallow_prefix.add(disallow_prefix)
+            else:
+                for d in disallow_prefix:
+                    self.disallow_prefix.add(d)
+
         try:
             self._range = max(abs(k) for k in rng)
         except TypeError:

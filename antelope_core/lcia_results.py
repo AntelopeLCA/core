@@ -563,13 +563,14 @@ class LciaResult(object):
                 return False
         return True
 
-    def set_autorange(self, value=None):
+    def set_autorange(self, value=None, **kwargs):
         """
         Update the AutoRange object. Should be done before results are presented, if auto-ranging is in use.
 
         Auto-ranging affects the following outputs:
          * any show() or printed string
          * the results of contrib_new()
+         * a_total()
 
         No other outputs are affected.
 
@@ -577,12 +578,12 @@ class LciaResult(object):
         :return:
         """
         if value:
-            self._autorange = AutoRange(value)
+            self._autorange = AutoRange(value, **kwargs)
         else:
-            self._autorange = AutoRange(self.span)
+            self._autorange = AutoRange(self.span, **kwargs)
 
     def unset_autorange(self):
-        self.set_autorange(False)
+        self._autorange = None
 
     @property
     def autorange(self):
@@ -757,7 +758,7 @@ class LciaResult(object):
     def add_component(self, key, entity=None):
         if any(isinstance(c, SummaryLciaResult) for c in self._LciaScores.values()):
             self.show_components()
-            raise MixedComponents
+            raise MixedComponents(key, entity)
         if entity is None:
             entity = key
         if key not in self._LciaScores.keys():
@@ -979,7 +980,7 @@ class LciaResult(object):
     def _terminal_nodes(self, weight=1.0):
         """
         Recursive function to flatten out an LCIA result by node rather than flow
-        returns a mapping of entity to (score and accumulated node weight)
+        returns two mappings: entity to score and entity to accumulated node weight
         aggregated scores return themselves, summary scores accumulate node weight by entity
         :param weight:
         :return: mapping of node to component, mapping of node to accumulated weight
@@ -999,7 +1000,7 @@ class LciaResult(object):
         Now we are seeing those errors and I don't know why.
         UPDATE: it is because two different fragments use the same process, but one is derived from an lci() and the 
         other is from a sys_lci() with a subtracted flow.  So naturally their scores are different.. No easy way to
-        deal with that....
+        deal with that.... we just incrementally create new keys ("hunt for a distinct name...")
         '''
         aggs = dict()
         scores = defaultdict(float)
@@ -1029,15 +1030,21 @@ class LciaResult(object):
                         if k in aggs:
                             if aggs[k].cumulative_result != v.cumulative_result:
                                 # hunt for a distinct name to give a node with this score
+                                ''' 
+                                our current node matches an existing node in our mapping, but the scores don't match
+                                we simply create a new node. but- we may have done that already- so we start with 'A'
+                                and advance until we (a) find an existing key whose score matches or (b) find a new
+                                key that hasn't been used yet
+                                '''
                                 idx = ord('A')
                                 name = str(k)
-                                while name in aggs:
-                                    if aggs[name].cumulative_result == v.cumulative_result:
+                                while name in aggs:  # existing key
+                                    if aggs[name].cumulative_result == v.cumulative_result:  # whose score matches
                                         break  # found one
                                     name = '.'.join([str(k), chr(idx)])
                                     idx += 1
 
-                                    if idx > ord('Z'):
+                                    if idx > ord('Z'):  # we've run out of names- implausibly-
                                         raise InconsistentScores(c, k)  # something is wrong if we get to this point (?)
 
                                 k = name
