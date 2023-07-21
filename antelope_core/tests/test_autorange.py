@@ -7,7 +7,7 @@ values = [-0.34, 12e9, .0000867]
 scales = [1000, 1.0e-9, 1.0e6]
 adj_values = [-340, 12, 86.7]
 units = ['kg CO2eq', 'mol H+', 'MMT']
-correct_units = [['g CO2eq', 'Tg CO2eq', 'mg CO2eq'],
+correct_units = [['g CO2eq', 'Mt CO2eq', 'mg CO2eq'],  # now properly converting g to t!
                  ['mmol H+', 'Gmol H+', 'umol H+'],
                  ['kMT', 'PMT', 'MT']]
 
