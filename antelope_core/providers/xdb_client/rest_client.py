@@ -3,6 +3,7 @@ from requests.exceptions import HTTPError
 import json
 from time import time
 from pydantic import BaseModel
+import getpass
 
 
 class OAuthToken(BaseModel):
@@ -33,8 +34,10 @@ class RestClient(object):
             else:
                 print(*args)
 
-    def __init__(self, api_root, token=None, quiet=False, auth_route=None, save_credentials=True):
+    def __init__(self, api_root, token=None, quiet=False, auth_route=None, save_credentials=True, verify=None):
         self._s = requests.Session()
+        if verify:
+            self._s.verify = verify
         self._s.headers['Accept'] = "application/json"
         self._quiet = quiet
         if auth_route:
@@ -52,7 +55,7 @@ class RestClient(object):
 
     @property
     def saved(self):
-        return (self._save and bool(self._creds))
+        return self._save and bool(self._creds)
 
     def close(self):
         self._s.close()
@@ -107,7 +110,7 @@ class RestClient(object):
         self._upd_save(save_credentials)
         self._post_credentials(data)
 
-    def authenticate(self, username, password, save_credentials=None, **kwargs):
+    def authenticate(self, username, password=None, save_credentials=None, **kwargs):
         """
         POSTs an OAuth2-compliant form to obtain a bearer token.
         Be sure to set the 'auth_route' property either in a subclass or manually (e.g. on init)
@@ -116,6 +119,8 @@ class RestClient(object):
         :param kwargs:
         :return:
         """
+        if password is None:
+            password = getpass.getpass('Enter password: ')
         data = {
             "grant_type": "password",
             "username": username,
