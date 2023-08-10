@@ -33,7 +33,7 @@ class BadInterfaceSpec(Exception):
     pass
 
 
-class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface):  # , ForegroundInterface):
+class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface):
     """
     A CatalogQuery is a class that performs any supported query against a supplied catalog.
     Supported queries are defined in the lcatools.interfaces, which are all abstract.
@@ -232,6 +232,23 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             else:
                 raise
         return q_can
+
+    def synonyms(self, item, **kwargs):
+        """
+        Potentially controversial? include canonical as well as provincial synonyms for catalog queries??
+        :param item:
+        :param kwargs:
+        :return:
+        """
+        rtn_set = set()
+        for i in self._tm.synonyms(item):
+            if i not in rtn_set:
+                rtn_set.add(i)
+                yield i
+        for i in super(CatalogQuery, self).synonyms(item, **kwargs):
+            if i not in rtn_set:
+                rtn_set.add(i)
+                yield i
 
     def characterize(self, flowable, ref_quantity, query_quantity, value, context=None, location='GLO', **kwargs):
         """

@@ -46,6 +46,7 @@ init_map = {
     'lcindex': LcIndex
 }
 
+
 def archive_factory(ds_type):
     """
     Returns an archive class
