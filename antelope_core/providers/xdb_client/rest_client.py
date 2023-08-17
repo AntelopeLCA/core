@@ -116,11 +116,12 @@ class RestClient(object):
         Be sure to set the 'auth_route' property either in a subclass or manually (e.g. on init)
         :param username:
         :param password:
+        :param save_credentials: whether to save credentials
         :param kwargs:
         :return:
         """
         if password is None:
-            password = getpass.getpass('Enter password: ')
+            password = getpass.getpass('Enter password for user %s: ' % username)
         data = {
             "grant_type": "password",
             "username": username,
@@ -168,7 +169,7 @@ class RestClient(object):
         return json.loads(resp.content)
 
     def _get_endpoint(self, route, *args, **params):
-        url = '/'.join([route, *args])
+        url = '/'.join(map(str, [route, *args]))
         return self._request('GET', url, params=params)
 
     def get_raw(self, *args, **kwargs):
@@ -187,7 +188,7 @@ class RestClient(object):
             return [model(k) for k in self._get_endpoint(*args, **kwargs)]
 
     def _post(self, postdata, route, *args, form=False, **params):
-        url = '/'.join([route, *args])
+        url = '/'.join(map(str, [route, *args]))
         if form:
             return self._request('POST', url, data=postdata, params=params)
         else:
@@ -205,8 +206,8 @@ class RestClient(object):
         else:
             return [model(k) for k in self._post(postdata, *args, **kwargs)]
 
-    def put(self, putdata, model, form=False, *args, **kwargs):
-        url = '/'.join(args)
+    def put(self, putdata, model, *args, form=False, **kwargs):
+        url = '/'.join(map(str, args))
         if form:
             response = self._request('PUT', url, data=putdata, params=kwargs)
         else:
@@ -217,5 +218,5 @@ class RestClient(object):
             return model(response)
 
     def delete(self, *args, **kwargs):
-        url = '/'.join(args)
+        url = '/'.join(map(str, args))
         return self._request('DELETE', url, params=kwargs)
