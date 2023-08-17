@@ -133,6 +133,9 @@ class XdbClient(LcArchive):
     """
     An XdbClient accesses xdb at a named URL using an access token.
     """
+
+    _base_type = XdbEntity
+
     def __init__(self, source, ref=None, token=None):
         self._requester = XdbRequester(source, ref, token=token)
         if ref is None:
@@ -164,13 +167,13 @@ class XdbClient(LcArchive):
         key = model.entity_id
         if key in self._entities:
             return self._entities[key]
-        entity = XdbEntity(model)
+        entity = self._base_type(model)
         self._entities[key] = entity
         return entity
 
     def _fetch(self, key, **kwargs):
         if key in self._entities:
             return self._entities[key]
-        entity = XdbEntity(self._requester.get_one(Entity, key))
+        entity = self._base_type(self._requester.get_one(Entity, key))
         self._entities[key] = entity
         return entity
