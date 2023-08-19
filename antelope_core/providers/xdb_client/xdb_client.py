@@ -10,7 +10,7 @@ from antelope_core.catalog_query import READONLY_INTERFACE_TYPES
 from antelope_core.contexts import ContextManager, NullContext
 
 from .requester import XdbRequester
-from .implementation import XdbImplementation
+from .implementation import XdbImplementation, _ref
 from .xdb_entities import XdbEntity
 
 from requests.exceptions import HTTPError
@@ -175,6 +175,6 @@ class XdbClient(LcArchive):
     def _fetch(self, key, **kwargs):
         if key in self._entities:
             return self._entities[key]
-        entity = self._base_type(self._requester.get_one(Entity, key))
+        entity = self._base_type(self._requester.get_one(Entity, _ref(key)))
         self._entities[key] = entity
         return entity

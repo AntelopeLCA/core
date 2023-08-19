@@ -31,13 +31,18 @@ class RemoteExchangeValues(ExchangeValues):
 
 def _ref(obj):
     """
-    URL-ize input argument
+    URL-ize input argument... add underscores as brackets if the ref contains slashes
     :param obj:
     :return:
     """
     if hasattr(obj, 'external_ref'):
-        return obj.external_ref
-    return str(obj)
+        ref = str(obj.external_ref)
+    else:
+        ref = str(obj)
+    if ref.find('/') >= 0:
+        return '_/%s/_' % ref
+    else:
+        return ref
 
 
 class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, QuantityInterface, BackgroundInterface):
@@ -93,15 +98,15 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
 
     def processes(self, **kwargs):
         llargs = {k.lower(): v for k, v in kwargs.items()}
-        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(Entity, 'processes', **llargs)]
+        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(Entity, 'process', **llargs)]
 
     def flows(self, **kwargs):
         llargs = {k.lower(): v for k, v in kwargs.items()}
-        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(FlowEntity, 'flows', **llargs)]
+        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(FlowEntity, 'flow', **llargs)]
 
     def quantities(self, **kwargs):
         llargs = {k.lower(): v for k, v in kwargs.items()}
-        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(Entity, 'quantities', **llargs)]
+        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(Entity, 'quantity', **llargs)]
 
     def contexts(self, **kwargs):
         return self._archive.tm.contexts(**kwargs)
