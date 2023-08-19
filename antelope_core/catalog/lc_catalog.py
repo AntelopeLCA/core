@@ -226,7 +226,7 @@ class LcCatalog(StaticCatalog):
         res = LcResource.from_archive(archive, interfaces, source=self._localize_source(archive.source), **kwargs)
         self._resolver.add_resource(res, store=store)
 
-    def blackbook_authenticate(self, blackbook_url=None, username=None, password=None, token=None, save_credentials=True):
+    def blackbook_authenticate(self, blackbook_url=None, username=None, password=None, token=None, **kwargs):
         """
         Opens an authenticated session with the designated blackbook server.  Credentials can either be provided to the
         method as arguments, or if omitted, they can be obtained through a form.  If a token is provided, it is
@@ -235,6 +235,7 @@ class LcCatalog(StaticCatalog):
         :param username:
         :param password:
         :param token:
+        :param kwargs: passed to RestClient. save_credentials=True.  verify: provide path to self-signed certificate
         :return:
         """
         if self._blackbook_client:
@@ -245,7 +246,7 @@ class LcCatalog(StaticCatalog):
         elif blackbook_url is None:
             raise ValueError('Must provide a URL')
         if token is None:
-            client = RestClient(blackbook_url, auth_route='auth/token', save_credentials=save_credentials)
+            client = RestClient(blackbook_url, auth_route='auth/token', **kwargs)
             if username is None:
                 username = input('Enter username to access blackbook server at %s: ' % blackbook_url)
             if password is None:
@@ -256,13 +257,14 @@ class LcCatalog(StaticCatalog):
                 client.close()
                 raise
         else:
-            client = RestClient(blackbook_url, token=token, auth_route='auth/token', save_credentials=save_credentials)
+            client = RestClient(blackbook_url, token=token, auth_route='auth/token', **kwargs)
         self._blackbook_client = client
 
     def get_blackbook_resources(self, origin, store=False):
         """
         Use a blackbook server to obtain resources for a given origin.
         :param origin:
+        :param store: whether to save resources. by default we don't, assuming the tokens are short-lived.
         :return:
         """
         res = list(self.resources(origin))
@@ -272,6 +274,7 @@ class LcCatalog(StaticCatalog):
             resource_dict = self._blackbook_client.get_one(dict, 'origins', origin, 'resource')
             return self._finish_get_blackbook_resources(resource_dict, store=store)
 
+    '''
     def get_blackbook_resources_by_client(self, bb_client, username, origin, store=False):
         """
         this uses the local maintenance client rather than the REST client
@@ -283,6 +286,7 @@ class LcCatalog(StaticCatalog):
         """
         resource_dict = bb_client.retrieve_resource(username, origin)
         return self._finish_get_blackbook_resources(resource_dict, store=store)
+    '''
 
     def _finish_get_blackbook_resources(self, resource_dict, store=False):
         """
@@ -316,10 +320,10 @@ class LcCatalog(StaticCatalog):
         rtn = []
         for res in self._resolver.resources:
             if res.origin == origin:  # and hasattr(res.archive, 'r'):
+                res.init_args['token'] = tok
                 if res.archive is None:
-                    res.init_args['token'] = tok
                     res.check(self)
-                if hasattr(res.archive, 'r'):
+                elif hasattr(res.archive, 'r'):
                     res.archive.r.set_token(tok)
                 rtn.append(res)
         return rtn

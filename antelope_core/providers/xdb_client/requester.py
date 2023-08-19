@@ -12,8 +12,8 @@ class XdbRequester(RestClient):
      -post_return_one
      -post_return_many
     """
-    def __init__(self, api_root, ref=None, token=None, quiet=False):
-        super(XdbRequester, self).__init__(api_root, token=token, quiet=quiet)
+    def __init__(self, api_root, ref=None, token=None, quiet=False, **kwargs):
+        super(XdbRequester, self).__init__(api_root, token=token, quiet=quiet, **kwargs)
 
         if ref:
             # we make a list of all the endpoint's origins that match our ref

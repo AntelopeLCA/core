@@ -136,8 +136,9 @@ class XdbClient(LcArchive):
 
     _base_type = XdbEntity
 
-    def __init__(self, source, ref=None, token=None):
-        self._requester = XdbRequester(source, ref, token=token)
+    def __init__(self, source, ref=None, token=None, **requester_args):
+        self._requester_args = requester_args
+        self._requester = XdbRequester(source, ref, token=token, **self._requester_args)
         if ref is None:
             ref = 'qdb'
         super(XdbClient, self).__init__(source, ref=ref, term_manager=XdbTermManager(self._requester))
@@ -146,7 +147,7 @@ class XdbClient(LcArchive):
         self._requester.set_token(new_token)
 
     def refresh_auth(self, new_source, new_token):
-        self._requester = XdbRequester(new_source, new_token)
+        self._requester = XdbRequester(new_source, new_token, **self._requester_args)
         self.tm.update_requester(self._requester)
 
     @property
