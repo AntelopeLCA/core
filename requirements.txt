@@ -1,4 +1,4 @@
-synonym_dict>=0.2.0
+synonym_dict>=0.2.4
 git+https://github.com/AntelopeLCA/antelope#egg=antelope_interface
 xlstools>=0.1.0
 python-magic>=0.4.18
