@@ -192,6 +192,11 @@ class LcResource(object):
         except InterfaceError:
             pass
 
+    def remove_interface(self, iface):
+        iface = zap_inventory(iface)  # don't warn when interpreting resource specifications
+        if iface in self._interfaces:
+            self._interfaces.remove(iface)
+
     def add_interface(self, iface):
         iface = zap_inventory(iface)  # don't warn when interpreting resource specifications
         if iface in INTERFACE_TYPES:
