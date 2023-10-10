@@ -330,7 +330,7 @@ class SummaryLciaResult(object):
                     unit_score = self._static_value + other.unit_score
                 else:
                     # in conflicts, prefer unit node weights if they exist (i.e. in aggregations)
-                    if self.node_weight == 1.0 or other.node_weight == 1.0:
+                    if 0:  # self.node_weight == 1.0 or other.node_weight == 1.0:
                         _node_weight = 1.0
                         unit_score = self.cumulative_result + other.cumulative_result
                     else:
@@ -611,7 +611,8 @@ class LciaResult(object):
 
     def _match_key(self, item):
         """
-        whaaaaaaaaaat is going on here
+        if item is a known key, return its match
+        if item is a seen entity, return its component
         :param item:
         :return:
         """
@@ -623,8 +624,8 @@ class LciaResult(object):
                     yield v
                 # elif str(v.entity).startswith(str(item)):
                 #     yield v
-                elif str(k).startswith(str(item)):
-                    yield v
+                # elif str(k).startswith(str(item)):
+                #     yield v
 
     def __getitem__(self, item):
         try:
@@ -952,21 +953,36 @@ class LciaResult(object):
     def terminal_nodes(self, key=lambda x: x.link):
         aggs, scores = self._terminal_nodes()
         l = LciaResult(self.quantity, scenario=self.scenario)  #, private=self._private, scale=self._scale)  # not sure about these
+
+        # PROPOSED: a way for fragment entities to appear like LciaSummary (node weight x score) - build summaries
+        _sum_l = LciaResult(self.quantity, scenario=self.scenario)
+
         for ent, agg in aggs.items():
             if hasattr(ent, 'entity_type'):
                 k = key(ent)
                 if ent.entity_type == 'fragment':
                     if isinstance(agg, SummaryLciaResult):
                         l.add_summary(k, ent, scores[ent], agg.cumulative_result)
-                    else:  # direct foreground emission: aggregate to parent
-                        # TODO: come up with a way for fragment entities to appear like LciaSummary (node weight x score)
-                        parent = ent.reference_entity or ent
-                        k = key(parent)
-                        l.add_component(k, entity=parent)
-                        for d in agg.details():
-                            x = ExchangeValue(d.exchange.process, d.exchange.flow, d.exchange.direction,
-                                              value=d.value * scores[ent], termination=d.exchange.termination)
-                            l.add_score(k, x, d.factor)
+                    else:  # direct foreground emission: aggregate to the computation, then group with the parent
+                        ''' here we have a quandary. if direct-emission fragments are attached to a parent with 
+                        its own native score (i.e taps to a background process i.e. our use case), then we can
+                        aggregate those direct emissions and then scale them to add with the native score by inspecting
+                        its node weight.
+                        but if the direct emissions are simply in the foreground, then the parent will have no native
+                        summary and no accumulated node weight. so we are stuck with node weight = 1.0 for these
+                        '''
+                        _use = ent.reference_entity
+                        if _use is None:
+                            print(ent.link)
+                            raise ZeroDivisionError('direct foreground emissions must have a parent')
+                        _use_k = key(_use)
+                        if _use in aggs:
+                            # parent already known; defer our frags to add later
+                            _sum_l.add_summary(_use_k, _use, 1.0, scores[ent] * agg.cumulative_result)
+                        else:
+                            # just add it straight away
+                            l.add_summary(_use_k, _use, 1.0, scores[ent] * agg.cumulative_result)
+
                 elif ent.entity_type == 'process':
                     l.add_summary(k, ent, scores[ent], agg.cumulative_result)
                 else:
@@ -975,15 +991,24 @@ class LciaResult(object):
                 k = str(ent)
                 l.add_summary(k, ent, scores[ent], agg.cumulative_result)
 
+        # now add in deferred emissions, scaling by the parent's node weight to accumulate to the parent's unit score
+        _sum_l.show_components()
+        for summ_c in _sum_l.components():
+            r_c = l[summ_c.entity]
+            print('+++ %s' % r_c)
+            l.add_summary(key(summ_c.entity), summ_c.entity, r_c.node_weight, summ_c.cumulative_result / r_c.node_weight)
+            print('--- %s' % r_c)
+
         return l
 
     def _terminal_nodes(self, weight=1.0):
         """
         Recursive function to flatten out an LCIA result by node rather than flow
-        returns two mappings: entity to score and entity to accumulated node weight
-        aggregated scores return themselves, summary scores accumulate node weight by entity
-        :param weight:
-        :return: mapping of node to component, mapping of node to accumulated weight
+        returns two mappings: entity to accumulated node weight (aggs), entity to "scores" where "scores" is different
+        for AggregateLciaScores and SummaryLciaResults:
+         - aggregated scores return the score value, summary scores return accumulated node weights
+        :param weight: the recursive node weight
+        :return: mapping of node to component, mapping of node to accumulated weight (upstream weight already included)
         "node" can be either an entity (process or fragment) or a string
         """
         '''
@@ -995,10 +1020,10 @@ class LciaResult(object):
           - If it is an AggregateLciaScore (i.e. a true LCIA computation), then it becomes a terminal node
           - If it is a static Summary, then we can't disaggregate and it also becomes a terminal node
           - If it is a dynamic summary, we recurse on it, and we take its terminal nodes and parse them out.
-        For this to work, each terminal node must have the same unit score. If we find non-matching scores for the 
-        same terminal node, we raise an error.
-        Now we are seeing those errors and I don't know why.
-        UPDATE: it is because two different fragments use the same process, but one is derived from an lci() and the 
+        For this to work, each terminal node must have the same unit score. 
+        
+        If we find non-matching scores for the same terminal node, we suffix the name and make a new component.
+        This could happen if: two different fragments use the same process, but one is derived from an lci() and the 
         other is from a sys_lci() with a subtracted flow.  So naturally their scores are different.. No easy way to
         deal with that.... we just incrementally create new keys ("hunt for a distinct name...")
         '''
