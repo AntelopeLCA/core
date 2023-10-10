@@ -10,7 +10,7 @@ from antelope_core.catalog_query import READONLY_INTERFACE_TYPES
 from antelope_core.contexts import ContextManager, NullContext
 
 from .requester import XdbRequester
-from .implementation import XdbImplementation, _ref
+from .implementation import XdbImplementation, XdbConfigureImplementation, _ref
 from .xdb_entities import XdbEntity
 
 from requests.exceptions import HTTPError
@@ -138,7 +138,10 @@ class XdbClient(LcArchive):
 
     def __init__(self, source, ref=None, token=None, **requester_args):
         self._requester_args = requester_args
-        self._requester = XdbRequester(source, ref, token=token, **self._requester_args)
+        try:
+            self._requester = XdbRequester(source, ref, token=token, **self._requester_args)
+        except HTTPError as e:
+            raise InterfaceError('HTTP Request failed %s, %s' % (e.args[0], e.args[1]))
         if ref is None:
             ref = 'qdb'
         super(XdbClient, self).__init__(source, ref=ref, term_manager=XdbTermManager(self._requester))
@@ -157,6 +160,8 @@ class XdbClient(LcArchive):
     def make_interface(self, iface):
         if iface in READONLY_INTERFACE_TYPES:
             return XdbImplementation(self)
+        elif iface == 'configure':
+            return XdbConfigureImplementation(self)
         raise InterfaceError(iface)
 
     def get_or_make(self, model):

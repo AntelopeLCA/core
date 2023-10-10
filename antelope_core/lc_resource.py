@@ -181,16 +181,18 @@ class LcResource(object):
         return self._archive.make_interface(iface)
 
     def apply_config(self, catalog=None):
-        if len(self._config) == 0:
-            return
+        # if len(self._config) == 0:  # NOW we don't even need to alter blackbook!!!
+        #    return
         print('Applying stored configuration')
-        if catalog is not None:
-            if 'hints' in self._config:
-                catalog.lcia_engine.apply_hints(self._archive.catalog_names, self._config['hints'])
         try:
             self._archive.make_interface('configure').apply_config(self._config)
         except InterfaceError:
             pass
+        # we are moving this below apply_config to allow the archive to add/edit hints, which it can do because
+        # it receives the authentic config dict as an argument
+        if catalog is not None:
+            if 'hints' in self._config:
+                catalog.lcia_engine.apply_hints(self._archive.catalog_names, self._config['hints'])
 
     def remove_interface(self, iface):
         iface = zap_inventory(iface)  # don't warn when interpreting resource specifications

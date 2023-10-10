@@ -2,11 +2,18 @@
 Query Interface -- used to operate catalog refs
 """
 
-from antelope import (IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface, EntityNotFound, UnknownOrigin)
+from antelope import (IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface, EntityNotFound,
+                      UnknownOrigin,
+                      ExchangeRef, comp_dir, BaseEntity)
 #                      ForegroundInterface,
 #                      IndexRequired, PropertyExists,
 #                      )
 from antelope.refs.exchange_ref import RxRef
+
+from antelope.models import LciaResult as LciaResultModel
+
+from .lcia_results import LciaResult
+from .characterizations import QRResult
 
 INTERFACE_TYPES = ('basic', 'index', 'exchange', 'background', 'quantity', 'foreground')
 READONLY_INTERFACE_TYPES = {'basic', 'index', 'exchange', 'background', 'quantity'}
@@ -219,7 +226,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         cx = super(CatalogQuery, self).get_context(term, **kwargs)
         return self._tm[cx]
 
-    def get_canonical(self, quantity, **kwargs):
+    def get_canonical(self, quantity: str | BaseEntity, **kwargs):
         try:
             # print('Gone canonical')
             q_can = self._tm.get_canonical(quantity)
@@ -332,3 +339,53 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
                 return self._tm.add_quantity(entity)  # this will be identical to _ unless there is a unit conflict
         else:
             return e_ref
+
+    def _result_from_model(self, process_ref, quantity, res_m: LciaResultModel):
+        """
+        Constructs a Detailed LCIA result from a background LCIA query, when we don't have a list of exchanges
+        :param process_ref:
+        :param quantity:
+        :param res_m:
+        :return:
+        """
+        res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
+        process = self.get(process_ref)
+        res.add_component(process_ref, entity=process)
+        for c in res_m.components:
+            for d in c.details:
+                value = d.result / d.factor.value
+                cx = self.get_context(d.exchange.context)
+                ex = ExchangeRef(process, self.get(d.exchange.external_ref), comp_dir(cx.sense),
+                                 termination=cx, value=value)
+                rq = self.get_canonical(d.exchange.quantity_ref)
+                cf = QRResult(d.factor.flowable, rq, quantity, cx,
+                              d.factor.locale, d.factor.origin, d.factor.value)
+                res.add_score(c.component, ex, cf)
+            for s in c.summaries:
+                res.add_summary(c.component, process, s.node_weight, s.unit_score)
+        return res
+
+    def bg_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
+        """
+        Reimplement this to detect pydantic LciaResult models and de-reference them
+        :param process:
+        :param query_qty:
+        :param observed:
+        :param ref_flow:
+        :param kwargs:
+        :return:
+        """
+        ress = super(CatalogQuery, self).bg_lcia(process, query_qty, observed=observed, ref_flow=ref_flow, **kwargs)
+        if isinstance(ress, list):
+            conv = []
+            for res in ress:
+                if isinstance(res, LciaResultModel):
+                    conv.append(self._result_from_model(process_ref=process, quantity=query_qty, res_m=res))
+                else:
+                    conv.append(res)
+            return conv
+        else:
+            if isinstance(ress, LciaResultModel):
+                return self._result_from_model(process_ref=process, quantity=query_qty, res_m=ress)
+            else:
+                return ress
