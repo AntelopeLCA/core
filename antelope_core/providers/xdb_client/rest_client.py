@@ -80,7 +80,7 @@ class RestClient(object):
             else:
                 raise ValueError('invalid token specification')
         else:
-            raise ValueError('Invalid token type')
+            raise ValueError('Invalid token type %s' % type(token))
         self._s.headers['Authorization'] = self._token.auth
 
     def _upd_save(self, save_credentials):

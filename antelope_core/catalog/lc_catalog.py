@@ -259,11 +259,12 @@ class LcCatalog(StaticCatalog):
             client = RestClient(blackbook_url, token=token, auth_route='auth/token', **kwargs)
         self._blackbook_client = client
 
-    def get_blackbook_resources(self, origin, store=False):
+    def get_blackbook_resources(self, origin, store=False, **kwargs):
         """
         Use a blackbook server to obtain resources for a given origin.
         :param origin:
         :param store: whether to save resources. by default we don't, assuming the tokens are short-lived.
+        :param kwargs: init args to add to returned resources, such as 'verify' certificate paths
         :return:
         """
         res = list(self.resources(origin))
@@ -271,7 +272,7 @@ class LcCatalog(StaticCatalog):
             return self.refresh_xdb_tokens(origin)
         else:
             resource_dict = self._blackbook_client.get_one(dict, 'origins', origin, 'resource')
-            return self._configure_blackbook_resources(resource_dict, store=store)
+            return self._configure_blackbook_resources(resource_dict, store=store, **kwargs)
 
     '''
     def get_blackbook_resources_by_client(self, bb_client, username, origin, store=False):
@@ -287,7 +288,7 @@ class LcCatalog(StaticCatalog):
         return self._finish_get_blackbook_resources(resource_dict, store=store)
     '''
 
-    def _configure_blackbook_resources(self, resource_dict, store=False):
+    def _configure_blackbook_resources(self, resource_dict, store=False, **kwargs):
         """
         Emerging issue here in the xdb/oryx context-- we need to be able to replace resources even if they are
         serialized and already initialized.
@@ -315,6 +316,7 @@ class LcCatalog(StaticCatalog):
                     res = ResourceSpec(**res)
                 try:
                     exis = next(x for x in self.resources(recv_origin) if x.ds_type == res.ds_type)
+                    exis.init_args.update(kwargs)
                     exis.check(self)
                     # one exists-- update it
                     exis.init_args.update(res.options)
@@ -331,7 +333,7 @@ class LcCatalog(StaticCatalog):
                             exis.remove_interface(i)
                     rtn.append(exis)
                 except StopIteration:
-                    r = LcResource(**res.dict())
+                    r = LcResource(**res.dict(), **kwargs)
                     self.add_resource(r, store=store)
                     rtn.append(r)
         return rtn
