@@ -109,15 +109,15 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
 
     def processes(self, **kwargs):
         llargs = {k.lower(): v for k, v in kwargs.items()}
-        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(Entity, 'process', **llargs)]
+        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(Entity, 'processes', **llargs)]
 
     def flows(self, **kwargs):
         llargs = {k.lower(): v for k, v in kwargs.items()}
-        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(FlowEntity, 'flow', **llargs)]
+        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(FlowEntity, 'flows', **llargs)]
 
     def quantities(self, **kwargs):
         llargs = {k.lower(): v for k, v in kwargs.items()}
-        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(Entity, 'quantity', **llargs)]
+        return [self._archive.get_or_make(k) for k in self._archive.r.get_many(Entity, 'quantities', **llargs)]
 
     def contexts(self, **kwargs):
         return self._archive.tm.contexts(**kwargs)
