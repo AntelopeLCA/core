@@ -3,7 +3,7 @@ import json
 from antelope import IndexInterface, ExchangeInterface, QuantityInterface, BackgroundInterface
 from antelope import ExchangeRef, RxRef, EntityNotFound, comp_dir
 from antelope.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceExchange, UnallocatedExchange,
-                             DetailedLciaResult, AllocatedExchange, Characterization as CharacterizationModel,
+                             LciaResult as LciaResultModel, AllocatedExchange, Characterization as CharacterizationModel,
                              ExchangeValues, DirectedFlow)
 
 from antelope_core.implementations import BasicImplementation
@@ -292,7 +292,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
             return 0.0
 
     @staticmethod
-    def _result_from_exchanges(quantity, exch_map, res_m: DetailedLciaResult):
+    def _result_from_exchanges(quantity, exch_map, res_m: LciaResultModel):
         """
         Constructs a detailed LCIA result using details provided by the backend server, populated with exchanges
         that we provided via POST.
@@ -322,7 +322,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
                 res.add_summary(c.component, node, s.node_weight, s.unit_score)
         return res
 
-    def _result_from_model(self, process_ref, quantity, res_m: DetailedLciaResult):
+    def _result_from_model(self, process_ref, quantity, res_m: LciaResultModel):
         """
         Constructs a Detailed LCIA result from a background LCIA query, when we don't have a list of exchanges
         :param process_ref:
@@ -359,7 +359,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         exchanges = [UnallocatedExchange.from_inv(x).dict() for x in inventory]
         exch_map = {(x.flow.external_ref, x.term_ref): x for x in inventory}
 
-        ress = self._archive.r.qdb_post_return_many(exchanges, DetailedLciaResult, _ref(quantity), 'do_lcia')
+        ress = self._archive.r.qdb_post_return_many(exchanges, LciaResultModel, _ref(quantity), 'do_lcia')
         return [self._result_from_exchanges(quantity, exch_map, res) for res in ress]
 
     def bg_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
@@ -378,17 +378,17 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
                 obs_flows = [DirectedFlow.from_exchange(x).dict() for x in observed]
             if len(obs_flows) > 0:
                 if ref_flow:
-                    ress = self._archive.r.post_return_many(obs_flows, DetailedLciaResult, _ref(process), _ref(ref_flow),
+                    ress = self._archive.r.post_return_many(obs_flows, LciaResultModel, _ref(process), _ref(ref_flow),
                                                             'lcia', _ref(query_qty), **kwargs)
                 else:
-                    ress = self._archive.r.post_return_many(obs_flows, DetailedLciaResult, _ref(process),
+                    ress = self._archive.r.post_return_many(obs_flows, LciaResultModel, _ref(process),
                                                             'lcia', _ref(query_qty), **kwargs)
             else:
                 if ref_flow:
-                    ress = self._archive.r.get_many(DetailedLciaResult, _ref(process), _ref(ref_flow),
+                    ress = self._archive.r.get_many(LciaResultModel, _ref(process), _ref(ref_flow),
                                                     'lcia', _ref(query_qty), **kwargs)
                 else:
-                    ress = self._archive.r.get_many(DetailedLciaResult, _ref(process),
+                    ress = self._archive.r.get_many(LciaResultModel, _ref(process),
                                                     'lcia', _ref(query_qty), **kwargs)
         except HTTPError as e:
             if e.args[0] == 404:
