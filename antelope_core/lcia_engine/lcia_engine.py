@@ -165,8 +165,8 @@ class LciaEngine(TermManager):
                     t = self._qm[term]
                     if c is not t:
                         print('!X!X!X!X!X!X!X! conflict when applying hint %s->%s' % (term, canonical))
-                        print('                canonical: %s = ' % c.quantity.link)
-                        print('                extisting: %s = ' % t.quantity.link)
+                        print('                canonical: %s = ' % c.link)
+                        print('                collision: %s = ' % t.link)
                     # assert self._qm[canonical] is self._qm[term]
             elif hint_type == 'flowable':
                 print('Applying flowable hint %s -> %s' % (term, canonical))

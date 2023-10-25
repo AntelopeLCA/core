@@ -10,10 +10,10 @@ from antelope import (IndexInterface, BackgroundInterface, ExchangeInterface, Qu
 #                      )
 from antelope.refs.exchange_ref import RxRef
 
-from antelope.models import LciaResult as LciaResultModel
+from antelope.models import LciaResult as LciaResultModel, Characterization as CharacterizationModel
 
 from .lcia_results import LciaResult
-from .characterizations import QRResult
+from .characterizations import QRResult, Characterization
 
 INTERFACE_TYPES = ('basic', 'index', 'exchange', 'background', 'quantity', 'foreground')
 READONLY_INTERFACE_TYPES = {'basic', 'index', 'exchange', 'background', 'quantity'}
@@ -340,6 +340,35 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         else:
             return e_ref
 
+    '''
+    de-reference Characterization factor models
+    '''
+
+    def _resolve_cf(self, cf: CharacterizationModel) -> Characterization:
+        """
+
+        :param cf:
+        :return:
+        """
+        rq = self.get_canonical(cf.ref_quantity)
+        qq = self.get_canonical(cf.query_quantity)
+        cx = self.get_context(cf.context)
+        c = Characterization(cf.flowable, rq, qq, cx, origin=cf.origin)
+        for k, v in cf.value.items():
+            c[k] = v
+        return c
+
+    def factors(self, quantity, flowable=None, context=None, **kwargs):
+        for cf in super(CatalogQuery, self).factors(quantity, flowable=flowable, context=context, **kwargs):
+            if isinstance(cf, CharacterizationModel):
+                yield self._resolve_cf(cf)
+            else:
+                yield cf
+
+    '''
+    de-reference LciaResult models
+    '''
+
     def _result_from_model(self, process_ref, quantity, res_m: LciaResultModel):
         """
         Constructs a Detailed LCIA result from a background LCIA query, when we don't have a list of exchanges
@@ -350,7 +379,6 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         """
         res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
         process = self.get(process_ref)
-        res.add_component(process_ref, entity=process)
         for c in res_m.components:
             for d in c.details:
                 value = d.result / d.factor.value
@@ -362,20 +390,12 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
                               d.factor.locale, d.factor.origin, d.factor.value)
                 res.add_score(c.component, ex, cf)
             for s in c.summaries:
-                res.add_summary(c.component, process, s.node_weight, s.unit_score)
+                res.add_summary(c.component, c.component, s.node_weight, s.unit_score)
+        for s in res_m.summaries:
+            res.add_summary(s.component, s.component, s.node_weight, s.unit_score)
         return res
 
-    def bg_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
-        """
-        Reimplement this to detect pydantic LciaResult models and de-reference them
-        :param process:
-        :param query_qty:
-        :param observed:
-        :param ref_flow:
-        :param kwargs:
-        :return:
-        """
-        ress = super(CatalogQuery, self).bg_lcia(process, query_qty, observed=observed, ref_flow=ref_flow, **kwargs)
+    def _cycle_through_ress(self, ress, process, query_qty):
         if isinstance(ress, list):
             conv = []
             for res in ress:
@@ -389,3 +409,16 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
                 return self._result_from_model(process_ref=process, quantity=query_qty, res_m=ress)
             else:
                 return ress
+
+    def bg_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
+        """
+        Reimplement this to detect pydantic LciaResult models and de-reference them
+        :param process:
+        :param query_qty:
+        :param observed:
+        :param ref_flow:
+        :param kwargs:
+        :return:
+        """
+        ress = super(CatalogQuery, self).bg_lcia(process, query_qty, observed=observed, ref_flow=ref_flow, **kwargs)
+        return self._cycle_through_ress(ress, process, query_qty)

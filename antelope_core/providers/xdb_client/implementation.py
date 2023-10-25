@@ -134,7 +134,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
     Exchange routes
     '''
     def _resolve_ex(self, ex):
-        self.get_canonical(ex.flow.quantity_ref)
+        # self.get_canonical(ex.flow.quantity_ref)  # wtf was this for
         ex.flow = self._archive.get_or_make(FlowEntity.from_exchange_model(ex))  # must get turned into a ref with make_ref
 
         if ex.type == 'context':
@@ -246,29 +246,6 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
     '''
     qdb routes
     '''
-    def get_canonical(self, quantity, **kwargs):
-        """
-
-        :param quantity:
-        :param kwargs:
-        :return:
-        """
-        return self._archive.retrieve_or_fetch_entity(quantity, **kwargs)
-
-    def _resolve_cf(self, cf: CharacterizationModel) -> Characterization:
-        """
-
-        :param cf:
-        :return:
-        """
-        rq = self.get_canonical(cf.ref_quantity)
-        qq = self.get_canonical(cf.query_quantity)
-        cx = self.get_context(cf.context)
-        c = Characterization(cf.flowable, rq, qq, cx, origin=cf.origin)
-        for k, v in cf.value.items():
-            c[k] = v
-        return c
-
     def factors(self, quantity, flowable=None, context=None, **kwargs):
         """
         We need to construct operable characterizations with quantities that are recognized by the LciaEngine- in other
@@ -283,7 +260,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
             facs = self._archive.r.get_many(CharacterizationModel, quantity, 'factors', flowable)
         else:
             facs = self._archive.r.get_many(CharacterizationModel, quantity, 'factors')
-        return list(self._resolve_cf(cf) for cf in facs)
+        return list(facs)
 
     def cf(self, flow, quantity, ref_quantity=None, context=None, locale='GLO', **kwargs):
         """
