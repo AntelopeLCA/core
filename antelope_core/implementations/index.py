@@ -40,7 +40,7 @@ class IndexImplementation(BasicImplementation, IndexInterface):
         :return:
         """
         for p in self._archive.entities_by_type('process'):
-            if cutoffs and CONTEXT_STATUS_ == 'new':
+            if cutoffs and CONTEXT_STATUS_ != 'compat':
                 for x in p.exchanges():
                     if x.termination is None:
                         self._terminations[x.flow.external_ref].add((x.direction, p))

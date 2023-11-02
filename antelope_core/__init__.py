@@ -16,7 +16,13 @@ import importlib
 from .from_json import from_json, to_json
 from .archives import archive_factory, ArchiveError
 
+
+class AntelopeMeta:
+    version: str = '0.3'
+
+
 FOUND_PROVIDERS = LowerDict()
+FOUND_PROVIDERS['_dev'] = AntelopeMeta
 
 
 def _find_providers():
@@ -50,7 +56,7 @@ def herd_factory(ds_type):
     try:
         return archive_factory(ds_type)
     except ArchiveError:
-        if len(FOUND_PROVIDERS) == 0:
+        if len(FOUND_PROVIDERS) <= 1:
             _find_providers()
         if ds_type in FOUND_PROVIDERS:
             prov = FOUND_PROVIDERS[ds_type]
