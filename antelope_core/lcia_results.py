@@ -9,7 +9,7 @@ from numbers import Number
 from math import isclose
 from collections import defaultdict
 
-#from .models import DetailedLciaResult as DetailedLciaResultModel
+from antelope.models import SummaryLciaScore, AggregatedLciaScore, DisaggregatedLciaScore
 # from lcatools.interfaces import to_uuid
 
 
@@ -210,8 +210,17 @@ class SummaryLciaResult(object):
             try:
                 return self.entity.external_ref
             except AttributeError:
-                return None
+                return str(self.entity)
 
+    @property
+    def origin(self):
+        try:
+            return self.entity.fragment.origin
+        except AttributeError:
+            try:
+                return self.entity.origin
+            except AttributeError:
+                return 'None'
 
     @property
     def static(self):
@@ -272,8 +281,8 @@ class SummaryLciaResult(object):
 
     def __str__(self):
         return 'S%s = %-s x %-s | %s' % (number(self.cumulative_result * self._lc.autorange), number(self.node_weight),
-                                        number(self.unit_score * self._lc.autorange),
-                                        self.entity)
+                                         number(self.unit_score * self._lc.autorange),
+                                         self.entity)
 
     def show(self):
         if self.static:
@@ -372,20 +381,17 @@ class SummaryLciaResult(object):
         return SummaryLciaResult(self._lc, self.entity, _node_weight, unit_score)
 
     def serialize(self, detailed=False):
-        j = {
-            'node_weight': self.node_weight,
-            'unit_score': self.unit_score,
-            'result': self.cumulative_result,
-            'component': self.name,
-        }
-        if self.id is not None:
-            j['entity_id'] = self.id
-
         if detailed:
             if not self.static:
                 f = self.flatten()  # will yield a list of aggregate lcia scores with one component each
-                j['details'] = [d.serialize() for p in f.components() for d in p.details()]
-        return j
+                details = [d.serialize() for p in f.components() for d in p.details()]
+                return DisaggregatedLciaScore(component=self.name, result=self.cumulative_result,
+                                              node_weight=self.node_weight, unit_score=self.unit_score,
+                                              origin=self.origin, entity_id=self.id,
+                                              details=details, summaries=[])
+        return SummaryLciaScore(component=self.name, result=self.cumulative_result,
+                                node_weight=self.node_weight, unit_score=self.unit_score,
+                                origin=self.origin, entity_id=self.id)
 
 
 class SummaryLciaMissing(SummaryLciaResult):
@@ -399,6 +405,12 @@ class SummaryLciaMissing(SummaryLciaResult):
         return '%s = %-s x (MISSING)  | %s' % (
             number(self.cumulative_result * self._lc.autorange), number(self.node_weight),
             self.entity)
+
+    def serialize(self, detailed=False):
+        print('serialize SummaryLciaMissing - known broken')
+        return SummaryLciaScore(component=self.name, result=self.cumulative_result,
+                                node_weight=self.node_weight, unit_score=self.unit_score,
+                                origin=self.origin, entity_id=self.id)
 
 
 class AggregateLciaScore(object):
@@ -494,12 +506,16 @@ class AggregateLciaScore(object):
         }
         if hasattr(self.entity, 'external_ref'):
             j['entity_id'] = self.entity.external_ref
+            j['origin'] = self.entity.origin
+        else:
+            j['origin'] = 'None'
+            j['entity_id'] = str(self.entity)
 
         if detailed:
             if self.static:
                 j['details'] = []
             j['details'] = [p.serialize(detailed=False) for p in self.LciaDetails]
-        return j
+        return AggregateLciaScore(**j)
 
 
 def show_lcia(lcia_results):
