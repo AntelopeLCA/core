@@ -52,6 +52,11 @@ class BasicImplementation(object):
         return self._archive[item]
 
     def _dereference_entity(self, external_ref):
+        """
+        returns a real local entity (non ref) for which is_entity is True
+        :param external_ref:
+        :return:
+        """
         if hasattr(external_ref, 'external_ref'):
             eref = external_ref
             external_ref = eref.external_ref
@@ -74,7 +79,10 @@ class BasicImplementation(object):
         """
         entity = self._dereference_entity(external_ref)
         if entity.has_property(item):
-            return entity[item]
+            obj = entity[item]
+            if obj is None:
+                raise KeyError
+            return obj
         raise KeyError('%s: %s [%s]' % (self.origin, external_ref, item))
         # raise EntityNotFound(external_ref)
 
@@ -90,10 +98,12 @@ class BasicImplementation(object):
         return entity.reference_entity
 
     def get_uuid(self, external_ref):
-        u = self._archive.get_uuid(external_ref)
+        u = self._fetch(external_ref)
         if u is None:
             return False
-        return u
+        if u.uuid is None:
+            return False
+        return u.uuid
 
     def _fetch(self, external_ref, **kwargs):
         if external_ref is None:

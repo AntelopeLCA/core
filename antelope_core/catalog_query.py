@@ -166,8 +166,11 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
                     result = getattr(iface, attrname)(*args, **kwargs)
                     message = '(%s) %s' % (itype, attrname)  # implementation found
                 except exc:  # allow nonimplementations to pass silently
+                    message = '(%s) %s except %s' % (itype, attrname, exc.__name__)
                     continue
-                if result is not None:  # successful query must return something
+                if result is None:  # successful query must return something
+                    message = '(%s) %s null' % (itype, attrname)
+                else:
                     return result
         except NotImplementedError:
             pass
