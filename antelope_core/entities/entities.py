@@ -84,6 +84,11 @@ class LcEntity(BaseEntity):
                     continue
                 if k in self._d:
                     d[k] = self._d[k]
+            # this is a potential DWR--
+            # if the query does not match the entity, we want the ref to have the authentic origin
+            # we're expecting this to only occur from within CatalogQuery._grounded_query() -> UnknownOrigin
+            if query.origin != self.origin:
+                d['masquerade'] = self.origin
             self._query_ref = CatalogRef.from_query(self.external_ref, query, self.entity_type,
                                                     uuid=self.uuid, **d)
         return self._query_ref
