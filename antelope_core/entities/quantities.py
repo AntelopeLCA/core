@@ -112,6 +112,8 @@ class LcQuantity(LcEntity):
     quantity refs, which have access to the catalog.
     """
     def has_lcia_engine(self):
+        if self._qi is None:
+            return False
         return self._qi.is_lcia_engine()
 
     def canonical(self):

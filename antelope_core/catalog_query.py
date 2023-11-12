@@ -117,15 +117,19 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         """
         Generate a new query for the specified origin.
         Enables the query to follow the origins of foreign objects found locally.
+        If not found locally, the current query is used instead
         :param origin:
         :return:
         """
-        return self._grounded_query(origin)
+        try:
+            return self._grounded_query(origin)
+        except UnknownOrigin:
+            return self
 
     def _grounded_query(self, origin):
         if origin is None or origin == self._origin:
             return self
-        return self._catalog.query(origin)
+        return self._catalog.query(origin, cache=False)
 
     '''
     def __str__(self):
@@ -313,6 +317,17 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         else:
             e_ref = entity  # already a ref
         if entity.entity_type == 'quantity':
+
+            '''# question of whether to put this test before or after the get_canonical() attempts
+            if before- we allow non-canonical "mass" to accumulate in the workspace
+            if after- we catch 'mass' and 'freight' (and any LCIA methods we already know locally)
+            and only return shit we don't recognize, but lose connection to remote sources
+            
+            prefer before: we may want to query core quantities like "net calorific value" for flow characterizations
+            '''
+            if entity.has_lcia_engine():  # we don't need a canonical version if it runs itself
+                return e_ref
+
             ''' # astonishingly, we don't want this - register but not return
             # print('Going canonical')
             # astonishing because it's not true. 

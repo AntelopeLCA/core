@@ -484,6 +484,8 @@ class StaticCatalog(object):
         origin, external_ref = link.split('/', maxsplit=1)
         return self.query(origin).get(external_ref)
 
+    '''
+    # why is this here? I don't think we even want this.
     def catalog_ref(self, origin, external_ref, entity_type=None, **kwargs):
         """
         TODO: make foreground-generated CatalogRefs lazy-loading. This mainly requires removing the expectation of a
@@ -505,4 +507,4 @@ class StaticCatalog(object):
         return q.get(external_ref)
         # except EntityNotFound:  why would we catch this?
         #     return CatalogRef.from_query(external_ref, q, entity_type=entity_type, **kwargs)
-
+    '''

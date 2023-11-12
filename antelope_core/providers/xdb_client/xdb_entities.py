@@ -82,3 +82,8 @@ class XdbEntity(BaseEntity):
 
         self._ref = ref
         return ref
+
+    def has_lcia_engine(self):
+        if self._ref is not None:
+            return self._ref.has_lcia_engine()
+        return False
