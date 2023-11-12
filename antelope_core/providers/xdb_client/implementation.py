@@ -322,7 +322,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         exchanges = [UnallocatedExchange.from_inv(x).dict() for x in inventory]
         exch_map = {(x.flow.external_ref, x.term_ref): x for x in inventory}
 
-        ress = self._archive.r.qdb_post_return_many(exchanges, LciaResultModel, _ref(quantity), 'do_lcia')
+        ress = self._archive.r.origin_post_return_many('qdb', exchanges, LciaResultModel, _ref(quantity), 'do_lcia')
         return [self._result_from_exchanges(quantity, exch_map, res) for res in ress]
 
     def bg_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):

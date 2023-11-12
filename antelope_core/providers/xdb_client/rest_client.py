@@ -169,7 +169,7 @@ class RestClient(object):
         return json.loads(resp.content)
 
     def _get_endpoint(self, route, *args, **params):
-        url = '/'.join(map(str, [route, *args]))
+        url = '/'.join(map(str, filter(None, [route, *args])))
         return self._request('GET', url, params=params)
 
     def get_raw(self, *args, **kwargs):

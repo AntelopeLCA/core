@@ -150,7 +150,7 @@ class XdbClient(LcArchive):
         self._requester.set_token(new_token)
 
     def refresh_auth(self, new_source, new_token):
-        self._requester = XdbRequester(new_source, new_token, **self._requester_args)
+        self._requester = XdbRequester(new_source, self.ref, token=new_token, **self._requester_args)
         self.tm.update_requester(self._requester)
 
     @property
