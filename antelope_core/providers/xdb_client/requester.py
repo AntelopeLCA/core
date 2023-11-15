@@ -68,10 +68,16 @@ class XdbRequester(RestClient):
             return [model(k) for k in self._get_endpoint(self._org, *args, **kwargs)]
 
     def origin_get_one(self, model, *args, **kwargs):
-        return model(**self._get_endpoint(*args, **kwargs))
+        if issubclass(model, ResponseModel):
+            return model(**self._get_endpoint(*args, **kwargs))
+        else:
+            return model(self._get_endpoint(*args, **kwargs))
 
     def origin_get_many(self, model, *args, **kwargs):
-        return [model(**k) for k in self._get_endpoint(*args, **kwargs)]
+        if issubclass(model, ResponseModel):
+            return [model(**k) for k in self._get_endpoint(*args, **kwargs)]
+        else:
+            return [model(k) for k in self._get_endpoint(*args, **kwargs)]
 
     def post_return_one(self, postdata, model, *args, **kwargs):
         if issubclass(model, ResponseModel):
