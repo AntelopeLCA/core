@@ -177,9 +177,12 @@ class XdbClient(LcArchive):
         self._entities[key] = entity
         return entity
 
-    def _fetch(self, key, **kwargs):
+    def _fetch(self, key, origin=None, **kwargs):
         if key in self._entities:
             return self._entities[key]
-        entity = self._base_type(self._requester.get_one(Entity, _ref(key)))
+        if origin:
+            entity = self._base_type(self._requester.origin_get_one(Entity, origin, _ref(key)))
+        else:
+            entity = self._base_type(self._requester.get_one(Entity, _ref(key)))
         self._entities[key] = entity
         return entity

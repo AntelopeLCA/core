@@ -480,7 +480,11 @@ class BasicArchive(EntityStore):
                             key=lambda x: x['externalId'])
         if characterizations:
             j['termManager'], qqs, rqs = self.tm.serialize(self.ref, values=values)
+            # we need to add all the quantities that are mentioned in our characterizations
             for q in qqs:
+                if self[q] is None:
+                    self.add(self.tm.get_canonical(q))
+            for q in rqs:
                 if self[q] is None:
                     self.add(self.tm.get_canonical(q))
 
