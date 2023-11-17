@@ -400,15 +400,18 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         for c in res_m.components:
             for d in c.details:
                 value = d.result / d.factor.value
-                cx = self.get_context(d.exchange.context)
-                ex = ExchangeRef(process, self.get(d.exchange.external_ref), comp_dir(cx.sense),
+                cx = self.get_context(tuple(d.exchange.context))
+                try:
+                    flow_ref = self.cascade(d.exchange.origin).get(d.exchange.external_ref)
+                except UnknownOrigin:
+                    flow_ref = self.get(d.exchange.external_ref, origin=d.exchange.origin)
+                ex = ExchangeRef(process, flow_ref,
+                                 comp_dir(cx.sense),
                                  termination=cx, value=value)
                 rq = self.get_canonical(d.exchange.quantity_ref)
                 cf = QRResult(d.factor.flowable, rq, quantity, cx,
                               d.factor.locale, d.factor.origin, d.factor.value)
                 res.add_score(c.component, ex, cf)
-            for s in c.summaries:
-                res.add_summary(c.component, c.component, s.node_weight, s.unit_score)
         for s in res_m.summaries:
             res.add_summary(s.component, s.component, s.node_weight, s.unit_score)
         return res

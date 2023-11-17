@@ -9,7 +9,7 @@ from numbers import Number
 from math import isclose
 from collections import defaultdict
 
-from antelope.models import SummaryLciaScore, AggregatedLciaScore, DisaggregatedLciaScore
+from antelope.models import SummaryLciaScore, DisaggregatedLciaScore
 # from lcatools.interfaces import to_uuid
 
 
@@ -164,8 +164,12 @@ class DetailedLciaResult(object):
 
 class SummaryLciaResult(object):
     """
-    like a DetailedLciaResult except omitting the exchange and factor information.  This makes them totally static.
-    The unit_score can itself _be_ an LciaResult, making the datatype recursive.
+    A container for a separately computed Lcia result, *especially* for the results of a fragment LCIA.
+    Includes a node weight and a unit score-- its cumulative result is the product of these.
+    If the unit score is a number, the summary is static.
+
+    However, the unit_score can itself _be_ an LciaResult, making the datatype recursive.
+
     This has __add__ functionality, for merging repeated instances of the same fragment during traversal
     """
     def __init__(self, lc_result, entity, node_weight, unit_score):
@@ -290,14 +294,6 @@ class SummaryLciaResult(object):
         else:
             self._internal_result.show()
 
-    def details(self):
-        if self.static:
-            yield self
-        else:
-            for k in self._internal_result.keys():
-                for d in self._internal_result[k].details():
-                    yield d
-
     def show_detailed_result(self):
         if self.static:
             self.show()
@@ -381,6 +377,12 @@ class SummaryLciaResult(object):
         return SummaryLciaResult(self._lc, self.entity, _node_weight, unit_score)
 
     def serialize(self, detailed=False):
+        """
+        If detailed is True, this should return DisaggregatedLciaScores
+        If detailed is False, this should return SummaryLciaScores
+        :param detailed:
+        :return:
+        """
         if detailed:
             if not self.static:
                 f = self.flatten()  # will yield a list of aggregate lcia scores with one component each
@@ -388,7 +390,7 @@ class SummaryLciaResult(object):
                 return DisaggregatedLciaScore(component=self.name, result=self.cumulative_result,
                                               node_weight=self.node_weight, unit_score=self.unit_score,
                                               origin=self.origin, entity_id=self.id,
-                                              details=details, summaries=[])
+                                              details=details)
         return SummaryLciaScore(component=self.name, result=self.cumulative_result,
                                 node_weight=self.node_weight, unit_score=self.unit_score,
                                 origin=self.origin, entity_id=self.id)
@@ -407,19 +409,22 @@ class SummaryLciaMissing(SummaryLciaResult):
             self.entity)
 
     def serialize(self, detailed=False):
-        print('serialize SummaryLciaMissing - known broken')
+        print('serialize SummaryLciaMissing - suspected broken')
+        if detailed:
+            return DisaggregatedLciaScore(component=self.name, result=self.cumulative_result,
+                                          node_weight=self.node_weight, unit_score=self.unit_score,
+                                          origin=self.origin, entity_id=self.id,
+                                          details=[])
         return SummaryLciaScore(component=self.name, result=self.cumulative_result,
                                 node_weight=self.node_weight, unit_score=self.unit_score,
                                 origin=self.origin, entity_id=self.id)
 
 
-class AggregateLciaScore(object):
+class AggregateLciaResult(object):
     """
-    contains an entityId which should be either a process or a fragment (fragment stages show up as fragments??)
-    The Aggregate score is constructed either from individual LCIA Details (exchange value x characterization factor)
-    or from summary results
+    contains an entityId which could be a process or a fragment (but presents as a process, i.e. with exchanges)
+    The Aggregate score is constructed from individual LCIA Details (exchange value x characterization factor)
     """
-    static = True
 
     def __init__(self, lc_result, entity):
         self.entity = entity
@@ -500,6 +505,15 @@ class AggregateLciaScore(object):
         return 'A%s  %s' % (number(self.cumulative_result * self._lc.autorange), self.entity)
 
     def serialize(self, detailed=False):
+        """
+        If detailed is True, this should return DisaggregatedLciaScores
+        If detailed is False, this should return SummaryLciaScores
+        :param detailed:
+        :return:
+        """
+        if detailed:
+            # stopgap while we decide whether this code should live in interface or core implementation
+            return DisaggregatedLciaScore.from_component(self.entity, self)
         j = {
             'result': self.cumulative_result,
             'component': self.name
@@ -511,11 +525,14 @@ class AggregateLciaScore(object):
             j['origin'] = 'None'
             j['entity_id'] = str(self.entity)
 
+        ''' # this is no good
         if detailed:
-            if self.static:
-                j['details'] = []
             j['details'] = [p.serialize(detailed=False) for p in self.LciaDetails]
-        return AggregateLciaScore(**j)
+            return DisaggregatedLciaScore(**j)
+        '''
+        j['node_weight'] = 1.0
+        j['unit_score'] = j['result']
+        return SummaryLciaScore(**j)
 
 
 def show_lcia(lcia_results):
@@ -539,7 +556,7 @@ class MixedComponents(Exception):
 class LciaResult(object):
     """
     An LCIA result object contains a collection of LCIA results for a related set of entities, called components.  Each
-     component is an AggregateLciaScore, which itself is a collection of either detailed LCIA results or summary scores.
+     component is an AggregateLciaResult, which itself is a collection of either detailed LCIA results or summary scores.
 
     Each component which is a FragmentFlow represents a specific traversal scenario and is thus static.
 
@@ -658,7 +675,7 @@ class LciaResult(object):
     def aggregate(self, key=lambda x: x.fragment['StageName'], entity_id=None):
         """
         returns a new LciaResult object in which the components of the original LciaResult object are aggregated into
-        static values according to a key.  The key is a lambda expression that is applied to each AggregateLciaScore
+        static values according to a key.  The key is a lambda expression that is applied to each AggregateLciaResult
         component's entity property (components where the lambda fails will all be grouped together).
 
         The special key '*' will aggregate all components together.  'entity_id' argument is required in this case to
@@ -779,7 +796,7 @@ class LciaResult(object):
         if entity is None:
             entity = key
         if key not in self._LciaScores.keys():
-            self._LciaScores[key] = AggregateLciaScore(self, entity)
+            self._LciaScores[key] = AggregateLciaResult(self, entity)
 
     def add_score(self, key, exchange, qrresult):
         if qrresult.query != self.quantity:
@@ -791,7 +808,7 @@ class LciaResult(object):
         self._LciaScores[key].add_detailed_result(exchange, qrresult)
 
     def add_summary(self, key, entity, node_weight, unit_score):
-        if any(isinstance(c, AggregateLciaScore) for c in self._LciaScores.values()):
+        if any(isinstance(c, AggregateLciaResult) for c in self._LciaScores.values()):
             self.show_components()
             raise MixedComponents
         summary = SummaryLciaResult(self, entity, node_weight, unit_score)
@@ -811,7 +828,7 @@ class LciaResult(object):
             '''
             try:
                 self._LciaScores[key] += summary
-            except TypeError:  # AggregateLciaScore doesn't know how to add-- summary takes over
+            except TypeError:  # AggregateLciaResult doesn't know how to add-- summary takes over
                 summary += self._LciaScores[key]
                 self._LciaScores[key] = summary
             except InconsistentSummaries:
@@ -1033,7 +1050,7 @@ class LciaResult(object):
          that maps the terminal node to the component, and scores maps the terminal node to the cumulative *weight* of 
          the terminal node.  Why we called it 'scores' is unclear.
          Procedure: we go through our components and for each:
-          - If it is an AggregateLciaScore (i.e. a true LCIA computation), then it becomes a terminal node
+          - If it is an AggregateLciaResult (i.e. a true LCIA computation), then it becomes a terminal node
           - If it is a static Summary, then we can't disaggregate and it also becomes a terminal node
           - If it is a dynamic summary, we recurse on it, and we take its terminal nodes and parse them out.
         For this to work, each terminal node must have the same unit score. 
@@ -1046,7 +1063,7 @@ class LciaResult(object):
         aggs = dict()
         scores = defaultdict(float)
         for c in self.components():
-            if isinstance(c, AggregateLciaScore):
+            if isinstance(c, AggregateLciaResult):
                 # base case
                 if c.entity in aggs:
                     if aggs[c.entity].cumulative_result != c.cumulative_result:
@@ -1161,4 +1178,11 @@ class LciaResult(object):
             return results, balance
 
     def serialize_components(self, detailed=False):
-        return [c.serialize(detailed=detailed) for c in sorted(self.components(), key=lambda x: x.result, reverse=True)]
+        """
+        If detailed is True, this should return DisaggregatedLciaScores
+        If detailed is False, this should return SummaryLciaScores
+        :param detailed:
+        :return:
+        """
+        return [c.serialize(detailed=detailed) for c in sorted(self.components(), key=lambda x: x.cumulative_result,
+                                                               reverse=True)]
