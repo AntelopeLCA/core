@@ -9,7 +9,7 @@ from numbers import Number
 from math import isclose
 from collections import defaultdict
 
-from antelope.models import SummaryLciaScore, DisaggregatedLciaScore
+from antelope.models import SummaryLciaScore, DisaggregatedLciaScore, LciaDetail
 # from lcatools.interfaces import to_uuid
 
 
@@ -148,18 +148,8 @@ class DetailedLciaResult(object):
                                                   self.flowable,
                                                   self.context)
 
-    def serialize(self, detailed=False):
-        flowname = self.flow.name
-        if self.exchange.termination is not None:
-            flowname = ', '.join([flowname, self.exchange.termination.name])
-        return {
-            'flow': self.flowable,
-            'context': self.context,
-            'exchange': self.value,
-            'factor': self._qr.value,
-            'result': self.result,
-            'locale': self._qr.locale
-        }
+    def serialize(self):
+        return LciaDetail.from_detailed_lcia_result(self)
 
 
 class SummaryLciaResult(object):
@@ -511,9 +501,6 @@ class AggregateLciaResult(object):
         :param detailed:
         :return:
         """
-        if detailed:
-            # stopgap while we decide whether this code should live in interface or core implementation
-            return DisaggregatedLciaScore.from_component(self.entity, self)
         j = {
             'result': self.cumulative_result,
             'component': self.name
@@ -525,11 +512,10 @@ class AggregateLciaResult(object):
             j['origin'] = 'None'
             j['entity_id'] = str(self.entity)
 
-        ''' # this is no good
         if detailed:
             j['details'] = [p.serialize(detailed=False) for p in self.LciaDetails]
             return DisaggregatedLciaScore(**j)
-        '''
+
         j['node_weight'] = 1.0
         j['unit_score'] = j['result']
         return SummaryLciaScore(**j)
