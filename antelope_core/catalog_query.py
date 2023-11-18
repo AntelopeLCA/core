@@ -121,10 +121,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         :param origin:
         :return:
         """
-        try:
-            return self._grounded_query(origin)
-        except UnknownOrigin:
-            return self
+        return self._grounded_query(origin)
 
     def _grounded_query(self, origin):
         if origin is None or origin == self._origin:
