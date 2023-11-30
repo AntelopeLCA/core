@@ -51,6 +51,8 @@ class DetailedLciaResult(object):
         :param exchange:
         :param qrresult: meets the QRResult spec: has properties 'flowable', 'ref', 'query', 'context', 'locale',
         'origin', 'value'
+        'ref' has to have property 'unit'
+        'context' has to *be* a context (with 'sense')
         """
         if exchange.flow.unit != qrresult.ref.unit and qrresult.value != 0.0:
             print('%s: Inconsistent qty\nexch: %s\nqrr:  %s' % (self.__class__.__name__, exchange.flow.reference_entity, qrresult))
@@ -513,7 +515,7 @@ class AggregateLciaResult(object):
             j['entity_id'] = str(self.entity)
 
         if detailed:
-            j['details'] = [p.serialize(detailed=False) for p in self.LciaDetails]
+            j['details'] = [p.serialize() for p in self.LciaDetails]
             return DisaggregatedLciaScore(**j)
 
         j['node_weight'] = 1.0

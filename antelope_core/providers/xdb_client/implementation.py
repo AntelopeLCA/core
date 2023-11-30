@@ -1,16 +1,15 @@
 # from collections import defaultdict
 import json
-from antelope import IndexInterface, ExchangeInterface, QuantityInterface, BackgroundInterface
+from antelope import IndexInterface, ExchangeInterface, QuantityInterface, BackgroundInterface, NoFactorsFound
 from antelope import RxRef, EntityNotFound
 from antelope.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceExchange, UnallocatedExchange,
                              LciaResult as LciaResultModel, AllocatedExchange,
                              Characterization as CharacterizationModel,
-                             ExchangeValues, DirectedFlow)
+                             ExchangeValues, DirectedFlow, FlowFactors)
 
 from antelope_core.implementations import BasicImplementation, ConfigureImplementation
 from antelope_core.lcia_results import LciaResult
-from antelope_core.characterizations import Characterization, QRResult
-from typing import Dict, List
+from antelope_core.characterizations import QRResult
 
 
 from requests.exceptions import HTTPError
@@ -279,6 +278,20 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         except HTTPError:
             return 0.0
 
+    def quantity_relation(self, flowable, ref_quantity, query_quantity, context, locale='GLO', **kwargs):
+        """
+        not yet implemented
+        :param flowable:
+        :param ref_quantity:
+        :param query_quantity:
+        :param context:
+        :param locale:
+        :param kwargs:
+        :return:
+        """
+        print('quantity_relation not implemented! %s, %s, %s' % (flowable, _ref(ref_quantity), _ref(query_quantity)))
+        raise NoFactorsFound
+
     @staticmethod
     def _result_from_exchanges(quantity, exch_map, res_m: LciaResultModel):
         """
@@ -291,24 +304,40 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         :return:
         """
         res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
-        nodes = set(v.process for v in exch_map.values())
         for c in res_m.components:
-            try:
-                node = next(v for v in nodes if v.external_ref == c.entity_id)
-            except StopIteration:
-                node = c.entity_id
             for d in c.details:
                 key = (d.exchange.external_ref, tuple(d.exchange.context))
-                ex = exch_map[key]
+                try:
+                    ex = exch_map[key]
+                except KeyError:
+                    print('missing key %s,%s' % key)
+                    continue
                 val = d.result / d.factor.value
                 if val != ex.value:
                     print('%s: value mismatch %g vs %g' % (key, val, ex.value))
                 cf = QRResult(d.factor.flowable, ex.flow.reference_entity, quantity, ex.termination,
                               d.factor.locale, d.factor.origin, d.factor.value)
                 res.add_score(c.component, ex, cf)
-            for s in c.summaries:
-                res.add_summary(c.component, node, s.node_weight, s.unit_score)
+        if len(res_m.summaries) > 0:
+            print('Ignoring spurious summaries:')
+            for s in res_m.summaries:
+                print(s)
+        # the results here shouldn't have any summaries
+        # for s in res_m.summaries:
+        #     res.add_summary(s.component, node, s.node_weight, s.unit_score)
         return res
+
+    def get_factors(self, quantity, flow_specs, **kwargs):
+        """
+
+        :param quantity:
+        :param flow_specs:
+        :param kwargs:
+        :return:
+        """
+        specs = [fs.dict() for fs in flow_specs]
+        return self._archive.r.origin_post_return_many('qdb', specs, FlowFactors,
+                                                       _ref(quantity), 'flow_specs')
 
     def do_lcia(self, quantity, inventory, locale='GLO', **kwargs):
         """
