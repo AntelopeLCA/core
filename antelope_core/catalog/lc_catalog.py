@@ -331,9 +331,11 @@ class LcCatalog(StaticCatalog):
                     for i in exis.interfaces:
                         if i not in res.interfaces:
                             exis.remove_interface(i)
+                    if store:
+                        exis.write_to_file(self.resource_dir)
                     rtn.append(exis)
                 except StopIteration:
-                    r = LcResource(**res.dict(), **kwargs)
+                    r = LcResource(**res.model_dump(), **kwargs)
                     self.add_resource(r, store=store)
                     rtn.append(r)
         return rtn
