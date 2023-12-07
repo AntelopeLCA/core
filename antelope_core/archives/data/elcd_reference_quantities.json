@@ -188,7 +188,11 @@
         "Items": 1.0,
         "items": 1.0,
         "Count": 1.0,
-        "count": 1.0
+        "count": 1.0,
+        "Unit": 1.0,
+        "unit": 1.0,
+        "Units": 1.0,
+        "units": 1.0
       },
       "entityId": "01846770-4cfe-4a25-8ad9-919d8d378345",
       "entityType": "quantity",
