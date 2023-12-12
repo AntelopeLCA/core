@@ -61,8 +61,8 @@ class XdbEntity(BaseEntity):
             return self._ref
 
         args = {k: v for k, v in self._model.properties.items()}
-        if self.entity_type == 'quantity' and 'referenceUnit' in args:
-            args['reference_entity'] = args.pop('referenceUnit')
+        if self.entity_type == 'quantity' and 'unit' in args:
+            args['reference_entity'] = args.pop('unit')
         elif self.entity_type == 'flow':
             if 'referenceQuantity' in args:
                 args['reference_entity'] = query.get(args.pop('referenceQuantity'))

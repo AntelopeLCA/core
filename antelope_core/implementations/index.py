@@ -69,6 +69,16 @@ class IndexImplementation(BasicImplementation, IndexInterface):
                     continue
             yield q
 
+    def lcia_methods(self, **kwargs):
+        """
+        Generate LCIA Methods-- which are quantities that have defined indicators
+        :param kwargs:
+        :return:
+        """
+        indicator = kwargs.pop('Indicator', '')
+        for i in filter(lambda x: x.has_property('Indicator'), self.quantities(Indicator=indicator, **kwargs)):
+            print('LCIA: %s [%s] {%s}' % (i, i.has_property('Indicator'), i['Indicator']))
+            yield i
     '''
     def lcia_methods(self, **kwargs):
         for q in self._archive.search('quantity', **kwargs):
