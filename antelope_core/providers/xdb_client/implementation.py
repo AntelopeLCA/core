@@ -10,6 +10,7 @@ from antelope.models import (OriginCount, Entity, FlowEntity, Exchange, Referenc
 from antelope_core.implementations import BasicImplementation, ConfigureImplementation
 from antelope_core.lcia_results import LciaResult
 from antelope_core.characterizations import QRResult
+from .xdb_entities import XdbReferenceRequired
 
 
 from requests.exceptions import HTTPError
@@ -65,8 +66,13 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
     def get_reference(self, key):
         p = self.get(key)
         if p.entity_type == 'process':
-            rs = self._archive.r.get_many(ReferenceExchange, _ref(key), 'references')
-            return [RxRef(p, self.get(r.flow.external_ref), r.direction, comment=r.comment) for r in rs]
+            try:
+                rs = p.ref.get(p.ref.reference_field)
+            except XdbReferenceRequired:
+                rs = None
+            if rs is None:
+                rs = self._archive.r.get_many(ReferenceExchange, _ref(key), 'references')
+            return [RxRef(p, self._archive.get_or_make(r.flow), r.direction, comment=r.comment) for r in rs]
         elif p.entity_type == 'flow':
             return self._archive.r.get_one(Entity, _ref(key), 'reference')
         elif p.entity_type == 'quantity':

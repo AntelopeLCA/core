@@ -35,10 +35,8 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
     def setup_bm(self, index=None):
         """
         Requires an index interface or catalog query <-- preferred
-        HOLD UP- catalog query limits access to interfaces named in the resource, which may not include index.
-        It also returns entity references, which may be inadequate to the task of generating results (e.g. it is
-        an error for the same LOCAL implementation to provide both 'exchange' and 'background' as they will be the
-        same).  So routes that require exchange access, e.g. to fake up lci, should access the archive directly
+        This must provide .get() and .get_context() (so really it should maybe be 'basic'
+        The trivial implementation uses .flows() and .targets() to mock up an exterior flows method
         :param index:
         :return:
         """

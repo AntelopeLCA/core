@@ -30,11 +30,16 @@ class XdbEntity(BaseEntity):
 
         Must supply the pydantic model that comes out of the query, and also the archive that stores the ref
         :param model:
-        :param local:
         """
         assert issubclass(type(model), Entity), 'model is not a Pydantic Entity (%s)' % type(model)
         self._model = model
         self._ref = None
+
+    @property
+    def ref(self):
+        if self._ref is None:
+            raise XdbReferenceRequired
+        return self._ref
 
     @property
     def reference_entity(self):
