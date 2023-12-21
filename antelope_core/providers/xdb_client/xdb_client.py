@@ -164,25 +164,50 @@ class XdbClient(LcArchive):
             return XdbConfigureImplementation(self)
         raise InterfaceError(iface)
 
+    def _model_to_entity(self, model):
+        entity = self._base_type(model)
+        self._entities[model.link] = entity
+        return entity
+
     def get_or_make(self, model):
         """
         Retrieve or create an entity, when we have already received its model data from the server
         :param model:
         :return:
         """
-        key = model.entity_id
+        key = model.link
         if key in self._entities:
             return self._entities[key]
-        entity = self._base_type(model)
-        self._entities[key] = entity
-        return entity
+        return self._model_to_entity(model)
+
+    def __getitem__(self, item):
+        """
+        For cursed reasons, our EntityStore __getitem__ method must return None instead of raising a KeyError
+        :param item:
+        :return:
+        """
+        try:
+            if hasattr(item, 'link'):
+                return self._entities[item.link]
+            return self._entities[item]
+        except KeyError:
+            return None
 
     def _fetch(self, key, origin=None, **kwargs):
-        if key in self._entities:
-            return self._entities[key]
+        # I'm just reimplementing _ref_to_key except in situ  ## EntityStore is whack legacy
+        if hasattr(key, 'link'):
+            link = key.link
+            origin = origin or key.origin
+            key = key.external_ref
+        else:  # anything that has "external_ref" would have "link", right?
+            if origin:
+                link = '/'.join([origin, str(key)])
+            else:
+                link = '/'.join([self.ref, str(key)])
+        if link in self._entities:
+            return self._entities[link]
         if origin:
-            entity = self._base_type(self._requester.origin_get_one(Entity, origin, _ref(key)))
+            model = self._requester.origin_get_one(Entity, origin, _ref(key))
         else:
-            entity = self._base_type(self._requester.get_one(Entity, _ref(key)))
-        self._entities[key] = entity
-        return entity
+            model = self._requester.get_one(Entity, _ref(key))
+        return self._model_to_entity(model)

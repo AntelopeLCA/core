@@ -63,6 +63,9 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
     def setup_bm(self, query):
         return True
 
+    def get(self, external_ref, origin=None, **kwargs):
+        return self._archive.retrieve_or_fetch_entity(external_ref, origin=origin, **kwargs)
+
     def get_reference(self, key):
         p = self.get(key)
         if p.entity_type == 'process':
@@ -81,7 +84,11 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
             raise TypeError(p.entity_type)
 
     def properties(self, external_ref, **kwargs):
-        return self._archive.r.get_many(str, _ref(external_ref), 'properties')
+        the_ref = self.get(external_ref, **kwargs)
+        props = self._archive.r.get_one(dict, _ref(external_ref), 'properties')
+        for k, v in props.items():
+            the_ref[k] = v
+            yield k
 
     def get_item(self, external_ref, item):
         try:

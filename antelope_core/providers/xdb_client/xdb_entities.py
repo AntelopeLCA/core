@@ -61,6 +61,16 @@ class XdbEntity(BaseEntity):
         for k in self._model.properties:
             yield k
 
+    def __setitem__(self, key, value):
+        if self._ref:
+            self._ref[key] = value
+        self._model.properties[key] = value
+
+    def __getitem__(self, item):
+        if self._ref:
+            return self._ref[item]
+        return self._model.properties[item]
+
     def make_ref(self, query):
         if self._ref is not None:
             return self._ref
@@ -74,10 +84,20 @@ class XdbEntity(BaseEntity):
             if isinstance(self._model, FlowEntity):
                 args['context'] = self._model.context
                 args['locale'] = self._model.locale
+                # query._tm.add_context(self._model.context, origin=self._model.origin)  # this is somewhat cursed
         elif self.entity_type == 'process':
             if 'referenceExchange' in args:
                 # we cannot synthesize RxRefs prior to the existence of the ProcessRef. sorry.
-                args['referenceExchange'] = [ReferenceExchange(**k) for k in args.pop('referenceExchange')]
+                rxs = args.pop('referenceExchange')
+                try:
+                    args['referenceExchange'] = [ReferenceExchange(**k) for k in rxs]
+                except TypeError:
+                    print(self.link)
+                    print(rxs)
+                    raise
+
+        if self.origin != query.origin:
+            args['masquerade'] = self.origin
 
         ref = CatalogRef.from_query(self.external_ref, query, self.entity_type, **args)
         if ref.entity_type == 'flow':
