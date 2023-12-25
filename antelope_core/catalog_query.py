@@ -281,7 +281,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         rq = self.get_canonical(ref_quantity)
         qq = self.get_canonical(query_quantity)
         origin = kwargs.pop('origin', self.origin)
-        print('@@@ going characterization-commando')
+        # print('@@@ going characterization-commando')
         return self._tm.add_characterization(flowable, rq, qq, value, context=context, location=location,
                                              origin=origin, **kwargs)
 

@@ -1,7 +1,7 @@
 {
   "@context": "https://bkuczenski.github.io/lca-tools-datafiles/context.jsonld",
   "catalogNames": {
-    "test.entities": [
+    "local.uslci.olca": [
       "/data/GitHub/lca-tools/lcatools/entities/tests/test_archive.json"
     ]
   },
