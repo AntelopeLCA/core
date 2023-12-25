@@ -52,7 +52,7 @@ class QuantityConversion(object):
 
     def __init__(self, *args, query=None, context=NullContext):
         self._query = query  # this is just a stub to give ref conversion machinery something to grab hold of
-        self._context = context
+        self._context = context  # this is the canonical context that was used to generate the QR Results
         self._results = []
         for arg in args:
             self.add_result(arg)
@@ -124,11 +124,15 @@ class QuantityConversion(object):
 
     @property
     def context(self):
+        """
+        We want to return the canonical context if at all possible
+        :return:
+        """
+        if self._context is not None:
+            return self._context
         for qrr in reversed(self._results):
             if qrr.context is not None:
                 return qrr.context
-        if self._context is not None:
-            return self._context
         return NullContext
 
     @property
@@ -400,12 +404,12 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
         return self._archive.tm.add_characterization(flowable, rq, qq, value, context=context, location=location,
                                                      origin=origin, **kwargs)
 
-    def _ref_qty_conversion(self, target_quantity, flowable, compartment, conv, locale, _reverse=True):
+    def _ref_qty_conversion(self, target_quantity, fb, cx, conv, locale, _reverse=True):
         """
         Transforms a CF into a quantity conversion with the proper ref quantity. Does it recursively! watch with terror.
-        :param target_quantity: conversion target
-        :param flowable:
-        :param compartment:
+        :param target_quantity: conversion target (canonical)
+        :param fb: flowable (canonical)
+        :param cx: context (canonical)
         :param conv: An existing QuantityConversion chain, whose ref we must turn into target_quantity
         :param locale:
         :return: the incoming conv, augmented
@@ -416,21 +420,21 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
         if found_quantity != target_quantity:
             # zero look for conversions
             try:
-                qr_result = try_convert(flowable, target_quantity, found_quantity, compartment, locale)
+                qr_result = try_convert(fb, target_quantity, found_quantity, cx, locale)
                 conv.add_result(qr_result)
                 return conv
             except NoConversion:
                 pass
 
             # first look for forward matches
-            cfs_fwd = [cf for cf in self._archive.tm.factors_for_flowable(flowable, quantity=found_quantity,
-                                                                          context=compartment, dist=3)
+            cfs_fwd = [cf for cf in self._archive.tm.factors_for_flowable(fb, quantity=found_quantity,
+                                                                          context=cx, dist=3)
                        if not conv.seen(cf.ref_quantity)]
             for cf in cfs_fwd:
                 new_conv = QuantityConversion.copy(conv)
                 new_conv.add_result(cf.query(locale))
                 try:
-                    return self._ref_qty_conversion(target_quantity, flowable, compartment, new_conv, locale,
+                    return self._ref_qty_conversion(target_quantity, fb, cx, new_conv, locale,
                                                     _reverse=_reverse)
                 except ConversionReferenceMismatch:
                     continue
@@ -439,8 +443,8 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
             if _reverse:
                 new_conv = QuantityConversion.copy(conv)
                 try:
-                    rev_conv = self._ref_qty_conversion(found_quantity, flowable, compartment,
-                                                        QuantityConversion(query=target_quantity), locale,
+                    rev_conv = self._ref_qty_conversion(found_quantity, fb, cx,
+                                                        QuantityConversion(query=target_quantity, context=cx), locale,
                                                         _reverse=False)
 
                     for res in rev_conv.invert().results:
@@ -450,7 +454,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 except QuantityRequired:  # if we don't have a reverse qty interface, we can't look for reverse cfs
                     pass
 
-            raise ConversionReferenceMismatch('Flow %s\nfrom %s\nto %s' % (flowable,
+            raise ConversionReferenceMismatch('Flow %s\nfrom %s\nto %s' % (fb,
                                                                            conv.ref,
                                                                            target_quantity))
         return conv
@@ -678,7 +682,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
         qq = self.get_canonical(query_quantity)
 
         if qq == rq:  # is?
-            return QRResult(flowable, rq, qq, context or NullContext, locale, qq.origin, 1.0)
+            return QRResult(flowable, rq, qq, cx, locale, qq.origin, 1.0)
 
         result, mismatch = self._quantity_relation(fb, rq, qq, cx, locale=locale,
                                                    strategy=strategy, allow_proxy=allow_proxy, **kwargs)

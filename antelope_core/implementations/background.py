@@ -42,8 +42,10 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
         """
         if self._index is None:
             if index is None:
+                print('%%%%%% Setting up Background Impl for %s from archive %s' % (self.origin, self._archive))
                 self._index = self._archive.make_interface('index')
             else:
+                print('%%%%%% Setting up Background Impl for %s from index %s' % (self.origin, index))
                 self._index = index
 
     def _ensure_ref_flow(self, ref_flow):

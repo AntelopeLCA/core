@@ -369,7 +369,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         """
         rq = self.get_canonical(cf.ref_quantity)
         qq = self.get_canonical(cf.query_quantity)
-        cx = self.get_context(cf.context)
+        cx = self._tm[cf.context]
         c = Characterization(cf.flowable, rq, qq, cx, origin=cf.origin)
         for k, v in cf.value.items():
             c[k] = v
@@ -399,13 +399,18 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         for c in res_m.components:
             for d in c.details:
                 value = d.result / d.factor.value
-                cx = self.get_context(tuple(d.exchange.context))
+                cx = self._tm[tuple(d.factor.context)]
                 try:
                     flow_ref = self.cascade(d.exchange.origin).get(d.exchange.external_ref)
                 except UnknownOrigin:
                     flow_ref = self.get(d.exchange.external_ref, origin=d.exchange.origin)
+                ex_dir = comp_dir(cx.sense)
+                if ex_dir is None:
+                    print('Bad context: %s' % list(cx))
+                    print('using "Output" direction')
+                    ex_dir = 'Output'
                 ex = ExchangeRef(process, flow_ref,
-                                 comp_dir(cx.sense),
+                                 ex_dir,
                                  termination=cx, value=value)
                 rq = self.get_canonical(d.exchange.quantity_ref)
                 cf = QRResult(d.factor.flowable, rq, quantity, cx,

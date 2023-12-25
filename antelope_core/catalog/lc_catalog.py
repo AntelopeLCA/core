@@ -172,7 +172,9 @@ class LcCatalog(StaticCatalog):
         # TODO: though this corrects our catalog queries, the entities are not connected to the catalog queries
         for org, q in self._queries.items():
             if resource.origin.startswith(org):
+                print('Purging %s' % q)
                 q.purge_cache_with(resource.archive)
+        print('Removing archive from %s' % resource)
         resource.remove_archive()
 
     def delete_resource(self, resource, delete_source=None, delete_cache=True):
