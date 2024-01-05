@@ -3,6 +3,7 @@ from collections import defaultdict
 from antelope import IndexInterface, comp_dir, CONTEXT_STATUS_
 from .basic import BasicImplementation
 from ..contexts import NullContext
+from ..entities import MetaQuantityUnit
 
 
 class IndexImplementation(BasicImplementation, IndexInterface):
@@ -79,6 +80,18 @@ class IndexImplementation(BasicImplementation, IndexInterface):
         for i in filter(lambda x: x.has_property('Indicator'), self.quantities(Indicator=indicator, **kwargs)):
             print('LCIA: %s [%s] {%s}' % (i, i.has_property('Indicator'), i['Indicator']))
             yield i
+
+    def lcia(self, **kwargs):
+        """
+        Generate LCIA Methodologies or method collections- these are specified by having the singleton MetaQuantityUnit
+        (and/or the unitstring '0') as a unit. They should *not* have indicators.
+        They have a property 'impactCategories' which is a list of included lcia_methods
+        :param kwargs:
+        :return:
+        """
+        for q in self.quantities():
+            if q.reference_entity is MetaQuantityUnit:
+                yield q
     '''
     def lcia_methods(self, **kwargs):
         for q in self._archive.search('quantity', **kwargs):

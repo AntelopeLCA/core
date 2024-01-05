@@ -55,10 +55,11 @@ class LcQuantity(LcEntity):
         super(LcQuantity, self)._set_reference(ref_entity)
 
     def quantity_terms(self):
-        yield self['Name']
-        yield self.name
-        yield str(self)  # this is the same as above for entities, but includes origin for refs
-        yield self.external_ref  # do we definitely want this?  will squash versions together
+        if not self.is_lcia_method:
+            yield self['Name']
+            yield self.name
+            yield str(self)  # this is the same as above for entities, but includes origin for refs
+        yield self.external_ref  # do we definitely want this?  version-less name will return earliest version
         if self.uuid is not None:
             yield self.uuid
         if self.origin is not None:
