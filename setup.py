@@ -1,19 +1,25 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.2.1'
+VERSION = '0.3.0'
 
 requires = [
-    "synonym_dict>=0.2.0",
-    "antelope_interface>=0.2.1",
+    "synonym_dict>=0.2.4",
+    "antelope_interface>=0.2.3",
     "xlstools>=0.1.3",
     "python-magic>=0.4.18",
     "requests>=2.25",
-    "pydantic>=1.8.2"
+    "pydantic>=2.5.0"
 ]
 
 # optional: pylzma
 """
 Version History
+
+0.3.0   2024-01-05 - 0.3-branch development version, supporting end-user access to vault.lc resources 
+
+# ^ 0.3.* 0.3-branch fork   
+# v 0.2.* main / master for legacy projects
+
 0.2.1   2023-04-10 - xdb passes benchmarks
                      pydantic models moved into interface
                      sys_lci and bg_lcia operational, both locally and remotely

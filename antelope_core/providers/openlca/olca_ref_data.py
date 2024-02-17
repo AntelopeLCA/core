@@ -1,8 +1,6 @@
 """
 supplies an Antelope archive that contains the ref data.
 """
-import os
-
 from antelope_core.archives import BasicArchive
 from antelope_core.entities import LcFlow, LcQuantity, LcUnit
 from antelope import QuantityInterface, EntityNotFound
