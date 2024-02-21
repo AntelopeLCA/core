@@ -348,6 +348,7 @@
       "Comment": "EcoSpold02. This is not an ILCD reference quantity.",
       "Name": "Electric energy",
       "UnitConversion": {
+        "kwh": 1.0,
         "GWh": 0.000001,
         "MWh": 0.001,
         "KJ": 3600.0,
@@ -493,7 +494,7 @@
         "eV": 1.6022046335758002e-25,
         "erg": 1e-13,
         "kJ": 0.001,
-        "kWh": 3.5999712002303976,
+        "kWh": 3.6,
         "kpm": 9.806805923310778e-06
       },
       "entityId": "8695e049-7a18-4b83-b3bd-035747039652",

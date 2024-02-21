@@ -447,18 +447,20 @@ class StaticCatalog(object):
             self._queries[origin] = query
         return query
 
-    def lookup(self, catalog_ref, keep_properties=False):
+    def lookup(self, catalog_ref):
         """
         Attempts to return a valid grounded reference matching the one supplied.
         :param catalog_ref:
-        :param keep_properties: [False] if True, apply incoming ref's properties to grounded ref, probably with a
+        :deprecated keep_properties: [False] if True, apply incoming ref's properties to grounded ref, probably with a
         prefix or something.
         :return:
         """
         ref = self.query(catalog_ref.origin).get(catalog_ref.external_ref)
+        '''
         if keep_properties:
             for k in catalog_ref.properties():
                 ref[k] = catalog_ref[k]
+        '''
         return ref
 
     '''

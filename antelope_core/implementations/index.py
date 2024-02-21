@@ -78,7 +78,6 @@ class IndexImplementation(BasicImplementation, IndexInterface):
         """
         indicator = kwargs.pop('Indicator', '')
         for i in filter(lambda x: x.has_property('Indicator'), self.quantities(Indicator=indicator, **kwargs)):
-            print('LCIA: %s [%s] {%s}' % (i, i.has_property('Indicator'), i['Indicator']))
             yield i
 
     def lcia(self, **kwargs):

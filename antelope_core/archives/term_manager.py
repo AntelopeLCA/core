@@ -880,16 +880,16 @@ class TermManager(object):
         :return:
         """
         try:
-            obj = self._cm[term]
-            it = self._cm.synonyms(obj)
+            obj = self._cm[term]  # we need this to trip the KeyError if it's not found
+            it = self._cm.synonyms(term)
         except KeyError:
             try:
-                obj = self._qm[term]
-                it = self._qm.synonyms(obj)
+                obj = self._qm[term]  # we need this to trip the KeyError if it's not found
+                it = self._qm.synonyms(term)
             except KeyError:
                 try:
-                    obj = self._fm[term]
-                    it = self._fm.synonyms(obj)
+                    obj = self._fm[term]  # we need this to trip the KeyError if it's not found
+                    it = self._fm.synonyms(term)
                 except KeyError:
                     it = ()
         for k in it:
