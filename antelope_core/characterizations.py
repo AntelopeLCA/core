@@ -198,8 +198,8 @@ class Characterization(object):
                 pval = '%s (incoming: %s)' % (self._locations[key], value)
             else:
                 pval = '%g (incoming: %s)' % (self._locations[key], value)
-            raise DuplicateCharacterizationError('%s: Characterization value already present! %s = %s\n%s' %
-                                                 (self.quantity, key, pval, self.flowable))
+            raise DuplicateCharacterizationError('%s: Characterization value already present! %s = %s\n%s\n%s' %
+                                                 (self.quantity, key, pval, self.flowable, self.context))
         self._locations[key] = value
 
     def update_values(self, **kwargs):

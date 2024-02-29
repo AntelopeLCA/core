@@ -1,16 +1,19 @@
 """
 supplies an Antelope archive that contains the ref data.
 """
+import csv
+
 from antelope_core.archives import BasicArchive
 from antelope_core.entities import LcFlow, LcQuantity, LcUnit
 from antelope import QuantityInterface, EntityNotFound
 from antelope_core.implementations import BasicImplementation
-from antelope_core.characterizations import Characterization
+from antelope_core.characterizations import Characterization, DuplicateCharacterizationError
 from antelope_core.lcia_engine import LciaEngine
 
 from antelope_core.entities import MetaQuantityUnit
 
 from .olca_accessor import OlcaAccessorV2
+import logging
 
 
 class OlcaRefQuantityImplementation(BasicImplementation, QuantityInterface):
@@ -48,7 +51,7 @@ class OlcaRefQuantityImplementation(BasicImplementation, QuantityInterface):
                 if flowable != fb:
                     continue
 
-            cx = self._archive.tm[flow.context]
+            cx = self._archive.tm[flow.context]  # OLCA flows are all bound to a distinct context
             if context is not None:
                 if cx != context:
                     continue
@@ -58,15 +61,19 @@ class OlcaRefQuantityImplementation(BasicImplementation, QuantityInterface):
             if key not in cfs:
                 cfs[key] = Characterization(fb, rq, qq, cx)
 
-            from_unit = factor['Flow unit']
-            value = float(factor['Factor']) * rq.convert(from_unit=from_unit)
+            rq_unit = factor['Flow unit']
+            # [Factor] [Indicator] / [Flow unit]  * [convert to] / [convert from] = value [Indicator] / rq.unit
+            value = float(factor['Factor']) * rq.convert(to=rq_unit)
             locale = factor['Location']
             if locale:
                 l_count += 1
             else:
                 locale = flow.locale
 
-            cfs[key][locale] = value
+            try:
+                cfs[key][locale] = value
+            except DuplicateCharacterizationError:
+                logging.warning('Duplicate Characterization for locale %s\nkey: %s' % (locale, key))
 
         if l_count:
             print('method %s: %d non-null Locations' % (qq.uuid, l_count))
@@ -95,7 +102,7 @@ class OpenLcaRefData(BasicArchive):
         return super(OpenLcaRefData, self).make_interface(iface)
 
     def __init__(self, source=None, **kwargs):
-        super(OpenLcaRefData, self).__init__(source, term_manager=LciaEngine(), ns_uuid=None, **kwargs)
+        super(OpenLcaRefData, self).__init__(source, ns_uuid=None, **kwargs)  # term_manager=LciaEngine(),
         self._index = dict()
         self._a = OlcaAccessorV2(source)
         self._olca_unitgroups = self._a.read_unit_groups()
@@ -252,3 +259,48 @@ class OpenLcaRefData(BasicArchive):
     def factors_for_quantity(self, q):
         for cf in self._a.factors_for_method(q):
             yield cf
+
+    def factors_to_csv(self, quantity, filepath):
+        """
+        Utility to output processed CFs to a file for easy analysis, debug unit conversions, duplicate CFs, etc
+        :param quantity:
+        :param filepath:
+        :return:
+        """
+        qq = self.tm.get_canonical(quantity)
+
+        fields = ('quantity',
+                  'ref_quantity',
+                  'flowable',
+                  'context',
+                  'locale',
+                  'value',
+                  'indicator',
+                  'ref_unit')
+
+        count = 0
+        with open(filepath, 'w') as fp:
+            cw = csv.DictWriter(fp, fieldnames=fields)
+            for factor in self.factors_for_quantity(qq):
+                flow = self[factor['Flow']]
+                rq = flow.reference_entity
+                fb = self.tm.get_flowable(flow.name)
+                cx = self.tm[flow.context]
+                locale = factor['Location']
+                if not locale:
+                    locale = flow.locale
+
+                value = float(factor['Factor']) * rq.convert(to=factor['Flow unit'])
+
+                row = {'quantity': qq.uuid,
+                       'ref_quantity': rq.uuid,
+                       'flowable': str(fb),
+                       'context': '; '.join(cx.as_list()),
+                       'locale': locale,
+                       'value': value,
+                       'indicator': qq['Indicator'],
+                       'ref_unit': rq.unit}
+
+                cw.writerow(row)
+                count += 1
+        print('Wrote %d rows to %s' % (count, filepath))

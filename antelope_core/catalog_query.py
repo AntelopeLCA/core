@@ -14,6 +14,9 @@ from antelope.models import LciaResult as LciaResultModel, Characterization as C
 
 from .lcia_results import LciaResult
 from .characterizations import QRResult, Characterization
+from .contexts import NullContext
+
+from synonym_dict import InconsistentLineage
 
 INTERFACE_TYPES = ('basic', 'index', 'exchange', 'background', 'quantity', 'foreground')
 READONLY_INTERFACE_TYPES = {'basic', 'index', 'exchange', 'background', 'quantity'}
@@ -369,7 +372,10 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         """
         rq = self.get_canonical(cf.ref_quantity)
         qq = self.get_canonical(cf.query_quantity)
-        cx = self._tm[tuple(cf.context)]
+        try:
+            cx = self._tm[tuple(cf.context)]
+        except InconsistentLineage:
+            cx = NullContext
         c = Characterization(cf.flowable, rq, qq, cx, origin=cf.origin)
         for k, v in cf.value.items():
             c[k] = v
