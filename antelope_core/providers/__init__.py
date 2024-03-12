@@ -18,7 +18,7 @@ except ImportError:
     _prov = []
 
 from .ecoinvent_lcia import EcoinventLcia
-from .openlca_jsonld import OpenLcaJsonLdArchive
+from .openlca import OpenLcaJsonLdArchive
 from .traci import Traci21Factors
 from .xdb_client import XdbClient
 
