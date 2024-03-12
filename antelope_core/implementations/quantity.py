@@ -3,7 +3,7 @@ Each archive now has a TermManager which interprets query arguments as synonyms 
 can also be upgraded to an LciaEngine, which extends the synonymization strategy to quantities as well
 """
 from antelope import (QuantityInterface, NoFactorsFound, ConversionReferenceMismatch, EntityNotFound, FlowInterface,
-                      convert, NoUnitConversionTable, QuantityRequired, RefQuantityRequired)
+                      convert, ConversionError, QuantityRequired, RefQuantityRequired)
 
 from antelope.flows.flow import QuelledCO2
 
@@ -299,7 +299,7 @@ def try_convert(flowable, rq, qq, context, locale):
         try:
             fac = convert(qq, from_unit=rq.unit)
             return QRResult(flowable, rq, qq, context or NullContext, locale, qq.origin, fac)
-        except (KeyError, NoUnitConversionTable):
+        except (KeyError, ConversionError):
             pass
 
     if hasattr(rq, 'is_lcia_method') and rq.is_lcia_method:
@@ -308,7 +308,7 @@ def try_convert(flowable, rq, qq, context, locale):
         try:
             fac = convert(rq, to=qq.unit)
             return QRResult(flowable, rq, qq, context or NullContext, locale, rq.origin, fac)
-        except (KeyError, NoUnitConversionTable):
+        except (KeyError, ConversionError):
             pass
     raise NoConversion
 

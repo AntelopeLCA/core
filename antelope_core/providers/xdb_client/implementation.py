@@ -349,6 +349,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         return res
 
     def get_factors(self, quantity, flow_specs, **kwargs):
+    #def _result_from_model(self, process_ref, quantity, res_m: LciaResultModel):
         """
 
         :param quantity:
