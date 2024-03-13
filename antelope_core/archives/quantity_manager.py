@@ -1,5 +1,5 @@
 from synonym_dict import SynonymDict, SynonymSet
-from antelope import convert
+from antelope import convert, ConversionError
 
 
 class QuantityUnitMismatch(Exception):
@@ -39,7 +39,7 @@ class QuantitySynonyms(SynonymSet):
                 cv = convert(self._quantity, from_unit=unit, to=self.unit)
                 if cv == 1.0:
                     return
-            except KeyError:
+            except ConversionError:
                 pass
         raise QuantityUnitMismatch('incoming %s (set %s)' % (unit, self.unit))
 

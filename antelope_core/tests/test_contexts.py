@@ -223,7 +223,17 @@ class DefaultContextsTest(unittest.TestCase):
         cx = self.cm.find_matching_context(fx)
         self.assertEqual(cx.sense, 'Source')
         self.assertIs(cx.top(), self.cm['Resources'])
-        self.assertListEqual(cx.as_list(), ['Resources', 'from water'])  # superfluous information trimmed
+        self.assertListEqual(cx.as_list(), ['Resources', 'from water', 'CA', 'CA-QC'])  # superfluous information added
+        self.assertIs(self.cm['dummy.test:CA-QC'], cx)
+
+    def test_matching_gap_compartment(self):
+        foreign_cm = ContextManager()
+        fx = foreign_cm.add_compartments(('resources', 'liquid resources', 'water', 'CA', 'CA-QC'))
+        fx.add_origin('dummy.test')
+        cx = self.cm.find_matching_context(fx)
+        self.assertEqual(cx.sense, 'Source')
+        self.assertIs(cx.top(), self.cm['Resources'])
+        self.assertListEqual(cx.as_list(), ['Resources', 'from water', 'CA', 'CA-QC'])  # superfluous information added
         self.assertIs(self.cm['dummy.test:CA-QC'], cx)
 
     def test_context_hint(self):

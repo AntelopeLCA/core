@@ -41,7 +41,10 @@ from synonym_dict import Compartment, CompartmentManager, NonSpecificCompartment
 from synonym_dict.compartments.compartment import InvalidSubCompartment
 from antelope import valid_sense
 
-ELEMENTARY = {'elementary flows', 'resource', 'emission', 'resources', 'emissions'}
+SINKS = {'emission', 'emissions'}
+SOURCES = {'resource', 'resources'}
+
+ELEMENTARY = {'elementary flows'} | SINKS | SOURCES
 
 PROTECTED = ('air', 'water', 'ground')
 
@@ -149,10 +152,20 @@ class Context(Compartment):
         for o in self._origins:
             yield o
 
+    @property
+    def _auto_sense(self):
+        for t in self.terms:
+            if t.lower() in SINKS:
+                return 'Sink'
+            if t.lower() in SOURCES:
+                return 'Source'
+
     def __init__(self, *args, sense=None, **kwargs):
         self._sense = None
         super(Context, self).__init__(*args, **kwargs)
         self._origins = set()
+        if sense is None:
+            sense = self._auto_sense
         if sense is not None:
             self.sense = sense
 
@@ -305,8 +318,10 @@ class ContextManager(CompartmentManager):
 
     def _gen_matching_entries(self, cx, sense):
         for t in cx.terms:
-            mt = _dir_mod(t, sense)
-            if mt in self._d:
+            mt = _dir_mod(t, sense)  # check for protected terms
+            if t in self._d:
+                yield self._d[t]
+            elif mt in self._d:
                 yield self._d[mt]
 
     def _merge(self, existing_entry, ent):
@@ -363,6 +378,21 @@ class ContextManager(CompartmentManager):
             self.add_synonym(entry, context.name)
 
     def find_matching_context(self, context):
+        """
+        A complicated function to both (1) retrieve the best / most-specific "canonical" context for a given "foreign"
+        (i.e. incoming) context and also (2) add the full semantic content of the foreign context to the canonical
+        context manager.
+
+        (1) is accomplished by a heuristic both-first search, first looking at the foreign context from most-specific
+        to least-specific and trying to find a match.  if no match is found, we go back from least-to-most specific,
+        using a slightly broader set of possible matches including heuristic names derived from contextual senses.
+        If no match at all is found, then NullContext is returned -- the foreign context matches no canonical context.
+
+        (2) If a canonical context is found, then all non-matching contexts from least-specific to most-specific,
+        are mapped onto existing sub-contexts of the match, or if none is found, collapsed into the match.
+        :param context:
+        :return:
+        """
         if context.name == context.fullname:
             raise AttributeError('Context origin must be specified')
         current = NullContext  # current = deepest local match
@@ -378,8 +408,11 @@ class ContextManager(CompartmentManager):
 
         # if current is None when we get here, then we haven't found anything, so start over and hunt from bottom up
         while len(missing) > 0:
-            this = missing.pop(0)  # this = active foreign match
+            this = missing.pop(0)  # this = active foreign match - least-specific first
             if current is NullContext:
+                """
+                In this block, we still haven't found a match. So we broaden our criteria.
+                """
                 try:
                     current = next(self._gen_matching_entries(this, None))
                 except StopIteration:
@@ -388,15 +421,27 @@ class ContextManager(CompartmentManager):
                     continue
                 if current is NullContext:
                     continue
+                # we found a match-- add our active foreign match to the current match
                 self._add_but_not_protected(current, this)
             else:
+                """
+                In this block, we have an active canonical match. We check our (more-specific) foreign subcontext
+                to see if it matches any of our current context's subcompartments
+                """
                 try:
                     nxt = next(k for k in self._gen_matching_entries(this, current.sense)
                                if k.is_subcompartment(current))
                     self._add_but_not_protected(nxt, this)
                     current = nxt
                 except StopIteration:
-                    self._add_but_not_protected(current, this)
+                    """
+                    DWR! Changing core behavior! We have an existing match but our foreign context is more specific
+                    so-- add a new canonical context
+                    """
+                    nxt = self.new_entry(this.name, parent=current, sense=this.sense)
+                    nxt.add_origin(this.origin)
+                    self._add_but_not_protected(nxt, this)
+                    current = nxt
         if current is not NullContext:
             self._add_but_not_protected(current, context)
         return current
