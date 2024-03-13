@@ -3,6 +3,21 @@ from antelope_core.data_sources.data_source import DataSource, ResourceInfo
 VALID_FORMATS = ('olca', 'ecospold')  # 'ecospold')
 
 
+''' 
+Former unset_reference - made superfluous by removing spurious set_reference() in OpenLcaJsonLDArchive._get_rx
+          [
+            "0aaf1e13-5d80-37f9-b7bb-81a6b8965c71",  # activity-as-reference
+            "471bcc19-36f7-3ad8-b3ae-e39d2ab5fe44",
+            "Output"
+          ],
+
+Former config hints - made superfluous by Context._auto_sense
+
+     ["context", "water", "to water"],
+     ["context", "air", "to air"],
+          
+'''
+
 INFO = {
     'olca': ResourceInfo(None,
                         'OpenLcaJsonLdArchive',
@@ -13,11 +28,6 @@ INFO = {
           [
             "dc72e285-719b-318b-9c9c-c838846a9cf4",
             "d939590b-a0d7-310c-8952-9921ed64a078",
-            "Output"
-          ],
-          [
-            "0aaf1e13-5d80-37f9-b7bb-81a6b8965c71",  # activity-as-reference
-            "471bcc19-36f7-3ad8-b3ae-e39d2ab5fe44",
             "Output"
           ],
           [
@@ -112,8 +122,6 @@ INFO = {
           ]
     ],
     "hints": [
-     ["context", "water", "to water"],
-     ["context", "air", "to air"],
      ["quantity", "Energy", "Net Calorific Value"]
     ]
 

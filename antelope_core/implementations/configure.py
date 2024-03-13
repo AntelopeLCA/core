@@ -193,9 +193,13 @@ class LcConfigureImplementation(ConfigureImplementation):
                     pr.remove_reference(*fd)
                 return
             fl = self._archive.retrieve_or_fetch_entity(flow_ref)
-            if direction is None:
-                direction = self._check_direction(pr, fl)
-            pr.remove_reference(fl, direction)
+            try:
+                if direction is None:
+                    direction = self._check_direction(pr, fl)
+                pr.remove_reference(fl, direction)
+            except KeyError:
+                print('  !reference %s [%s] for %s NOT FOUND' % (flow_ref, direction, process_ref))
+                pass
 
     def allocate_by_quantity(self, process_ref, quantity_ref, overwrite=False, **kwargs):
         """

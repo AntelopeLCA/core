@@ -406,6 +406,7 @@ class OpenLcaJsonLdArchive(LcArchive):
                 raise AmbiguousReferenceError('%s: Multiple flows with ID %s' % (p.external_ref, rf.external_ref))
             else:
                 rx = rx_cands[0]
+            # p.set_reference(rx.flow, rx.direction)
 
         return rx
 

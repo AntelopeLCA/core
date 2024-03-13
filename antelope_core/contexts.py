@@ -152,20 +152,10 @@ class Context(Compartment):
         for o in self._origins:
             yield o
 
-    @property
-    def _auto_sense(self):
-        for t in self.terms:
-            if t.lower() in SINKS:
-                return 'Sink'
-            if t.lower() in SOURCES:
-                return 'Source'
-
     def __init__(self, *args, sense=None, **kwargs):
         self._sense = None
         super(Context, self).__init__(*args, **kwargs)
         self._origins = set()
-        if sense is None:
-            sense = self._auto_sense
         if sense is not None:
             self.sense = sense
 
@@ -285,8 +275,8 @@ class ContextManager(CompartmentManager):
     def __init__(self, source_file=None):
         super(ContextManager, self).__init__()
 
-        self.new_entry('Resources', sense='source')
-        self.new_entry('Emissions', sense='sink')
+        self.new_entry('Resources', *SOURCES, sense='source')
+        self.new_entry('Emissions', *SINKS, sense='sink')
         self.load(source_file)
 
     def add_context_hint(self, origin, term, canonical):
@@ -434,14 +424,19 @@ class ContextManager(CompartmentManager):
                     self._add_but_not_protected(nxt, this)
                     current = nxt
                 except StopIteration:
-                    """
-                    DWR! Changing core behavior! We have an existing match but our foreign context is more specific
-                    so-- add a new canonical context
-                    """
-                    nxt = self.new_entry(this.name, parent=current, sense=this.sense)
-                    nxt.add_origin(this.origin)
-                    self._add_but_not_protected(nxt, this)
-                    current = nxt
+                    if 0:  # old
+                        self._add_but_not_protected(current, this)  # old
+                    else:  # new
+                        """
+                        DWR! Changing core behavior! We have an existing match but our foreign context is more specific
+                        so-- add a new canonical context
+                        
+                        (old behavior was to smush all foreign subcontexts together into the canonical context)
+                        """
+                        nxt = self.new_entry(this.name, parent=current, sense=this.sense)
+                        nxt.add_origin(this.origin)
+                        self._add_but_not_protected(nxt, this)
+                        current = nxt
         if current is not NullContext:
             self._add_but_not_protected(current, context)
         return current

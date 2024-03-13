@@ -25,9 +25,10 @@ from ...catalog.catalog_root import CATALOG_ROOT
 resource_dir = os.path.join(CATALOG_ROOT, 'resources')
 
 
+'''
 def _check_resource(ref):
     return os.path.exists(os.path.join(resource_dir, ref))
-
+'''
 
 cat = LcCatalog(CATALOG_ROOT)
 
