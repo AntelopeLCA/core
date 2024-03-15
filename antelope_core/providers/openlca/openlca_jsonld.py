@@ -471,10 +471,9 @@ class OpenLcaJsonLdArchive(LcArchive):
                 v = af['value'] / rx.value
                 stored_alloc.append(af)
 
-                if v != 0:
-                    if not rx.is_reference:
-                        logging.warning('%s: Setting reference %s from allocation spec' % (p.uuid, rx.flow.uuid))
-                        p.set_reference(rx.flow, rx.direction)
+                if not rx.is_reference:
+                    logging.warning('%s: Setting reference %s from allocation spec' % (p.uuid, rx.flow.uuid))
+                    p.set_reference(rx.flow, rx.direction)
 
                 self.tm.add_characterization(rx.flow.link, rx.flow.reference_entity, q, v,
                                              context=rx.flow.context, origin=self.ref)
