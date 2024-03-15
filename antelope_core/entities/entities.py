@@ -311,7 +311,13 @@ class LcEntity(BaseEntity):
         for k in fix:
             print('%*s: %s' % (ml, k, self._d[k]))
         for k in postfix:
-            print('%*s: %s' % (ml, k, self._d[k]))
+            v = self._d[k]
+            try:
+                if (isinstance(v, list) or isinstance(v, dict) or isinstance(v, set)) and len(v) > 10:
+                    v = '[%s with %d entries]' % (type(v), len(v))
+            except TypeError:
+                pass
+            print('%*s: %s' % (ml, k, v))
 
     def __str__(self):
         return 'LC %s: %s' % (self.entity_type, self._d['Name'])

@@ -28,12 +28,11 @@ import logging
 
 from collections import defaultdict
 
-from antelope import ConversionError
+from antelope import ConversionError, NoReference
 
 from ...exchanges import AmbiguousReferenceError
 
 from ...entities import LcQuantity, LcFlow, LcProcess, LcUnit, MetaQuantityUnit, ZeroAllocation
-from ...entities.processes import NoExchangeFound
 from ...archives import LcArchive
 from ..file_store import FileStore
 from ..parse_math import parse_math
@@ -379,6 +378,12 @@ class OpenLcaJsonLdArchive(LcArchive):
         return exch
 
     def _get_rx(self, p, flow_ref):
+        """
+        returns a reference exchange or candidate reference exchange
+        :param p:
+        :param flow_ref:
+        :return:
+        """
         rf = self.retrieve_or_fetch_entity(flow_ref)
         try:
             ft = rf['flowType']
@@ -389,7 +394,7 @@ class OpenLcaJsonLdArchive(LcArchive):
             ft = 'PRODUCT_FLOW'  # more common ??
         try:
             rx = p.reference(rf)
-        except NoExchangeFound:
+        except NoReference:
             # implicit trickery with schema: reference flows MUST be outputs for products, inputs for wastes
             dr = {'PRODUCT_FLOW': 'Output',
                   'WASTE_FLOW': 'Input'}[ft]
@@ -401,7 +406,7 @@ class OpenLcaJsonLdArchive(LcArchive):
                 raise AmbiguousReferenceError('%s: Multiple flows with ID %s' % (p.external_ref, rf.external_ref))
             else:
                 rx = rx_cands[0]
-            p.set_reference(rx.flow, rx.direction)
+            # p.set_reference(rx.flow, rx.direction)
 
         return rx
 
@@ -453,6 +458,8 @@ class OpenLcaJsonLdArchive(LcArchive):
 
                 val = af['value']
                 stored_alloc.append(af)
+                logging.warning('%s: Setting reference %s from CAUSAL alloc factor' % (p.uuid, rx.flow.uuid))
+                p.set_reference(rx.flow, rx.direction)
 
                 x[rx] = x.value * val
                 if _causal_msg:
@@ -464,9 +471,9 @@ class OpenLcaJsonLdArchive(LcArchive):
                 v = af['value'] / rx.value
                 stored_alloc.append(af)
 
-                if v != 0:
-                    if not rx.is_reference:
-                        p.set_reference(rx.flow, rx.direction)
+                if not rx.is_reference:
+                    logging.warning('%s: Setting reference %s from allocation spec' % (p.uuid, rx.flow.uuid))
+                    p.set_reference(rx.flow, rx.direction)
 
                 self.tm.add_characterization(rx.flow.link, rx.flow.reference_entity, q, v,
                                              context=rx.flow.context, origin=self.ref)

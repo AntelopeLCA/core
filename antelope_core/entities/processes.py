@@ -6,7 +6,7 @@ import uuid
 
 from collections import defaultdict
 
-from antelope import check_direction
+from antelope import check_direction, NoReference
 
 from .entities import LcEntity
 from ..exchanges import ExchangeValue, DuplicateExchangeError, AmbiguousReferenceError
@@ -384,7 +384,10 @@ class LcProcess(LcEntity):
     def reference(self, flow_ref=None):
         if flow_ref in self.reference_entity:
             return flow_ref
-        return self.find_reference(flow_ref)
+        try:
+            return self.find_reference(flow_ref)
+        except NoExchangeFound:
+            raise NoReference(flow_ref)
 
     ''' # don't think I want this
     def reference_value(self, flow=None):

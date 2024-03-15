@@ -182,7 +182,7 @@ class UsLciOlcaTest(UsLciTestContainer.UsLciTestBase):
     _atype = 'olca'
     _initial_count = (8, 71, 3)  # 4 physical quantities + 4 alloc quantities
     _bg_len = 36
-    _ex_len = 3680  # a "Diesel, at refinery" flow was incorrectly duplicated to exterior
+    _ex_len = 3990  # a lot of formerly spurious reference flows are now exterior as of 3ae4b3e
     _test_case_lcia = .04110577
     _test_case_observed_flow = 'bc38e349-1ccf-3855-a615-a4f581ab875b'
     _test_case_lcia_observed = 0.02476284

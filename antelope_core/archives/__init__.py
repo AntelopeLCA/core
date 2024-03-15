@@ -1,3 +1,4 @@
+from antelope import NoReference
 
 from .entity_store import EntityStore, SourceAlreadyKnown, EntityExists, uuid_regex
 from .basic_archive import BasicArchive, BASIC_ENTITY_TYPES, InterfaceError, ArchiveError
@@ -5,7 +6,6 @@ from .archive_index import index_archive, BasicIndex, LcIndex
 from .term_manager import TermManager
 from .lc_archive import LcArchive, LC_ENTITY_TYPES
 from ..from_json import from_json
-from ..entities.processes import NoExchangeFound
 
 from pathlib import Path
 from collections import defaultdict
@@ -112,12 +112,12 @@ class CheckTerms(object):
                         try:
                             query.get(x.termination).reference(x.flow)
                             self._check['terminated'].append(x)
-                        except NoExchangeFound:
+                        except NoReference:
                             self._check['missing'].append(x)
                     elif x.is_elementary:
                         self._check['elementary'].append(x)
                     elif x.type == 'context':
-                        tg = list(query.targets(x.flow))
+                        tg = list(query.targets(x.flow, direction=x.direction))
                         if len(tg) == 0:
                             self._check['cutoff'].append(x)
                         elif len(tg) > 1:
@@ -127,6 +127,10 @@ class CheckTerms(object):
                     else:
                         self._check[x.type].append(x)
         self.show()
+
+    def ambiguous_flows(self):
+        for t in set(k.flow for k in self._check['ambiguous']):
+            yield t
 
     def show(self):
         print('%d processes\n%d reference exchanges\n%d dependent exchanges' % (self._p, self._rx, self._x))

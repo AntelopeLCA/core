@@ -91,12 +91,6 @@ class IndexImplementation(BasicImplementation, IndexInterface):
         for q in self.quantities():
             if q.reference_entity is MetaQuantityUnit:
                 yield q
-    '''
-    def lcia_methods(self, **kwargs):
-        for q in self._archive.search('quantity', **kwargs):
-            if q.is_lcia_method:
-                yield q
-    '''
 
     def targets(self, flow_ref, direction=None, **kwargs):
         """

@@ -295,8 +295,8 @@ class TermManager(object):
         """
         We are using conflict='attach' by default so that 'emissions' and 'resources' can be attached to
         'Elementary flows' if it exists. It may cause undesirable side-effects if different intermediate categories
-        use similar terms, e.g. ('buildings', 'heat', 'steam') and ('chemical', 'heat', 'process') would result in
-        either
+        use similar terms, e.g. ('buildings', 'heat', 'steam') and ('chemical', 'heat', 'process') could result in
+        InconsistentLineage  (or else something crazy like ('chemical', 'buildings', 'heat', ('process', 'steam')) )
 
         :param context:
         :param origin: apply origin to context if it has none
