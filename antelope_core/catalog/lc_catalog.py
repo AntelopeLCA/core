@@ -13,6 +13,7 @@ from requests.exceptions import HTTPError
 
 from shutil import copy2, rmtree
 import os
+import glob
 import json
 import hashlib
 import getpass
@@ -180,7 +181,8 @@ class LcCatalog(StaticCatalog):
     def delete_resource(self, resource, delete_source=None, delete_cache=True):
         """
         Removes the resource from the resolver and also removes the serialization of the resource. Also deletes the
-        resource's source under the following circumstances:
+        resource's source (as well as all files in the same directory that start with the same name) under the following
+        circumstances:
          (resource is internal AND resources_with_source(resource.source) is empty AND resource.source is a file)
         This can be overridden using he delete_source param (see below)
 
@@ -208,7 +210,9 @@ class LcCatalog(StaticCatalog):
             if os.path.isdir(abs_src):
                 rmtree(abs_src)
             else:
-                os.remove(abs_src)
+                for path in glob.glob(abs_src + '*'):
+                    print('removing %s' % path)
+                    os.remove(path)
         if delete_cache:
             if os.path.exists(self.cache_file(resource.source)):
                 os.remove(self.cache_file(resource.source))
@@ -408,11 +412,17 @@ class LcCatalog(StaticCatalog):
             print('Re-indexing %s' % source)
             # TODO: need to delete the old index resource!!
             stale_res = list(self._resolver.resources_with_source(inx_local))
+            stale_refs = list(set(res.origin for res in stale_res))
             for stale in stale_res:
                 # this should be postponed to after creation of new, but that fails in case of naming collision (bc YYYYMMDD)
                 # so golly gee we just delete-first.
                 print('deleting %s' % stale.origin)
                 self.delete_resource(stale)
+            # we also need to delete derived internal resources
+            for stale_ref in stale_refs:
+                for stale in list(self.resources(stale_ref)):
+                    if stale.internal:
+                        self.delete_resource(stale)
 
         the_index = res.make_index(inx_file, force=force)
         self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=stored, interfaces='index',

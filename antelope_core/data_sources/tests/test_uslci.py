@@ -77,6 +77,10 @@ class UsLciTestContainer(object):
             self.assertTrue(inx_ref.startswith(self.inx_reference))
             self.assertIn(inx_ref, cat.origins)
 
+        def test_11_no_background(self):
+            # forcing re-index should have deleted the prior background interface
+            self.assertEqual(len(list(r for r in cat.resources(self.reference) if 'background' in r.interfaces)), 0)
+
         def _get_petro(self):
             return next(self.query.processes(Name='petroleum refining, at refinery'))
 
@@ -182,7 +186,7 @@ class UsLciOlcaTest(UsLciTestContainer.UsLciTestBase):
     _atype = 'olca'
     _initial_count = (8, 71, 3)  # 4 physical quantities + 4 alloc quantities
     _bg_len = 36
-    _ex_len = 3990  # a lot of formerly spurious reference flows are now exterior as of 3ae4b3e
+    _ex_len = 3680
     _test_case_lcia = .04110577
     _test_case_observed_flow = 'bc38e349-1ccf-3855-a615-a4f581ab875b'
     _test_case_lcia_observed = 0.02476284
