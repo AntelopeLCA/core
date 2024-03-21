@@ -10,17 +10,21 @@ Former unset_reference - made superfluous by removing spurious set_reference() i
             "471bcc19-36f7-3ad8-b3ae-e39d2ab5fe44",
             "Output"
           ],
+(actually, I think we brought this back as well)
 
 Former config hints - made superfluous by Context._auto_sense
 
      ["context", "water", "to water"],
      ["context", "air", "to air"],
+(actually not superfluous because of native contexts of the bonkers sort as 
+"Elementary Flows / NETL Elementary Flows / Air" which not even auto sense could catch
+so we're bringing em back
           
 '''
 
 INFO = {
     'olca': ResourceInfo(None,
-                        'OpenLcaJsonLdArchive',
+                         'OpenLcaJsonLdArchive',
                          'https://www.dropbox.com/s/upuo0yc7hwevmvs/NREL_USLCI_JSON__20180109.zip?dl=1',
                          '3e8471b1a73b38013c3ab8e8b2df0ef4',
 {
@@ -28,6 +32,11 @@ INFO = {
           [
             "dc72e285-719b-318b-9c9c-c838846a9cf4",
             "d939590b-a0d7-310c-8952-9921ed64a078",
+            "Output"
+          ],
+          [
+            "0aaf1e13-5d80-37f9-b7bb-81a6b8965c71",  # activity-as-reference
+            "471bcc19-36f7-3ad8-b3ae-e39d2ab5fe44",
             "Output"
           ],
           [
@@ -122,7 +131,9 @@ INFO = {
           ]
     ],
     "hints": [
-     ["quantity", "Energy", "Net Calorific Value"]
+     ["quantity", "Energy", "Net Calorific Value"],
+     ["context", "water", "to water"],
+     ["context", "air", "to air"]
     ]
 
                          },
