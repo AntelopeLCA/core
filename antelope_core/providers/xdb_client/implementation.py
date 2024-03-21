@@ -165,8 +165,8 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
 
     def _resolve_exv(self, exv: ExchangeValues):
         exv = self._resolve_ex(exv)
-        if 'null' in exv.values:
-            exv.values[None] = exv.values.pop('null')
+        if 'None' in exv.values:
+            exv.values[None] = exv.values.pop('None')
         return exv
 
     def exchanges(self, process, **kwargs):

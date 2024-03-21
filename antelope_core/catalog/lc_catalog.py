@@ -265,6 +265,12 @@ class LcCatalog(StaticCatalog):
             client = RestClient(blackbook_url, token=token, auth_route='auth/token', **kwargs)
         self._blackbook_client = client
 
+    @property
+    def blackbook_origins(self):
+        if self._blackbook_client is not None:
+            for org in sorted(self._blackbook_client.get_raw('origins')):
+                yield org
+
     def get_blackbook_resources(self, origin, store=False, **kwargs):
         """
         Use a blackbook server to obtain resources for a given origin.
