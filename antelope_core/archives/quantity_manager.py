@@ -1,4 +1,4 @@
-from synonym_dict import SynonymDict, SynonymSet
+from synonym_dict import SynonymDict, SynonymSet, MergeError
 from antelope import convert, ConversionError
 
 
@@ -155,6 +155,24 @@ class QuantityManager(SynonymDict):
                                                                                                           me, me.unit))
             pe = self.add_or_update_entry(new_q, merge=False, prune=True)
             print('   Added pruned quantity %s [%s]' % (pe.name, pe.unit))
+        except MergeError:
+            """
+            we have (at least) two different quantities.  If the link is already known, we're done
+            """
+            new_terms = [c for c in new_q.terms if self._check_term(c) is None]
+            for best in (quantity.external_ref, quantity.link, quantity.name):
+                k = self._check_term(best)
+                if k is not None:
+                    try:
+                        k.add_child(new_q)
+                    except QuantityUnitMismatch:
+                        continue
+                    # we found one
+                    for nt in new_terms:
+                        self.add_synonym(best, nt)
+                    return
+            # we did not find one
+            print('!! %s: Abandoning orphan terms %s' % (quantity, new_terms))
 
     def add_synonym(self, term, syn):
         super(QuantityManager, self).add_synonym(term, syn)
