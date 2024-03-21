@@ -1,19 +1,23 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.2.1'
+VERSION = '0.2.3'
 
 requires = [
-    "synonym_dict>=0.2.0",
-    "antelope_interface>=0.2.1",
+    "synonym_dict>=0.2.4",
+    "antelope_interface>=0.2.3",
     "xlstools>=0.1.3",
     "python-magic>=0.4.18",
     "requests>=2.25",
-    "pydantic>=1.8.2"
+    "pydantic>=2.5.0"
 ]
 
 # optional: pylzma
 """
 Version History
+0.2.3   2024-03-21 - compatibility release for antelope_interface upgrades and terminology changes
+                     OpenLCA v2 schema handled
+                     lots of cloud work 
+
 0.2.1   2023-04-10 - xdb passes benchmarks
                      pydantic models moved into interface
                      sys_lci and bg_lcia operational, both locally and remotely
