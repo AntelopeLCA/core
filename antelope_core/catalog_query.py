@@ -8,7 +8,7 @@ from antelope import (IndexInterface, BackgroundInterface, ExchangeInterface, Qu
 #                      ForegroundInterface,
 #                      IndexRequired, PropertyExists,
 #                      )
-from antelope.refs.exchange_ref import RxRef
+from antelope.refs import FlowRef, RxRef
 
 from antelope.models import LciaResult as LciaResultModel, Characterization as CharacterizationModel
 
@@ -403,19 +403,27 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             for d in c.details:
                 value = d.result / d.factor.value
                 cx = self._tm[tuple(d.factor.context)]
+                rq = self.get_canonical(d.exchange.quantity_ref)
                 try:
-                    flow_ref = self.cascade(d.exchange.origin).get(d.exchange.external_ref)
+                    # OK - here we are making redundant orphan FlowRefs, one per detail, to avoid excess API calls.
+                    flow_ref = FlowRef(d.exchange.external_ref, self.cascade(d.exchange.origin),
+                                       name=d.exchange.name, reference_entity=rq, context=cx)
                 except UnknownOrigin:
-                    flow_ref = self.get(d.exchange.external_ref, origin=d.exchange.origin)
-                ex_dir = comp_dir(cx.sense)
+                    flow_ref = FlowRef(d.exchange.external_ref, self, masquerade=d.exchange.origin,
+                                       name=d.exchange.name, reference_entity=rq, context=cx)
+                ex_dir = d.exchange.direction
+                '''
                 if ex_dir is None:
                     print('Bad context: %s' % list(cx))
                     print('using "Output" direction')
                     ex_dir = 'Output'
+                '''
+                if cx.sense:
+                    if ex_dir != comp_dir(cx.sense):
+                        value *= -1  # DetailedLciaResult will negate the result internally
                 ex = ExchangeRef(process, flow_ref,
                                  ex_dir,
                                  termination=cx, value=value)
-                rq = self.get_canonical(d.exchange.quantity_ref)
                 cf = QRResult(d.factor.flowable, rq, quantity, cx,
                               d.factor.locale, d.factor.origin, d.factor.value)
                 res.add_score(c.component, ex, cf)
