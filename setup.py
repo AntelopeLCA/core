@@ -14,17 +14,15 @@ requires = [
 # optional: pylzma
 """
 Version History
-<<<<<<< HEAD
 
 0.3.0   2024-01-05 - 0.3-branch development version, supporting end-user access to vault.lc resources 
 
 # ^ 0.3.* 0.3-branch fork   
 # v 0.2.* main / master for legacy projects
-=======
+
 0.2.3   2024-03-21 - compatibility release for antelope_interface upgrades and terminology changes
                      OpenLCA v2 schema handled
                      lots of cloud work 
->>>>>>> master
 
 0.2.1   2023-04-10 - xdb passes benchmarks
                      pydantic models moved into interface
