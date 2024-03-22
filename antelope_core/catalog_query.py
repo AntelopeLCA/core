@@ -235,7 +235,7 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         return self._tm[cx]
     '''
 
-    def get_canonical(self, quantity: str | BaseEntity, **kwargs):
+    def get_canonical(self, quantity, **kwargs):
         try:
             # print('Gone canonical')
             q_can = self._tm.get_canonical(quantity)

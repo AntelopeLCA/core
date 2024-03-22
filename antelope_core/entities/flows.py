@@ -62,21 +62,13 @@ class LcFlow(LcEntity, Flow):
         if self.reference_entity is None:
             print('Warning: no reference quantity for flow %s' % external_ref)
 
-    def make_ref(self, query):
-        if self._query_ref is None:
-            d = dict()
-            for k in self.signature_fields():
-                if k == self._ref_field:
-                    continue
-                if k in self._d:
-                    d[k] = self._d[k]
-            self._query_ref = CatalogRef.from_query(self.external_ref, query, self.entity_type,
-                                                    uuid=self.uuid, **d)
-            self._query_ref.context = self.context
-            for k, v in self._chars_seen.items():
-                self._query_ref._chars_seen[k] = v  # this is hacky obv
+    def _make_ref(self, query):
+        query_ref = super(LcFlow, self)._make_ref(query)
+        query_ref.context = self.context
+        for k, v in self._chars_seen.items():
+            query_ref._chars_seen[k] = v  # this is hacky obv
 
-        return self._query_ref
+        return query_ref
 
     def __str__(self):
         cas = self.get('CasNumber')

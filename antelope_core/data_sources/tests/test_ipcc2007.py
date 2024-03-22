@@ -26,7 +26,7 @@ class GwpIpcc2007Test(unittest.TestCase):
 
     def test_gwp(self):
         gwp = next(self.query.lcia_methods())
-        self.assertEqual(gwp.name, 'Global Warming Air [kg CO2 eq] [LCIA]')
+        self.assertEqual(gwp.name, 'Global Warming Air [kg CO2 eq] [TRACI 2.1]')
         self.assertEqual(len([k for k in gwp.factors()]), 91)
 
 

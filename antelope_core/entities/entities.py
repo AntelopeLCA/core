@@ -76,21 +76,35 @@ class LcEntity(BaseEntity):
     def reference_entity(self):
         return self._reference_entity
 
+    def _make_ref(self, query):
+        """
+        Type-Specific Ref maker.
+        :param query:
+        :return: a CatalogRef
+        """
+        d = dict()
+        for k in self.properties():
+            v = self._d[k]
+            if hasattr(v, 'make_ref'):
+                v = v.make_ref(query)
+            d[k] = v
+        '''
+        for k in self.signature_fields():
+            if k == self._ref_field:
+                continue
+            if k in self._d:
+                d[k] = self._d[k]
+        '''
+        # this is a potential DWR--
+        # if the query does not match the entity, we want the ref to have the authentic origin
+        # we're expecting this to only occur from within CatalogQuery._grounded_query() -> UnknownOrigin
+        if query.origin != self.origin:
+            d['masquerade'] = self.origin
+        return CatalogRef.from_query(self.external_ref, query, self.entity_type, uuid=self.uuid, **d)
+
     def make_ref(self, query):
         if self._query_ref is None:
-            d = dict()
-            for k in self.signature_fields():
-                if k == self._ref_field:
-                    continue
-                if k in self._d:
-                    d[k] = self._d[k]
-            # this is a potential DWR--
-            # if the query does not match the entity, we want the ref to have the authentic origin
-            # we're expecting this to only occur from within CatalogQuery._grounded_query() -> UnknownOrigin
-            if query.origin != self.origin:
-                d['masquerade'] = self.origin
-            self._query_ref = CatalogRef.from_query(self.external_ref, query, self.entity_type,
-                                                    uuid=self.uuid, **d)
+            self._query_ref = self._make_ref(query)
         return self._query_ref
 
     @property
@@ -140,12 +154,6 @@ class LcEntity(BaseEntity):
     @property
     def external_ref(self):
         return self._external_ref
-
-    def get_signature(self):
-        k = dict()
-        for i in self.signature_fields():
-            k[i] = self[i]
-        return k
 
     @property
     def uuid(self):
