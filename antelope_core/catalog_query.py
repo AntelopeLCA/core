@@ -347,16 +347,13 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
             A corollary of this is that CatalogQuery.get() should get_canonical FIRST
             '''
             try:
-                return self._tm.get_canonical(entity.link)
+                _ = self._tm.get_canonical(entity)
             except EntityNotFound:
-                try:
-                    _ = self._tm.get_canonical(entity)
-                except EntityNotFound:
-                    self._catalog.register_entity_ref(e_ref)
-                    return self._tm.get_canonical(entity)
-                # print('@@@ Canonical quantity missing link-- adding direct to qm')  # I predict this never occurs
-                # in fact, it occurred several times immediately
-                return self._tm.add_quantity(entity)  # this will be identical to _ unless there is a unit conflict
+                self._catalog.register_entity_ref(e_ref)
+                return self._tm.get_canonical(entity)
+            # print('@@@ Canonical quantity missing link-- adding direct to qm')  # I predict this never occurs
+            # in fact, it occurred several times immediately
+            return self._tm.add_quantity(entity)  # this will be identical to _ unless there is a unit conflict
         else:
             return e_ref
 
