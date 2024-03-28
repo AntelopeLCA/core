@@ -283,8 +283,8 @@ class LcCatalog(StaticCatalog):
         if len(res) > 0:
             return self.refresh_xdb_tokens(origin)
         else:
-            resource_dict = self._blackbook_client.get_one(dict, 'origins', origin, 'resource')
-            return self._configure_blackbook_resources(resource_dict, store=store, **kwargs)
+            resource_list = self._blackbook_client.get_many(ResourceSpec, 'origins', origin, 'resource')
+            return self._configure_blackbook_resources(resource_list, store=store, **kwargs)
 
     '''
     def get_blackbook_resources_by_client(self, bb_client, username, origin, store=False):
@@ -300,7 +300,7 @@ class LcCatalog(StaticCatalog):
         return self._finish_get_blackbook_resources(resource_dict, store=store)
     '''
 
-    def _configure_blackbook_resources(self, resource_dict, store=False, **kwargs):
+    def _configure_blackbook_resources(self, resource_list, store=False, **kwargs):
         """
         Emerging issue here in the xdb/oryx context-- we need to be able to replace resources even if they are
         serialized and already initialized.
@@ -315,41 +315,39 @@ class LcCatalog(StaticCatalog):
            = else, update source and token
          - else: create it
 
-        :param resource_dict: a dict of origin: [resource specs]
+        :param resource_dict: a list of [resource specs]
         :return:
         """
 
         rtn = []
 
-        for recv_origin, res_list in resource_dict.items():
-            # self._resolver.delete_origin(recv_origin)
-            for res in res_list:
-                if not isinstance(res, ResourceSpec):
-                    res = ResourceSpec(**res)
-                try:
-                    exis = next(x for x in self.resources(recv_origin) if x.ds_type == res.ds_type)
-                    exis.init_args.update(kwargs)
-                    exis.check(self)
-                    # one exists-- update it
-                    exis.init_args.update(res.options)
-                    if exis.source == res.source:
-                        exis.archive.refresh_token(res.options['token'])
-                    else:
-                        exis.source = res.source
-                        exis.archive.refresh_auth(res.source, res.options['token'])
-                    for i in res.interfaces:
-                        if i not in exis.interfaces:
-                            exis.add_interface(i)
-                    for i in exis.interfaces:
-                        if i not in res.interfaces:
-                            exis.remove_interface(i)
-                    if store:
-                        exis.write_to_file(self.resource_dir)
-                    rtn.append(exis)
-                except StopIteration:
-                    r = LcResource(**res.model_dump(), **kwargs)
-                    self.add_resource(r, store=store)
-                    rtn.append(r)
+        for res in resource_list:
+            if not isinstance(res, ResourceSpec):
+                res = ResourceSpec(**res)
+            try:
+                exis = next(x for x in self.resources(res.origin) if x.ds_type == res.ds_type)
+                exis.init_args.update(kwargs)
+                exis.check(self)
+                # one exists-- update it
+                exis.init_args.update(res.options)
+                if exis.source == res.source:
+                    exis.archive.refresh_token(res.options['token'])
+                else:
+                    exis.source = res.source
+                    exis.archive.refresh_auth(res.source, res.options['token'])
+                for i in res.interfaces:
+                    if i not in exis.interfaces:
+                        exis.add_interface(i)
+                for i in exis.interfaces:
+                    if i not in res.interfaces:
+                        exis.remove_interface(i)
+                if store:
+                    exis.write_to_file(self.resource_dir)
+                rtn.append(exis)
+            except StopIteration:
+                r = LcResource(**res.model_dump(), **kwargs)
+                self.add_resource(r, store=store)
+                rtn.append(r)
         return rtn
 
     def refresh_xdb_tokens(self, origin):
