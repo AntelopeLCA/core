@@ -31,9 +31,10 @@ DEFAULT_PRIORITIES = {
 
 class FileAccessor(object):
 
-    def __init__(self, load_path):
+    def __init__(self, load_path, prefix=None):
         self._path = os.path.abspath(load_path)  # this has the benefits of collapsing '..' and trimming trailing '/'
         self._origins = os.listdir(self._path)
+        self._prefix = prefix
 
     @property
     def path(self):
@@ -109,6 +110,9 @@ class FileAccessor(object):
             raise ValueError('Path not contained within our filespace')
         rel_source = source[len(self._path)+1:]
         org, iface, ds_type, fn = rel_source.split(os.path.sep)  # note os.pathsep is totally different
+
+        if self._prefix is not None:
+            org = '.'.join([str(self._prefix), org])
 
         cfg = self.read_config(source)
         cfg.update(kwargs)

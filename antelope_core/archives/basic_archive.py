@@ -113,10 +113,11 @@ class BasicArchive(EntityStore):
         else:
             source = filename
         ar = cls(source, ref=existing_ref, ns_uuid=ns_uuid, static=True, **kwargs)
-        if ref != ar.ref:
-            ar.set_origin(ref)
 
         ar.load_from_dict(j, jsonfile=filename)
+
+        if ref != ar.ref:
+            ar.set_origin(ref)
 
         return ar
 
