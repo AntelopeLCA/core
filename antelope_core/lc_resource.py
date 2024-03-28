@@ -139,7 +139,7 @@ class LcResource(object):
         except FileNotFoundError as e:
             raise ResourceInvalid('%s: %s' % (self.origin, e.filename))
 
-        if catalog is not None and os.path.exists(catalog.cache_file(self.source)):
+        if catalog is not None and catalog.check_cache(self.source):
             update_archive(self._archive, catalog.cache_file(self.source))
         self._static |= self._archive.static
         if self.static and self.ds_type.lower() != 'json':
@@ -158,16 +158,23 @@ class LcResource(object):
             print('QQQQQQQQQQQQQQQQQQ %s QQQQQQQQQQQQQQQQQQ' % self.origin)
             self._instantiate(catalog)
             self.apply_config(catalog)  # can't remember why I set this to happen recurrently- but it's no good
+            ''' # on second thought, I dont think we want to do this-- catalog_names is a mapping of ref to source
+            if catalog:
+                for name in self.archive.catalog_names:
+                    if name not in catalog.origins:
+                        catalog.add_nickname(name, self.origin)
+            '''
+
         return True
 
     def save(self, catalog):
         self.write_to_file(catalog.resource_dir)
 
-    def make_index(self, index_file, force=True):
+    def make_index(self, index_file, force=True, save=True):
         self.check(None)
         self._archive.load_all()
 
-        the_index = index_archive(self._archive, index_file, force=force)
+        the_index = index_archive(self._archive, index_file, force=force, save=save)
 
         return the_index
 
@@ -183,7 +190,7 @@ class LcResource(object):
     def apply_config(self, catalog=None):
         # if len(self._config) == 0:  # NOW we don't even need to alter blackbook!!!
         #    return
-        print('Applying stored configuration')
+        # print('Applying stored configuration')
         try:
             self._archive.make_interface('configure').apply_config(self._config)
         except InterfaceError:
@@ -293,6 +300,8 @@ class LcResource(object):
                                                                 [k for k in self.interfaces], self.priority, fgs)
 
     def exists(self, path):
+        if path is None:
+            return False
         filename = os.path.join(path, self.origin)
         if os.path.exists(filename):
             try:
@@ -360,7 +369,10 @@ class LcResource(object):
                         cf.check_config(cfg, args)
             except InterfaceError:
                 pass
-        self._config = config_dict
+        # apply config without replacing it blindly
+        for k, v in config_dict.items():
+            for t in v:
+                self._config[k].add(tuple(t))
 
     def satisfies(self, ifaces):
         if ifaces is None:

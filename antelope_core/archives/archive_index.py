@@ -29,18 +29,20 @@ class LcIndex(AbstractIndex, LcArchive):
         return super(LcIndex, self).serialize(exchanges=False, characterizations=False, values=False, domesticate=False)
 
 
-def index_archive(archive, source, ref=None, signifier='index', force=False):
+def index_archive(archive, source, ref=None, signifier='index', force=False, save=True):
     if source is None:
-        raise AssertionError('Source is required')
-    if not bool(re.search('\.gz$', source)):
-        source += '.gz'
-    if source == archive.source:
-        raise ArchiveError('Index must have a different source from original archive')
-    if os.path.exists(source):
-        if force:
-            print('File exists: %s. Overwriting..' % source)
-        else:
-            raise FileExistsError(source)
+        if save is True:
+            raise AssertionError('Source is required')
+    else:
+        if not bool(re.search('\.gz$', source)):
+            source += '.gz'
+        if source == archive.source:
+            raise ArchiveError('Index must have a different source from original archive')
+        if save and os.path.exists(source):
+            if force:
+                print('File exists: %s. Overwriting..' % source)
+            else:
+                raise FileExistsError(source)
 
     if ref is None or ref == archive.ref:
         ref = archive.construct_new_ref(signifier=signifier)
@@ -62,5 +64,7 @@ def index_archive(archive, source, ref=None, signifier='index', force=False):
 
     index.load_from_dict({'catalogNames': names})
 
-    index.write_to_file(source, gzip=True)
+    if save:
+        print('Saving index to file %s' % source)
+        index.write_to_file(source, gzip=True)
     return index

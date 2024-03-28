@@ -105,14 +105,16 @@ class BasicArchive(EntityStore):
             ns_uuid = init_args.pop('ns_uuid', None)
         kwargs.update(init_args)
 
-        old_ref = j.pop('dataReference', ref)
-        existing_ref = kwargs.pop('dataReference', old_ref)  # this will be the latest of init[dataRef], [dataRef], ref
+        old_ref = j.pop('dataReference', ref)  # make sure we do not pass a dataReference to the mechanism
+        # existing_ref = kwargs.pop('dataReference', old_ref)  # picks the crustiest of (init[dataRef], [dataRef], ref)
+        if ref is None:  # this picks the FIRST PRESENT of ref, [dataRef], init[dataRef]
+            ref = kwargs.pop('dataReference', old_ref)
 
         if filename is None:
             source = j.pop('dataSource')
         else:
             source = filename
-        ar = cls(source, ref=existing_ref, ns_uuid=ns_uuid, static=True, **kwargs)
+        ar = cls(source, ref=ref, ns_uuid=ns_uuid, static=True, **kwargs)
 
         ar.load_from_dict(j, jsonfile=filename)
 

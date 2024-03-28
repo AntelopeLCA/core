@@ -1,8 +1,6 @@
-import tempfile
-
 from antelope.xdb_tokens import ResourceSpec
 
-from .catalog import StaticCatalog
+from .catalog import StaticCatalog, CatalogError
 from ..archives import REF_QTYS, archive_from_json
 from ..lc_resource import LcResource
 from ..lcia_engine import DEFAULT_CONTEXTS, DEFAULT_FLOWABLES
@@ -14,7 +12,7 @@ from requests.exceptions import HTTPError
 from shutil import copy2, rmtree
 import os
 import glob
-import json
+import logging
 import hashlib
 import getpass
 
@@ -48,6 +46,9 @@ class LcCatalog(StaticCatalog):
         :param localize: whether to return the filename relative to the catalog root
         :return: the full path to the downloaded file 
         """
+        if self._test:
+            logging.error('Cannot save files locally during tester operation')
+            raise CatalogError
         local_file = os.path.join(self._download_dir, self._source_hash_file(url))
         if os.path.exists(local_file):
             if force:
@@ -77,8 +78,8 @@ class LcCatalog(StaticCatalog):
         :param kwargs:
         :return:
         """
-        tmp = tempfile.mkdtemp()
-        return cls(tmp, _test=True, **kwargs)
+        # tmp = tempfile.mkdtemp()
+        return cls(None, _test=True, **kwargs)
 
     """
     @classmethod
@@ -91,6 +92,11 @@ class LcCatalog(StaticCatalog):
         for x in (self._cache_dir, self._index_dir, self.resource_dir, self.archive_dir, self._download_dir):
             yield x
 
+    def check_cache(self, source):
+        if self._test:
+            return False
+        return super(LcCatalog, self).check_cache(source)
+
     def _make_rootdir(self):
         for x in self._dirs:
             os.makedirs(x, exist_ok=True)
@@ -102,9 +108,12 @@ class LcCatalog(StaticCatalog):
             copy2(REF_QTYS, self._reference_qtys)
 
     def __init__(self, rootdir, _test=False, **kwargs):
-        self._rootdir = os.path.abspath(rootdir)
-        self._make_rootdir()  # this will be a git clone / fork;; clones reference quantities
         self._test = _test
+        if self._test:
+            self._rootdir = None
+        else:
+            self._rootdir = os.path.abspath(rootdir)
+            self._make_rootdir()  # this will be a git clone / fork;; clones reference quantities
         self._blackbook_client = None
         super(LcCatalog, self).__init__(self._rootdir, **kwargs)
 
@@ -115,16 +124,22 @@ class LcCatalog(StaticCatalog):
         """
         if self._blackbook_client:
             self._blackbook_client.close()
-        if self._test:
-            # print('tryna delete %s' % self.root)
-            rmtree(self.root, ignore_errors=True)
+        # if self._test:  # no longer need to do this
+        #     # print('tryna delete %s' % self.root)
+        #     rmtree(self.root, ignore_errors=True)
 
     def save_local_changes(self):
+        if self._test:
+            logging.warning('Cannot save changes during tester operation')
+            return
         self._qdb.write_to_file(self._reference_qtys, characterizations=True, values=True)
         self.lcia_engine.save_flowables(self._flowables)
         self.lcia_engine.save_contexts(self._contexts)
 
     def restore_contexts(self, really=False):
+        if self._test:
+            logging.warning('Cannot save changes during tester operation')
+            return
         if really:
             print('Overwriting local contexts')
             copy2(DEFAULT_CONTEXTS, self._contexts)
@@ -132,6 +147,10 @@ class LcCatalog(StaticCatalog):
             print('pass really=True if you really want to overwrite local contexts')
 
     def restore_qdb(self, really=False):
+        # this is all deprecated-- need to rework how qdb is initialized and re-initialized
+        if self._test:
+            logging.info('Cannot save changes during tester operation')
+            return
         if really:
             copy2(REF_QTYS, self._reference_qtys)
             print('Reference quantities restored. Please re-initialize the catalog.')
@@ -150,8 +169,14 @@ class LcCatalog(StaticCatalog):
         :param kwargs: interfaces=None, priority=0, static=False; **kwargs passed to archive constructor
         :return:
         """
-        source = self._localize_source(source)
-        return self._resolver.new_resource(reference, source, ds_type, store=store, **kwargs)  # explicit store= for doc purposes
+        if self._test:
+            store = False
+        else:
+            source = self._localize_source(source)
+        res = self._resolver.new_resource(reference, source, ds_type, store=store, **kwargs)  # explicit store= for doc purposes
+        if res.origin in self._nicknames:
+            self._nicknames.pop(res.origin)
+        return res
 
     def add_resource(self, resource, store=True):
         """
@@ -160,7 +185,11 @@ class LcCatalog(StaticCatalog):
         :param store: [True] permanently store this resource
         :return:
         """
+        if self._test:
+            store = False
         self._resolver.add_resource(resource, store=store)
+        if resource.origin in self._nicknames:
+            self._nicknames.pop(resource.origin)
 
     def purge_resource_archive(self, resource: LcResource):
         """
@@ -375,7 +404,7 @@ class LcCatalog(StaticCatalog):
      - static archive (performs load_all())
     '''
 
-    def _index_source(self, source, priority, force=False):
+    def _index_source(self, source, priority, force=False, save=True):
         """
         Instructs the resource to create an index of itself in the specified file; creates a new resource for the
         index
@@ -387,54 +416,58 @@ class LcCatalog(StaticCatalog):
         res = next(r for r in self._resolver.resources_with_source(source))
         res.check(self)
         priority = min([priority, res.priority])  # why are we doing this?? we want index to have higher priority i.e. get loaded second
-        stored = self._resolver.is_permanent(res)
+        store = (self._resolver.is_permanent(res) or save) and not self._test
 
         # save configuration hints in derived index
         cfg = None
-        if stored:
-            if len(res.config['hints']) > 0:
-                cfg = {'hints': res.config['hints']}
+        if len(res.config['hints']) > 0:
+            cfg = {'hints': res.config['hints']}
 
-        inx_file = self._index_file(source)
-        inx_local = self._localize_source(inx_file)
+        if store:
+            inx_file = self._index_file(source)
+            inx_local = self._localize_source(inx_file)
 
-        if os.path.exists(inx_file):
-            if not force:
-                print('Not overwriting existing index. force=True to override.')
-                try:
-                    ex_res = next(r for r in self._resolver.resources_with_source(inx_local))
-                    return ex_res.origin
-                except StopIteration:
-                    # index file exists, but no matching resource
-                    inx = archive_from_json(inx_file)
-                    self.new_resource(inx.ref, inx_local, 'json', priority=priority, store=stored,
-                                      interfaces='index', _internal=True, static=True, preload_archive=inx,
-                                      config=cfg)
+            if os.path.exists(inx_file):
+                if not force:
+                    print('Not overwriting existing index. force=True to override.')
+                    try:
+                        ex_res = next(r for r in self._resolver.resources_with_source(inx_local))
+                        return ex_res.origin
+                    except StopIteration:
+                        # index file exists, but no matching resource
+                        inx = archive_from_json(inx_file)
+                        self.new_resource(inx.ref, inx_local, 'json', priority=priority, store=store,
+                                          interfaces='index', _internal=True, static=True, preload_archive=inx,
+                                          config=cfg)
 
-                    return inx.ref
+                        return inx.ref
 
-            print('Re-indexing %s' % source)
-            # TODO: need to delete the old index resource!!
-            stale_res = list(self._resolver.resources_with_source(inx_local))
-            stale_refs = list(set(res.origin for res in stale_res))
-            for stale in stale_res:
-                # this should be postponed to after creation of new, but that fails in case of naming collision (bc YYYYMMDD)
-                # so golly gee we just delete-first.
-                print('deleting %s' % stale.origin)
-                self.delete_resource(stale)
-            # we also need to delete derived internal resources
-            for stale_ref in stale_refs:
-                for stale in list(self.resources(stale_ref)):
-                    if stale.internal:
-                        self.delete_resource(stale)
+                print('Re-indexing %s' % source)
+                # TODO: need to delete the old index resource!!
+                stale_res = list(self._resolver.resources_with_source(inx_local))
+                stale_refs = list(set(res.origin for res in stale_res))
+                for stale in stale_res:
+                    # this should be postponed to after creation of new, but that fails in case of naming collision (bc YYYYMMDD)
+                    # so golly gee we just delete-first.
+                    print('deleting %s' % stale.origin)
+                    self.delete_resource(stale)
+                # we also need to delete derived internal resources
+                for stale_ref in stale_refs:
+                    for stale in list(self.resources(stale_ref)):
+                        if stale.internal:
+                            self.delete_resource(stale)
+        else:
+            inx_file = inx_local = None
 
-        the_index = res.make_index(inx_file, force=force)
-        self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=stored, interfaces='index',
+        the_index = res.make_index(inx_file, force=force, save=store)
+        if inx_local is None:
+            inx_local = the_index.ref
+        self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=store, interfaces='index',
                           _internal=True, static=True, preload_archive=the_index, config=cfg)
 
         return the_index.ref
 
-    def index_ref(self, origin, interface=None, source=None, priority=60, force=False, strict=True):
+    def index_ref(self, origin, interface=None, source=None, priority=60, save=True, force=False, strict=True):
         """
         Creates an index for the specified resource.  'origin' and 'interface' must resolve to one or more LcResources
         that all have the same source specification.  That source archive gets indexed, and index resources are created
@@ -447,6 +480,7 @@ class LcCatalog(StaticCatalog):
         :param interface: [None]
         :param source: find_single_source input
         :param priority: [60] priority setting for the new index
+        :param save: [True] whether to save the index
         :param force: [False] if True, overwrite existing index
         :param strict: [True] whether to be strict
         :return:
@@ -458,7 +492,7 @@ class LcCatalog(StaticCatalog):
             except StopIteration:
                 pass
         source = self._find_single_source(origin, interface, source=source, strict=strict)
-        return self._index_source(source, priority, force=force)
+        return self._index_source(source, priority, force=force, save=save)
 
     def cache_ref(self, origin, interface=None, source=None, static=False):
         source = self._find_single_source(origin, interface, source=source)
@@ -483,10 +517,14 @@ class LcCatalog(StaticCatalog):
 
     def _background_for_origin(self, ref, strict=False):
         res = self.get_resource(ref, iface='exchange')
-        inx_ref = self.index_ref(ref, interface='exchange', strict=strict)
-        bk_file = self._localize_source(os.path.join(self.archive_dir, '%s_background.mat' % inx_ref))
+        store = self._resolver.is_permanent(res) and not self._test
+        inx_ref = self.index_ref(ref, interface='exchange', strict=strict, save=store)
+        if store:
+            bk_file = self._localize_source(os.path.join(self.archive_dir, '%s_background.mat' % inx_ref))
+        else:
+            bk_file = '%s_background.mat' % inx_ref
         bk = LcResource(inx_ref, bk_file, 'Background', interfaces='background', priority=99,
-                        save_after=True, _internal=True)
+                        save_after=store, _internal=True)
         bk.config = res.config
         bk.check(self)  # ImportError if antelope_background pkg not found;; also applies configs
         self.add_resource(bk)

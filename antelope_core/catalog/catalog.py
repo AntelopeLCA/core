@@ -29,10 +29,12 @@ from ..archives import InterfaceError, EntityExists
 from ..lcia_engine import LciaDb
 
 
-from antelope import CatalogRef, UnknownOrigin, InvalidQuery  # , EntityNotFound
+from antelope import UnknownOrigin, InvalidQuery  # , EntityNotFound
 from ..catalog_query import CatalogQuery, INTERFACE_TYPES, zap_inventory
 from .lc_resolver import LcCatalogResolver
 from ..lc_resource import LcResource
+from ..archives import REF_QTYS
+from ..lcia_engine import DEFAULT_CONTEXTS, DEFAULT_FLOWABLES
 # from lcatools.flowdb.compartments import REFERENCE_INT  # reference intermediate flows
 
 
@@ -74,6 +76,8 @@ class StaticCatalog(object):
     """
     @property
     def resource_dir(self):
+        if self._rootdir is None:
+            return None
         return os.path.join(self._rootdir, 'resources')
 
     @property
@@ -106,6 +110,9 @@ class StaticCatalog(object):
     def cache_file(self, source):
         return os.path.join(self._cache_dir, self._source_hash_file(source) + '.json.gz')
 
+    def check_cache(self, source):
+        return os.path.exists(self.cache_file(source))
+
     @property
     def archive_dir(self):
         return os.path.join(self._rootdir, 'archives')
@@ -118,6 +125,8 @@ class StaticCatalog(object):
 
     @property
     def _reference_qtys(self):
+        if self._rootdir is None:
+            return REF_QTYS
         return os.path.join(self._rootdir, 'reference-quantities.json')
 
     '''
@@ -132,14 +141,18 @@ class StaticCatalog(object):
 
     @property
     def _contexts(self):
+        if self._rootdir is None:
+            return DEFAULT_CONTEXTS
         return os.path.join(self._rootdir, 'local-contexts.json')
 
     @property
     def _flowables(self):
+        if self._rootdir is None:
+            return DEFAULT_FLOWABLES
         return os.path.join(self._rootdir, 'local-flowables.json')
 
     def _localize_source(self, source):
-        if source is None:
+        if source is None or self._rootdir is None:
             return None
         if source.startswith(self._rootdir):
             # return re.sub('^%s' % self._rootdir, '$CAT_ROOT', source)
@@ -148,7 +161,7 @@ class StaticCatalog(object):
         return source
 
     def abs_path(self, rel_path):
-        if os.path.isabs(rel_path):
+        if os.path.isabs(rel_path) or self._rootdir is None:
             return rel_path
         elif rel_path.startswith('$CAT_ROOT'):
             # return re.sub('^\$CAT_ROOT', self.root, rel_path)
@@ -169,10 +182,14 @@ class StaticCatalog(object):
          not well defined and may be done interactively or unpredictably
         :param kwargs: passed to Qdb
         """
-        self._rootdir = os.path.abspath(rootdir)
-        if not os.path.exists(self._rootdir):
-            raise FileNotFoundError(self._rootdir)
-        self._resolver = LcCatalogResolver(self.resource_dir)
+        if rootdir is None:
+            self._rootdir = None
+            self._resolver = LcCatalogResolver(None)
+        else:
+            self._rootdir = os.path.abspath(rootdir)
+            if not os.path.exists(self._rootdir):
+                raise FileNotFoundError(self._rootdir)
+            self._resolver = LcCatalogResolver(self.resource_dir)
 
         """
         _archives := source -> archive
