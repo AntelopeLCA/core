@@ -6,7 +6,9 @@ from ...archives.tests import basic_archive_src
 
 
 import os
+import tempfile
 import unittest
+from shutil import rmtree
 
 
 uslci_fg = LcResource('test.uslci', '/data/LCI/USLCI/USLCI_Processes_ecospold1.zip', 'EcospoldV1Archive',
@@ -44,10 +46,19 @@ test_resource = LcResource('test.basic', basic_archive_src, 'json',
 class LcCatalogFixture(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls._cat = LcCatalog.make_tester()
+        """
+        Purpose of this class is to test behavior of persistent catalogs, so we should not use make_tester()
+        :return:
+        """
+        cls.tmp = tempfile.mkdtemp()
+        cls._cat = LcCatalog(cls.tmp)
         cls._cat.add_resource(uslci_fg)
         cls._cat.add_resource(uslci_bg)
         cls._cat.add_resource(test_resource)
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        rmtree(cls.tmp)
 
     def test_resolver_index(self):
         self.assertSetEqual({r for r in self._cat.origins}, {'local.qdb', 'test.uslci', 'test.uslci.allocated',
@@ -121,7 +132,6 @@ class LcCatalogFixture(unittest.TestCase):
         self.assertFalse(os.path.exists(abs_path))  # abs_path removed
 
     # def test_lcia_db(self):
-
 
 
 if __name__ == '__main__':

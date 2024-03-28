@@ -36,6 +36,8 @@ class CoreConfigureImplementation(BasicImplementation, ConfigureInterface):
         applying them once.
         :return:
         """
+        if len(config) == 0:
+            return
         print('Applying configuration to %s' % self._archive)
         # re_index = False
         '''

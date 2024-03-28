@@ -25,10 +25,14 @@ class LcCatalogResolver(object):
     """
     def __init__(self, resource_dir):
         self._resource_dir = resource_dir
-        if not os.path.exists(resource_dir):
+        if not self.test and not os.path.exists(resource_dir):
             os.makedirs(resource_dir)
         self._resources = defaultdict(list)
         self.index_resources()
+
+    @property
+    def test(self):
+        return self._resource_dir is None
 
     def delete_origin(self, origin):
         """
@@ -79,6 +83,8 @@ class LcCatalogResolver(object):
         self._resources[org] = resources
 
     def index_resources(self):
+        if self.test:
+            return
         for org in os.listdir(self._resource_dir):
             self._update_semantic_ref(org)
 
@@ -93,7 +99,7 @@ class LcCatalogResolver(object):
             # do nothing
             print('Resource already exists')
             return
-        if store and os.path.exists(self._resource_dir):
+        if (not self.test) and store and os.path.exists(self._resource_dir):
             resource.write_to_file(self._resource_dir)
         self._resources[resource.origin].append(resource)
 
@@ -136,6 +142,8 @@ class LcCatalogResolver(object):
                     yield r
 
     def is_permanent(self, resource):
+        if self.test:
+            return False
         return resource.exists(self._resource_dir)
 
     def resolve(self, req, interfaces=None, strict=False):
@@ -211,7 +219,7 @@ class LcCatalogResolver(object):
         :param resources:
         :return:
         """
-        if not os.path.exists(self._resource_dir):
+        if self.test or not os.path.exists(self._resource_dir):
             return
         j = [k.serialize() for k in resources if k.exists(self._resource_dir)]
         if len(j) == 0:
