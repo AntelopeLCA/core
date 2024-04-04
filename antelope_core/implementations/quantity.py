@@ -502,6 +502,9 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
 
         for cf in self._archive.tm.factors_for_flowable(fb, quantity=qq, context=cx, **kwargs):
             res = QuantityConversion(cf.query(locale), query=qq, context=cx)
+            if res.value == 0:  # no unit conversion will change this
+                qr_results.append(res)
+                continue
             try:
                 qr_results.append(self._ref_qty_conversion(rq, fb, cx, res, locale))
             except ConversionReferenceMismatch:

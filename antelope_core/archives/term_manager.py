@@ -59,11 +59,13 @@ from .quantity_manager import QuantityManager
 
 from ..characterizations import Characterization, DuplicateCharacterizationError
 
+import logging
+
 
 DuplicateCharacterization = namedtuple('DuplicateCharacterization', ('qq_link', 'fb', 'cx_list', 'origin', 'flowable', 'location'))
 
 
-class FactorCollision(Exception):
+class FactorConflict(Exception):
     pass
 
 
@@ -374,7 +376,7 @@ class TermManager(object):
 
         if len(fq_conflicts) > 0:
             print('%d Merge conflicts encountered' % len(fq_conflicts))
-            raise FactorCollision(fq_conflicts)
+            raise FactorConflict(fq_conflicts)
 
         for qq, f_dict in self._q_dict.items():
             # once we are sure there are no conflicts, we perform the actual merge
@@ -569,7 +571,7 @@ class TermManager(object):
         except KeyError:
             qq = self.add_quantity(query_quantity)
 
-        cf = self._find_exact_cf(qq, fb, cx, origin, flowable)
+        cf = self._find_exact_cf(qq, fb, cx, origin)
 
         if location is None:
             location = 'GLO'
@@ -590,28 +592,13 @@ class TermManager(object):
             return new_cf
         else:
             if cf.ref_quantity != rq:
-                # create a conversion-factor instead:
-                if value == 0:
-                    # we cannot interpret a 0 as a cf- so we ditch
-                    return cf
-
                 try:
-                    factor = value / cf[location]
-                except ZeroDivisionError:
-                    try:
-                        factor = value / cf.value
-                    except TypeError:  # dict = fail
-                        factor = value
-
-                # this recurses to add a cf between our flow's ref quantity and the ref quantity of the already-seen cf
-                try:
-                    self.add_characterization(fb, rq, cf.ref_quantity, factor, context=cx, origin=origin,
-                                              location=location, overwrite=overwrite)
+                    return self._create_conversion_cf(cf)
                 except DuplicateCharacterizationError as e:
                     print((qq.link, fb, cx.as_list(), origin, flowable, location))
                     print('recursing to %s %s' % (cf.ref_quantity.name, cf.ref_quantity.uuid))
                     print('ignoring duplicate characterization %s' % e)
-                return cf
+                    return cf
             # update entry in the lookup tree
             elif isinstance(value, dict):
                 cf.update_values(**value)
@@ -623,10 +610,32 @@ class TermManager(object):
                     print('ignoring duplicate characterization %s' % e)
             return cf
 
+    def _create_conversion_cf(self, ex_cf, rq, cx, origin, location, value, overwrite=False):
+        # create a conversion-factor instead:
+        if value == 0:
+            # we cannot interpret a 0 as a cf- so we ditch
+            return ex_cf
+
+        try:
+            factor = value / ex_cf[location]
+        except ZeroDivisionError:
+            logging.error('Zero-division on conversion CF %s\n%s' % (value, ex_cf))
+            try:
+                factor = value / ex_cf.value
+            except TypeError:  # dict = fail
+                factor = value
+
+        if factor < 0:
+            logging.warning('Negative conversion CF %s\n%s' % (factor, ex_cf))
+
+        # this recurses to add a cf between our flow's ref quantity and the ref quantity of the already-seen cf
+        return self.add_characterization(ex_cf.flowable, rq, ex_cf.ref_quantity, factor, context=cx, origin=origin,
+                                         location=location, overwrite=overwrite)
+
     '''
     Info Retrieval
     '''
-    def _find_exact_cf(self, qq, fb, cx, origin, flowable):
+    def _find_exact_cf(self, qq, fb, cx, origin):
         """
         The purpose of this function is to retrieve an exact CF if one exists.
         WHY does this not take rq into account??
@@ -636,7 +645,6 @@ class TermManager(object):
         :param fb:
         :param cx:
         :param origin:
-        :param flowable: using this in subclass
         :return:
         """
         try:
@@ -717,7 +725,7 @@ class TermManager(object):
         :return:
         """
         if context in cl:
-            raise FactorCollision
+            raise FactorConflict
         cl[context] = new_cf
 
     def _qassign(self, qq, fb, new_cf, context=None):

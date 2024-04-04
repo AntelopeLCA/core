@@ -1,9 +1,10 @@
+import logging
 from collections import defaultdict
 import os
 
-from ..archives.term_manager import TermManager, NoFQEntry
+from ..archives.term_manager import TermManager, NoFQEntry, DuplicateCharacterization
 from ..contexts import Context, NullContext
-from .clookup import CLookup, SCLookup
+from .clookup import CLookup, SCLookup, FactorCollision
 
 from antelope.flows.flow import flowname_is_biogenic
 
@@ -345,13 +346,28 @@ class LciaEngine(TermManager):
             try:
                 fb = self._fm[cf.flowable]
             except KeyError:
-                fb = self._create_flowable(*quantity.query_synonyms(cf.flowable))
+                if quantity.has_lcia_engine():  # this is the native quantity, remember
+                    fb = self._create_flowable(*quantity.query_synonyms(cf.flowable))
+                else:
+                    fb = self._create_flowable(cf.flowable)
 
             self.add_quantity(cf.ref_quantity)  # this may lead to the creation of non-converting quantities if units mismatch
 
             cx = self[cf.context]
 
-            self._qassign(qq, fb, cf, context=cx)
+            try:
+                self._qassign(qq, fb, cf, context=cx)
+            except FactorCollision:
+                rq = self._canonical_q(cf.ref_quantity)
+                ex_cf = self._find_exact_cf(qq, fb, cx, quantity.origin)
+                if rq != ex_cf.ref_quantity:
+                    for loc in cf.locations:
+                        cf = self._create_conversion_cf(ex_cf, rq, cx, qq.origin, loc, cf[loc], overwrite=False)
+                        logging.info('Created unit-conversion CF\n%s' % cf)
+                else:
+                    logging.warning('FactorCollision for %s into %s: %g != %g' % (fb, cx, cf.value, ex_cf.value))
+                    self._dupes.append(DuplicateCharacterization(qq.link, fb, cx.as_list(), qq.origin, cf.flowable, None))
+
         self._factors_for_later[quantity] = True
         print('Imported %d factors for %s' % (count, quantity))
 
@@ -359,7 +375,7 @@ class LciaEngine(TermManager):
         if hasattr(self._factors_for_later[qq], 'factors'):
             self.import_cfs(self._factors_for_later.pop(qq))
 
-    def _find_exact_cf(self, qq, fb, cx, origin, flowable):
+    def _find_exact_cf(self, qq, fb, cx, origin):
         try:
             ql = self._qlookup(qq, fb)
         except NoFQEntry:
