@@ -4,13 +4,13 @@ Query Interface -- used to operate catalog refs
 
 from antelope import (IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface, EntityNotFound,
                       UnknownOrigin,
-                      ExchangeRef, comp_dir, BaseEntity)
+                      ExchangeRef, comp_dir, CatalogRef)
 #                      ForegroundInterface,
 #                      IndexRequired, PropertyExists,
 #                      )
 from antelope.refs import FlowRef, RxRef
 
-from antelope.models import LciaResult as LciaResultModel, Characterization as CharacterizationModel
+from antelope.models import Entity, LciaResult as LciaResultModel, Characterization as CharacterizationModel
 
 from .lcia_results import LciaResult
 from .characterizations import QRResult, Characterization
@@ -397,6 +397,12 @@ class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, Quant
         :param res_m:
         :return:
         """
+        if isinstance(quantity, str):
+            try:
+                quantity = self._tm.get_canonical(quantity)
+            except EntityNotFound:
+                quantity = CatalogRef.from_json(res_m.quantity.serialize())  # dumbest thing ever
+
         res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
         process = self.get(process_ref)
         for c in res_m.components:
