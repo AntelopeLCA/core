@@ -212,7 +212,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
                         for ex in self._archive.r.get_many(AllocatedExchange, _ref(node), 'inventory',
                                                            scenario=scenario))
         else:
-            return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(node),
+            return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(UnallocatedExchange, _ref(node),
                                                                                 'inventory'))
 
     def dependencies(self, process, ref_flow=None, **kwargs):
