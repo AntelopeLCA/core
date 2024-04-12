@@ -37,7 +37,7 @@ two different ways:
 The NullContext should be returned by the context manager
 """
 
-from synonym_dict import Compartment, CompartmentManager, NonSpecificCompartment, TermExists
+from synonym_dict import Compartment, CompartmentManager, NonSpecificCompartment, TermExists, MergeError
 from synonym_dict.compartments.compartment import InvalidSubCompartment
 from antelope import valid_sense
 
@@ -365,7 +365,10 @@ class ContextManager(CompartmentManager):
     def _add_but_not_protected(self, entry, context):
         self.add_synonym(entry, context.fullname)
         if context.name.lower() not in PROTECTED:
-            self.add_synonym(entry, context.name)
+            try:
+                self.add_synonym(entry, context.name)
+            except TermExists:
+                pass
 
     def find_matching_context(self, context):
         """
@@ -433,7 +436,13 @@ class ContextManager(CompartmentManager):
                         
                         (old behavior was to smush all foreign subcontexts together into the canonical context)
                         """
-                        nxt = self.new_entry(this.name, parent=current, sense=this.sense)
+                        try:
+                            nxt = self.new_entry(this.name, parent=current, sense=this.sense)
+                        except MergeError:
+                            # for some reason USLCI FY21 has a "from ground, subterranean" category??
+                            merge_name = ', '.join([current.name, this.name])
+                            nxt = self.new_entry(merge_name, parent=current, sense=this.sense)
+                            # this fix is awfully special-purpose but hey- things are mostly working
                         nxt.add_origin(this.origin)
                         self._add_but_not_protected(nxt, this)
                         current = nxt

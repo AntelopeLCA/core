@@ -207,6 +207,18 @@ class ContextManagerTest(CompartmentContainer.CompartmentManagerTest):
         self.assertListEqual(r.as_list(), ['elementary flows', 'Resources', 'from water', 'subterranean'])
         self.assertListEqual(e.as_list(), ['elementary flows', 'Emissions', 'to water', 'subterranean'])
 
+    def test_remote_merge_error(self):
+        sub_g = ['resources', 'ground', 'subterranean']
+        sub_w = ['resources', 'water', 'subterranean']
+        gs = self.cm.add_compartments(sub_g)
+        ws = self.cm.add_compartments(sub_w)
+        self.assertEqual(gs.name, 'subterranean')
+        self.assertEqual(ws.name, 'from water, subterranean')
+        cxx = Context('from water')
+        cxxx = Context('subterranean', parent=cxx)
+        cxxx.add_origin('far.away')
+        self.assertIs(self.cm.find_matching_context(cxxx), ws)
+
 
 class DefaultContextsTest(unittest.TestCase):
     def setUp(self):
