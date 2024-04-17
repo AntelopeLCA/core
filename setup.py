@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.2.3'
+VERSION = '0.2.4'
 
 requires = [
     "synonym_dict>=0.2.4",
-    "antelope_interface>=0.2.3",
+    "antelope_interface>=0.2.4",
     "xlstools>=0.1.3",
     "python-magic>=0.4.18",
     "requests>=2.25",
@@ -14,6 +14,8 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.2.4   2024-04-17 - Remove antelope.ExteriorFlow in favor of antelope.models.ExteriorFlow
+
 0.2.3   2024-03-21 - compatibility release for antelope_interface upgrades and terminology changes
                      OpenLCA v2 schema handled
                      lots of cloud work 
