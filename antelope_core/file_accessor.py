@@ -126,9 +126,9 @@ class FileAccessor(object):
                 ifaces.add(ad)
         if basic:
             ifaces.add('basic')
-        if iface == 'index':
-            # TODO: WORKAROUND: automatically add 'basic' to index interfaces until we have it sorted out
-            ifaces.add('basic')
+        # if iface == 'index':
+        #     # TODO: WORKAROUND: automatically add 'basic' to index interfaces until we have it sorted out
+        #     ifaces.add('basic')
 
         return LcResource(org, source, ds_type, interfaces=tuple(ifaces), priority=priority, **cfg)
 
