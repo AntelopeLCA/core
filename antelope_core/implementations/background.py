@@ -2,7 +2,8 @@ import re
 from itertools import chain
 
 from .basic import BasicImplementation
-from antelope import BackgroundInterface, ExteriorFlow, EntityNotFound, comp_dir  # , ProductFlow
+from antelope import BackgroundInterface, EntityNotFound, comp_dir  # , ProductFlow
+from antelope.models import ExteriorFlow
 from antelope_core.contexts import Context
 
 
@@ -104,7 +105,7 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
                 else:
                     yield ExteriorFlow(self._archive.ref, f, 'Output', None)
                 '''
-                yield ExteriorFlow(self._archive.ref, f, dirn, cx)
+                yield ExteriorFlow.from_background(f, dirn, cx)
 
     def consumers(self, process, ref_flow=None, **kwargs):
         """

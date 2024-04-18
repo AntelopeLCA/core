@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.3.0'
+VERSION = '0.3.1'
 
 requires = [
     "synonym_dict>=0.2.4",
-    "antelope_interface>=0.2.3",
+    "antelope_interface>=0.2.4",
     "xlstools>=0.1.3",
     "python-magic>=0.4.18",
     "requests>=2.25",
@@ -15,10 +15,14 @@ requires = [
 """
 Version History
 
+0.3.1   2024-04-18 - upate antelope-interface to 0.2.4
+
 0.3.0   2024-01-05 - 0.3-branch development version, supporting end-user access to vault.lc resources 
 
 # ^ 0.3.* 0.3-branch fork   
 # v 0.2.* main / master for legacy projects
+
+0.2.4   2024-04-17 - Remove antelope.ExteriorFlow in favor of antelope.models.ExteriorFlow
 
 0.2.3   2024-03-21 - compatibility release for antelope_interface upgrades and terminology changes
                      OpenLCA v2 schema handled

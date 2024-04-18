@@ -2,12 +2,10 @@
 Query Interface -- used to operate catalog refs
 """
 
-from antelope import (IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface, EntityNotFound,
-                      UnknownOrigin,
+from antelope import (BasicInterface, IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface,
+                      EntityNotFound, UnknownOrigin,
                       ExchangeRef, comp_dir, CatalogRef)
-#                      ForegroundInterface,
-#                      IndexRequired, PropertyExists,
-#                      )
+
 from antelope.refs import FlowRef, RxRef
 
 from antelope.models import Entity, LciaResult as LciaResultModel, Characterization as CharacterizationModel
@@ -43,7 +41,7 @@ class BadInterfaceSpec(Exception):
     pass
 
 
-class CatalogQuery(IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface):
+class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface):
     """
     A CatalogQuery is a class that performs any supported query against a supplied catalog.
     Supported queries are defined in the lcatools.interfaces, which are all abstract.
