@@ -15,7 +15,7 @@ requires = [
 """
 Version History
 
-0.3.1   2024-04-18 - upate antelope-interface to 0.2.4
+0.3.1   2024-04-18 - update antelope-interface to 0.2.4
 
 0.3.0   2024-01-05 - 0.3-branch development version, supporting end-user access to vault.lc resources 
 

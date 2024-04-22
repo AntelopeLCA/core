@@ -527,7 +527,7 @@ class LcCatalog(StaticCatalog):
                         save_after=store, _internal=True)
         bk.config = res.config
         bk.check(self)  # ImportError if antelope_background pkg not found;; also applies configs
-        self.add_resource(bk)
+        self.add_resource(bk, store=store)
         return bk.make_interface('background')  # when the interface is returned, it will trigger setup_bm
 
     def gen_interfaces(self, origin, itype=None, strict=False, ):
