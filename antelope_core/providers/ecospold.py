@@ -73,15 +73,28 @@ class EcospoldVersionError(Exception):
     pass
 
 
+_process_regex = re.compile('^__process__([0-9]+)$')
+_number_regex = re.compile('^[0-9]+$')
+
+
 def _process_ref(i):
-    try:
-        if str(int(i)) == i:
-            name = 'process_%s' % i
-        else:
-            name = i
-    except ValueError:
-        name = i
-    return name
+    if _number_regex.match(i):
+        return '__process__%s' % i
+    else:
+        return i
+
+
+def _process_deref(i):
+    """
+    if incoming matches
+    :param i:
+    :return:
+    """
+    m = _process_regex.match(i)
+    if m:
+        return m.groups()[0]
+    else:
+        return i
 
 
 class EcospoldV1Archive(LcArchive):
@@ -301,7 +314,7 @@ class EcospoldV1Archive(LcArchive):
         :return:
         """
         try:
-            self._create_process(key)
+            self._create_process(_process_deref(key))
             return self[key]
         except KeyError:
             raise KeyError('No way to fetch key "%s". try load_all()' % key)
