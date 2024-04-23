@@ -539,12 +539,14 @@ class EntityStore(object):
 
     def __getitem__(self, item):
         """
-        CLient-facing entity retrieval.  item is a key that can be converted to a valid UUID from self._ref_to_key()--
+        Client-facing entity retrieval.  item is a key that can be converted to a valid UUID from self._ref_to_key()--
          either a literal UUID, or a string containing something matching a naive UUID regex.
 
         First checks upstream, then local.
 
         Returns None if nothing is found
+
+        NOTE: IT IS REALLY PATHOLOGICALLY BROKEN TO RETURN None INSTEAD OF RAISING KeyError  #FounderCode
 
         :param item:
         :return:

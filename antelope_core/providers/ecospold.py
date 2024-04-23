@@ -50,6 +50,7 @@ conversion_dict = {
     ('m3', 'l'): 1000
 }
 
+
 def apply_conversion(local_q, f):
     if (f.unit, local_q.unit) in conversion_dict:
         val = conversion_dict[(f.unit, local_q.unit)]
@@ -70,6 +71,17 @@ def not_none(x):
 
 class EcospoldVersionError(Exception):
     pass
+
+
+def _process_ref(i):
+    try:
+        if str(int(i)) == i:
+            name = 'process_%s' % i
+        else:
+            name = i
+    except ValueError:
+        name = i
+    return name
 
 
 class EcospoldV1Archive(LcArchive):
@@ -97,6 +109,13 @@ class EcospoldV1Archive(LcArchive):
             self._serialize_dict['prefix'] = prefix
         self._q_dict = dict()
         self._archive = FileStore(self.source, internal_prefix=prefix)
+
+    def __getitem__(self, item):
+        i = super(EcospoldV1Archive, self).__getitem__(item)
+        if i is None:
+            return super(EcospoldV1Archive, self).__getitem__(_process_ref(item))
+        else:
+            return i
 
     def list_datasets(self):
         assert self._archive.remote is False, "Cannot list objects for remote archives"
@@ -227,16 +246,20 @@ class EcospoldV1Archive(LcArchive):
         first sanitize the input
         '''
         if filename.lower().endswith('.xml') or filename.lower().endswith('.spold'):
-            ext_ref, ext = os.path.splitext(filename)
+            fname, ext = os.path.splitext(filename)
         else:
-            ext_ref = filename
+            fname = filename
+
+        # handle filenames the same as flow names
+        ext_ref = _process_ref(fname)
+
         try_p = self[ext_ref]
         if try_p is not None:
             p = try_p
             assert p.entity_type == 'process', "Expected process, found %s" % p.entity_type
             return p
 
-        o = self._try_exts(ext_ref)
+        o = self._try_exts(fname)
 
         p_meta = o.dataset.metaInformation.processInformation
         n = p_meta.referenceFunction.get('name')
