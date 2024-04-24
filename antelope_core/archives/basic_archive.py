@@ -438,7 +438,31 @@ class BasicArchive(EntityStore):
                                                flags=(re.IGNORECASE|re.MULTILINE)))
         return keep
 
-    def search(self, etype=None, **kwargs):
+    def search(self, etype=None, count=None, offset=None, **kwargs):
+        """
+        Implement pagination
+        :param etype:
+        :param count:
+        :param offset:
+        :param kwargs:
+        :return:
+        """
+        if offset:
+            offset = int(offset)
+        else:
+            offset = 0
+        if count is None:
+            count = len(self._entities)  # just need something that is guaranteed not to run out
+        for k in self._search(etype, **kwargs):
+            if offset:
+                offset -= 1
+                continue
+            yield k
+            count -= 1
+            if count == 0:
+                break
+
+    def _search(self, etype=None, **kwargs):
         """
         Find entities by search term, either full or partial uuid or entity property like 'Name', 'CasNumber',
         or so on.
