@@ -22,6 +22,7 @@ uslci_fg_dup = LcResource('test.uslci', '/data/LCI/USLCI/USLCI_Processes_ecospol
                           interfaces='inventory',
                           priority=40,
                           static=False,
+                          ringer=42,
                           prefix='USLCI_Processes_ecospold1/USLCI_Processes_ecospold1')
 
 
@@ -63,6 +64,7 @@ class LcCatalogFixture(unittest.TestCase):
     def test_resolver_index(self):
         self.assertSetEqual({r for r in self._cat.origins}, {'local.qdb', 'test.uslci', 'test.uslci.allocated',
                                                                 'test.basic'})
+
     @unittest.skip  # this doesn't work at all-- priority (and resolver generally) still need to be tested
     def test_priority(self):
         # TODO!
@@ -132,6 +134,20 @@ class LcCatalogFixture(unittest.TestCase):
         self.assertFalse(os.path.exists(abs_path))  # abs_path removed
 
     # def test_lcia_db(self):
+
+
+class LcCatalogReplace(unittest.TestCase):
+    def test_replace(self):
+        cat = LcCatalog.make_tester()
+        cat.add_resource(uslci_fg)
+        res = cat.get_resource('test.uslci')
+        self.assertIsNone(res.init_args.get('ringer'))
+        cat.add_resource(uslci_fg_dup, replace=False)
+        res = cat.get_resource('test.uslci')
+        self.assertIsNone(res.init_args.get('ringer'))
+        cat.add_resource(uslci_fg_dup, replace=True)
+        res = cat.get_resource('test.uslci')
+        self.assertEqual(res.init_args.get('ringer'), 42)
 
 
 if __name__ == '__main__':

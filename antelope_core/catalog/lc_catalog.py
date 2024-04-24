@@ -178,15 +178,20 @@ class LcCatalog(StaticCatalog):
             self._nicknames.pop(res.origin)
         return res
 
-    def add_resource(self, resource, store=True):
+    def add_resource(self, resource, store=True, replace=False):
         """
         Add an existing LcResource to the catalog.
         :param resource:
         :param store: [True] permanently store this resource
+        :param replace: [False] if the resource already exists, remove it and replace it with the new resource
         :return:
         """
         if self._test:
             store = False
+        if replace:
+            for k in self._resolver.matching_resources(resource):
+                self.delete_resource(k)
+            assert self._resolver.has_resource(resource) is False
         self._resolver.add_resource(resource, store=store)
         if resource.origin in self._nicknames:
             self._nicknames.pop(resource.origin)
@@ -243,9 +248,9 @@ class LcCatalog(StaticCatalog):
                     print('removing %s' % path)
                     os.remove(path)
         if delete_cache:
-            if os.path.exists(self.cache_file(resource.source)):
+            if self.check_cache(resource.source):
                 os.remove(self.cache_file(resource.source))
-            if os.path.exists(self.cache_file(abs_src)):
+            if self.check_cache(abs_src):
                 os.remove(self.cache_file(abs_src))
 
     def add_existing_archive(self, archive, interfaces=None, store=True, **kwargs):

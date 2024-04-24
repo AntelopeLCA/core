@@ -103,9 +103,18 @@ class LcCatalogResolver(object):
             resource.write_to_file(self._resource_dir)
         self._resources[resource.origin].append(resource)
 
-    def has_resource(self, resource):
+    def matching_resources(self, resource):
         s = resource.serialize()
-        return any(k.matches(s) for k in self._resources[resource.origin])
+        for k in self._resources[resource.origin]:
+            if k.matches(s):
+                yield k
+
+    def has_resource(self, resource):
+        try:
+            next(self.matching_resources(resource))
+        except StopIteration:
+            return False
+        return True
 
     def new_resource(self, ref, source, ds_type, store=True, **kwargs):
         new_res = LcResource(ref, source, ds_type, **kwargs)
