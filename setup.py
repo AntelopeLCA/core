@@ -1,6 +1,10 @@
 from setuptools import setup, find_packages
 
+<<<<<<< HEAD
 VERSION = '0.3.1'
+=======
+VERSION = '0.2.4.1'
+>>>>>>> master
 
 requires = [
     "synonym_dict>=0.2.4",
@@ -21,6 +25,11 @@ Version History
 
 # ^ 0.3.* 0.3-branch fork   
 # v 0.2.* main / master for legacy projects
+
+0.2.4.1 2024-04-24 - implement pagination in BasicArchive search
+                     fix ecospold v1 to handle process-flow collisions
+                     add_interfaces in LcResource
+                     LcCatalog.add_resource(replace=True)
 
 0.2.4   2024-04-17 - Remove antelope.ExteriorFlow in favor of antelope.models.ExteriorFlow
 
