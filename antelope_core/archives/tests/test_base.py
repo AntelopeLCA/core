@@ -186,6 +186,11 @@ class LcArchiveTest(unittest.TestCase):
     def test_name(self):
         self.assertEqual(self._ar.ref, test_json['dataReference'])
 
+    def test_count(self):
+        self.assertEqual(len(list(self._ar.search('flow'))), self._ar.count_by_type('flow'))
+        self.assertEqual(len(list(self._ar.search('flow', count=2))), 2)
+        self.assertEqual(len(list(self._ar.search('flow', offset=10))), 0)
+
     def test_json_init(self):
         """
         using load_from_dict(), you cannot read namespace uuid automatically from the json. But, you can specify source and
