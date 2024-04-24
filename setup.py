@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.2.4'
+VERSION = '0.2.4.1'
 
 requires = [
     "synonym_dict>=0.2.4",
@@ -14,6 +14,11 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.2.4.1 2024-04-24 - implement pagination in BasicArchive search
+                     fix ecospold v1 to handle process-flow collisions
+                     add_interfaces in LcResource
+                     LcCatalog.add_resource(replace=True)
+
 0.2.4   2024-04-17 - Remove antelope.ExteriorFlow in favor of antelope.models.ExteriorFlow
 
 0.2.3   2024-03-21 - compatibility release for antelope_interface upgrades and terminology changes
