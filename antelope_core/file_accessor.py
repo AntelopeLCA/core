@@ -117,9 +117,6 @@ class FileAccessor(object):
         # do this last
         ifaces = set()
         ifaces.add(iface)
-        for ad in cfg.pop('add_interfaces', ()):
-            if ad in INTERFACE_TYPES:
-                ifaces.add(ad)
         if basic:
             ifaces.add('basic')
         if iface == 'index':

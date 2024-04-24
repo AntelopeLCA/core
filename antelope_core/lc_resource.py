@@ -226,11 +226,12 @@ class LcResource(object):
         :param origin: semantic reference to data origin
         :param source: physical data source; 'None' allowed if 'downloadLink' argument provided
         :param ds_type: data source type
-       :param interfaces: list which can include 'entity', 'foreground', or 'background'. Default 'foreground'
+        :param interfaces: list which can include 'entity', 'foreground', or 'background'. Default 'foreground'
         :param privacy: Ignored / No longer used.
         :param priority: [50] priority level.. numeric (nominally 0-100), lowest priority resource is loaded first
         :param static: [False] if True, load_all() after initializing
         :param preload_archive: [None] use to assign an existing archive
+        :param config: ConfigureInterface specifications
         :param kwargs: additional keyword arguments to constructor. Some interesting ones:
           download: a dict containing 'url' and optional 'md5sum' fields
           prefix: often used when accessing zipped archives
@@ -261,6 +262,9 @@ class LcResource(object):
 
         self._interfaces = set()
         self._normalize_interfaces(interfaces)
+
+        if 'add_interfaces' in kwargs:
+            self._normalize_interfaces(kwargs['add_interfaces'])
 
         self._priority = int(priority)
 
