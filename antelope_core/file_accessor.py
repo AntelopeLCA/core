@@ -135,7 +135,7 @@ class ResourceLoader(FileAccessor):
     background ordering within the catalog's filespace if one does not already exist.
     """
 
-    def _load_origin(self, cat, org, check):
+    def _load_origin(self, cat, org, check, replace=True):
         """
         Crawls the data path at the specified origin and creates a resource for each source found.
         TODO: figure out whether basic should be a standalone resource // how to handle documentation
@@ -147,7 +147,7 @@ class ResourceLoader(FileAccessor):
         for iface in ('exchange', 'index', 'background', 'quantity'):
             for i, source in enumerate(self.gen_sources(org, iface)):
                 res = self.create_resource(source)
-                cat.add_resource(res)
+                cat.add_resource(res, replace=replace)
                 if check:
                     res.check(cat)
                     if iface == 'background':
@@ -167,19 +167,20 @@ class ResourceLoader(FileAccessor):
         else:
             return valid
 
-    def load_resources(self, cat, origin=None, check=False):
+    def load_resources(self, cat, origin=None, check=False, replace=True):
         """
         For named origin (or all origins), load resources into the catalog. this will not open the resources, unless
         check=True
         :param cat:
         :param origin:
         :param check: [False] whether to load the resources and check background
+        :param replace: [True] whether to replace an existing resource with the new one
         :return:
         """
         if origin is None:
             status = []
             for org in self.origins:
-                status.append(self._load_origin(cat, org, check))
+                status.append(self._load_origin(cat, org, check, replace=replace))
         else:
-            status = self._load_origin(cat, origin, check)
+            status = self._load_origin(cat, origin, check, replace=replace)
         return status

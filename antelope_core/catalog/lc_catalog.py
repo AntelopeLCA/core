@@ -153,13 +153,18 @@ class LcCatalog(StaticCatalog):
         source = self._localize_source(source)
         return self._resolver.new_resource(reference, source, ds_type, store=store, **kwargs)  # explicit store= for doc purposes
 
-    def add_resource(self, resource, store=True):
+    def add_resource(self, resource, store=True, replace=False):
         """
         Add an existing LcResource to the catalog.
         :param resource:
         :param store: [True] permanently store this resource
+        :param replace: [False] if the resource already exists, remove it and replace it with the new resource
         :return:
         """
+        if replace:
+            for k in self._resolver.matching_resources(resource):
+                self.delete_resource(k)
+            assert self._resolver.has_resource(resource) is False
         self._resolver.add_resource(resource, store=store)
 
     def purge_resource_archive(self, resource: LcResource):
