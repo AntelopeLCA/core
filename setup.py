@@ -1,10 +1,6 @@
 from setuptools import setup, find_packages
 
-<<<<<<< HEAD
 VERSION = '0.3.1'
-=======
-VERSION = '0.2.4.1'
->>>>>>> master
 
 requires = [
     "synonym_dict>=0.2.4",
