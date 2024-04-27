@@ -1,4 +1,5 @@
 import requests
+from typing import Optional
 from requests.exceptions import HTTPError
 import json
 from time import time
@@ -9,6 +10,7 @@ import getpass
 class OAuthToken(BaseModel):
     token_type: str
     access_token: str
+    message: Optional[str]
 
     @property
     def auth(self):
@@ -71,6 +73,8 @@ class RestClient(object):
         """
         if isinstance(token, OAuthToken):
             self._token = token
+            if token.message:
+                print(token.message)
         elif isinstance(token, str):
             toks = token.split(' ')
             if len(toks) == 1:
