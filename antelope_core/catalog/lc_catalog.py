@@ -4,7 +4,7 @@ from .catalog import StaticCatalog, CatalogError
 from ..archives import REF_QTYS, archive_from_json
 from ..lc_resource import LcResource
 from ..lcia_engine import DEFAULT_CONTEXTS, DEFAULT_FLOWABLES
-from ..providers.xdb_client.rest_client import RestClient
+from ..providers.xdb_client.rest_client import RestClient, OAuthToken
 
 import requests
 from requests.exceptions import HTTPError
@@ -297,6 +297,15 @@ class LcCatalog(StaticCatalog):
                 raise
         else:
             client = RestClient(blackbook_url, token=token, auth_route='auth/token', **kwargs)
+        self._blackbook_client = client
+
+    def blackbook_guest(self, blackbook_url=None, token=None, **kwargs):
+        if self._blackbook_client:
+            self._blackbook_client.close()
+        client = RestClient(blackbook_url, auth_route='auth/guest', **kwargs)
+        if token is None:
+            token = client.get_one(OAuthToken, 'auth', 'guest')
+        client.set_token(token)
         self._blackbook_client = client
 
     @property

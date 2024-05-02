@@ -10,7 +10,7 @@ import getpass
 class OAuthToken(BaseModel):
     token_type: str
     access_token: str
-    message: Optional[str]
+    message: Optional[str] = None
 
     @property
     def auth(self):
