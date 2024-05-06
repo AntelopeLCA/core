@@ -429,15 +429,15 @@ class LcCatalog(StaticCatalog):
         """
         res = next(r for r in self._resolver.resources_with_source(source))
         res.check(self)
-        priority = min([priority, res.priority])  # why are we doing this?? we want index to have higher priority i.e. get loaded second
-        store = (self._resolver.is_permanent(res) or save) and not self._test
+        # priority = min([priority, res.priority])  # we want index to have higher priority i.e. get loaded second
+        stored = self._resolver.is_permanent(res)
 
         # save configuration hints in derived index
         cfg = None
         if len(res.config['hints']) > 0:
             cfg = {'hints': res.config['hints']}
 
-        if store:
+        if stored:
             inx_file = self._index_file(source)
             inx_local = self._localize_source(inx_file)
 
@@ -450,7 +450,7 @@ class LcCatalog(StaticCatalog):
                     except StopIteration:
                         # index file exists, but no matching resource
                         inx = archive_from_json(inx_file)
-                        self.new_resource(inx.ref, inx_local, 'json', priority=priority, store=store,
+                        self.new_resource(inx.ref, inx_local, 'json', priority=priority, store=stored,
                                           interfaces='index', _internal=True, static=True, preload_archive=inx,
                                           config=cfg)
 
@@ -473,11 +473,14 @@ class LcCatalog(StaticCatalog):
         else:
             inx_file = inx_local = None
 
-        the_index = res.make_index(inx_file, force=force, save=store)
+        the_index = res.make_index(inx_file, force=force, save=stored)
         if inx_local is None:
             inx_local = the_index.ref
-        self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=store, interfaces='index',
-                          _internal=True, static=True, preload_archive=the_index, config=cfg)
+        nr = self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=stored, interfaces='index',
+                               _internal=True, static=True, preload_archive=the_index, config=cfg)
+        if nr.priority > res.priority:
+            # this allows the index to act to retrieve entities if the primary resource fails
+            nr.add_interface('basic')
 
         return the_index.ref
 

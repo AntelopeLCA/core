@@ -4,7 +4,7 @@ VERSION = '0.3.1'
 
 requires = [
     "synonym_dict>=0.2.4",
-    "antelope_interface>=0.2.4",
+    "antelope_interface>=0.2.5",
     "xlstools>=0.1.3",
     "python-magic>=0.4.18",
     "requests>=2.25",
@@ -21,6 +21,8 @@ Version History
 
 # ^ 0.3.* 0.3-branch fork   
 # v 0.2.* main / master for legacy projects
+
+0.2.5   2024-05-06 - move bg_lcia() into basic interface; sys_lcia() as fully-featured background analogue
 
 0.2.4.1 2024-04-24 - implement pagination in BasicArchive search
                      fix ecospold v1 to handle process-flow collisions

@@ -164,3 +164,14 @@ class BasicImplementation(object):
         e = self._dereference_entity(external_ref)
         for i in e.properties():
             yield i
+
+    def bg_lcia(self, process, query_qty, ref_flow=None, *kwargs):
+        """
+        This needs to be handled by a query with lci() access, or by a subclass
+        :param process:
+        :param query_qty:
+        :param ref_flow:
+        :param kwargs:
+        :return:
+        """
+        raise NotImplementedError

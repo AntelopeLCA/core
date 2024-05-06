@@ -208,7 +208,7 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
         for y in demand:
             yield y
 
-    def bg_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
+    def sys_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
         """
         returns an LciaResult object, aggregated as appropriate depending on the interface's privacy level.
         This is an ensemble function that stitches together bg functions with quantity access.

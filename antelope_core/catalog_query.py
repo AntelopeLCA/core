@@ -6,9 +6,11 @@ from antelope import (BasicInterface, IndexInterface, BackgroundInterface, Excha
                       EntityNotFound, UnknownOrigin,
                       ExchangeRef, comp_dir, CatalogRef)
 
+from antelope.interfaces.ibasic import BasicRequired
+
 from antelope.refs import FlowRef, RxRef
 
-from antelope.models import Entity, LciaResult as LciaResultModel, Characterization as CharacterizationModel
+from antelope.models import LciaResult as LciaResultModel, Characterization as CharacterizationModel
 
 from .lcia_results import LciaResult
 from .characterizations import QRResult, Characterization
@@ -141,7 +143,6 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
             raise BackgroundSetup('Failed to configure background')
 
     def _iface(self, itype, strict=False):
-        self._debug('Origin: %s' % self.origin)
         if self._catalog is None:
             raise NoCatalog
         if itype in self._iface_cache:
@@ -159,7 +160,7 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         if itype is None:
             raise BadInterfaceSpec(itype, attrname)  # itype = 'basic'  # fetch, get properties, uuid, reference
 
-        self._debug('Performing %s query, iface %s' % (attrname, itype))
+        self._debug('Performing %s query, origin %s, iface %s' % (attrname, self.origin, itype))
         message = 'itype %s required for attribute %s' % (itype, attrname)
         try:
             for iface in self._iface(itype, strict=strict):
@@ -450,7 +451,7 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
             else:
                 return ress
 
-    def bg_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
+    def sys_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
         """
         Reimplement this to detect pydantic LciaResult models and de-reference them
         :param process:
@@ -460,5 +461,26 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         :param kwargs:
         :return:
         """
-        ress = super(CatalogQuery, self).bg_lcia(process, query_qty, observed=observed, ref_flow=ref_flow, **kwargs)
+        ress = super(CatalogQuery, self).sys_lcia(process, query_qty, observed=observed, ref_flow=ref_flow, **kwargs)
+        return self._cycle_through_ress(ress, process, query_qty)
+
+    def bg_lcia(self, process, query_qty=None, ref_flow=None, **kwargs):
+        """
+        returns an LciaResult object, aggregated as appropriate depending on the interface's privacy level.
+        This can only be implemented at the query level because it requires access to lci()
+        :param process: must have a background interface
+        :param query_qty: an operable quantity_ref, or catalog default may be used if omitted
+        :param ref_flow:
+        :param kwargs:
+        :return:
+        """
+        try:
+            ress = super(CatalogQuery, self).bg_lcia(process, query_qty=query_qty, ref_flow=ref_flow, **kwargs)
+        except BasicRequired:
+            p_ref = self.get(process)
+            if p_ref.is_entity:
+                raise NotImplementedError  # we can't proceed
+            lci = p_ref.lci(ref_flow=ref_flow)
+            # aggregation
+            ress = query_qty.do_lcia(lci, **kwargs)
         return self._cycle_through_ress(ress, process, query_qty)
