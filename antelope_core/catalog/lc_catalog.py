@@ -381,7 +381,7 @@ class LcCatalog(StaticCatalog):
         """
         res = next(r for r in self._resolver.resources_with_source(source))
         res.check(self)
-        priority = min([priority, res.priority])  # why are we doing this?? we want index to have higher priority i.e. get loaded second
+        # priority = min([priority, res.priority])  # we want index to have higher priority i.e. get loaded second
         stored = self._resolver.is_permanent(res)
 
         # save configuration hints in derived index
@@ -424,8 +424,11 @@ class LcCatalog(StaticCatalog):
                         self.delete_resource(stale)
 
         the_index = res.make_index(inx_file, force=force)
-        self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=stored, interfaces='index',
-                          _internal=True, static=True, preload_archive=the_index, config=cfg)
+        nr = self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=stored, interfaces='index',
+                               _internal=True, static=True, preload_archive=the_index, config=cfg)
+        if nr.priority > res.priority:
+            # this allows the index to act to retrieve entities if the primary resource fails
+            nr.add_interface('basic')
 
         return the_index.ref
 

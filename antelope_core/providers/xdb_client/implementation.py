@@ -362,7 +362,39 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         ress = self._archive.r.qdb_post_return_many(exchanges, LciaResultModel, _ref(quantity), 'do_lcia')
         return [self._result_from_exchanges(quantity, exch_map, res) for res in ress]
 
-    def bg_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
+    def bg_lcia(self, process, query_qty=None, ref_flow=None, **kwargs):
+        """
+
+        :param process:
+        :param query_qty:
+        :param ref_flow:
+        :param kwargs:
+        :return:
+        """
+        try:
+            if query_qty is None:
+                if ref_flow:
+                    ress = self._archive.r.get_many(LciaResultModel, _ref(process), _ref(ref_flow),
+                                                    'lcia', **kwargs)
+                else:
+                    ress = self._archive.r.get_many(LciaResultModel, _ref(process),
+                                                    'lcia', **kwargs)
+            else:
+                if ref_flow:
+                    ress = self._archive.r.get_many(LciaResultModel, _ref(process), _ref(ref_flow),
+                                                    'lcia', _ref(query_qty), **kwargs)
+                else:
+                    ress = self._archive.r.get_many(LciaResultModel, _ref(process),
+                                                    'lcia', _ref(query_qty), **kwargs)
+        except HTTPError as e:
+            if e.args[0] == 404:
+                content = json.loads(e.args[1])
+                raise EntityNotFound(content['detail'])
+            else:
+                raise
+        return [self._result_from_model(process, query_qty, res) for res in ress]
+
+    def sys_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
         """
         We want to override the interface implementation and send a simple request to the backend
         :param process:

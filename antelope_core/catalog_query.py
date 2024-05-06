@@ -133,7 +133,6 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
             raise BackgroundSetup('Failed to configure background')
 
     def _iface(self, itype, strict=False):
-        self._debug('Origin: %s' % self.origin)
         if self._catalog is None:
             raise NoCatalog
         if itype in self._iface_cache:
@@ -151,7 +150,7 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         if itype is None:
             raise BadInterfaceSpec(itype, attrname)  # itype = 'basic'  # fetch, get properties, uuid, reference
 
-        self._debug('Performing %s query, iface %s' % (attrname, itype))
+        self._debug('Performing %s query, origin %s, iface %s' % (attrname, self.origin, itype))
         message = 'itype %s required for attribute %s' % (itype, attrname)
         try:
             for iface in self._iface(itype, strict=strict):
@@ -330,3 +329,20 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
             return self._tm.add_quantity(entity)  # this will be identical to _ unless there is a unit conflict
         else:
             return e_ref
+
+    def bg_lcia(self, process, query_qty=None, ref_flow=None, **kwargs):
+        """
+        returns an LciaResult object, aggregated as appropriate depending on the interface's privacy level.
+        This can only be implemented at the query level because it requires access to lci()
+        :param process: must have a background interface
+        :param query_qty: an operable quantity_ref, or catalog default may be used if omitted
+        :param ref_flow:
+        :param kwargs:
+        :return:
+        """
+        p_ref = self.get(process)
+        if p_ref.is_entity:
+            raise NotImplementedError  # we can't proceed
+        lci = p_ref.lci(ref_flow=ref_flow)
+        # aggregation
+        return query_qty.do_lcia(lci, **kwargs)
