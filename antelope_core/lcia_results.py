@@ -654,6 +654,9 @@ class LciaResult(object):
         except StopIteration:
             raise KeyError('%s' % item)
 
+    def __len__(self):
+        return len(self._LciaScores)
+
     '''
     def __getitem__(self, item):
         if isinstance(item, int):

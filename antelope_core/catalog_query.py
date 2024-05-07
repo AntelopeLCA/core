@@ -1,6 +1,7 @@
 """
 Query Interface -- used to operate catalog refs
 """
+import logging
 
 from antelope import (BasicInterface, IndexInterface, BackgroundInterface, ExchangeInterface, QuantityInterface,
                       EntityNotFound, UnknownOrigin,
@@ -12,7 +13,7 @@ from antelope.refs import FlowRef, RxRef
 
 from antelope.models import LciaResult as LciaResultModel, Characterization as CharacterizationModel
 
-from .lcia_results import LciaResult
+from .lcia_results import LciaResult, MixedComponents
 from .characterizations import QRResult, Characterization
 from .contexts import NullContext
 
@@ -213,7 +214,8 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         if ref is None:
             deref = None
         elif isinstance(ref, list):
-            deref = [RxRef(self.make_ref(x.process), self.make_ref(x.flow), x.direction, x.comment) for x in ref]
+            deref = [RxRef(self.make_ref(x.process), self.make_ref(x.flow), x.direction, x.comment, x.value)
+                     for x in ref]
         elif isinstance(ref, str):
             deref = ref
         elif ref.entity_type == 'unit':
@@ -400,7 +402,10 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
             try:
                 quantity = self._tm.get_canonical(quantity)
             except EntityNotFound:
-                quantity = CatalogRef.from_json(res_m.quantity.serialize())  # dumbest thing ever
+                quantity = None
+
+        if quantity is None:
+            quantity = CatalogRef.from_json(res_m.quantity.serialize())  # dumbest thing ever
 
         res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
         process = self.get(process_ref)
@@ -434,6 +439,15 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                 res.add_score(c.component, ex, cf)
         for s in res_m.summaries:
             res.add_summary(s.component, s.component, s.node_weight, s.unit_score)
+        if len(res) == 0:
+            res.add_summary('Total', 'total', 1.0, res_m.total)
+        else:
+            if res.total() != res_m.total:
+                net = res_m.total - res.total()
+                try:
+                    res.add_summary('net result', 'net result', 1.0, net)
+                except MixedComponents:
+                    logging.warning('Inconsistent Agg LCIA result (net %g of %g)' % (net, res_m.total))
         return res
 
     def _cycle_through_ress(self, ress, process, query_qty):

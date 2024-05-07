@@ -2,7 +2,7 @@
 import json
 from antelope import IndexInterface, ExchangeInterface, QuantityInterface, BackgroundInterface, NoFactorsFound
 from antelope import RxRef, EntityNotFound
-from antelope.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceExchange, UnallocatedExchange,
+from antelope.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceValue, UnallocatedExchange,
                              LciaResult as LciaResultModel, AllocatedExchange,
                              Characterization as CharacterizationModel,
                              ExchangeValues, DirectedFlow, FlowFactors)
@@ -74,8 +74,9 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
             except XdbReferenceRequired:
                 rs = None
             if rs is None:
-                rs = self._archive.r.get_many(ReferenceExchange, _ref(key), 'references')
-            return [RxRef(p, self._archive.get_or_make(r.flow), r.direction, comment=r.comment) for r in rs]
+                rs = self._archive.r.get_many(ReferenceValue, _ref(key), 'references')
+            return [RxRef(p, self._archive.get_or_make(r.flow), r.direction, comment=r.comment, value=r.value)
+                    for r in rs]
         elif p.entity_type == 'flow':
             return self._archive.r.get_one(Entity, _ref(key), 'reference')
         elif p.entity_type == 'quantity':

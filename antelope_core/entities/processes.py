@@ -133,7 +133,7 @@ class LcProcess(LcEntity):
             raise ReferenceSettingFailed(exch_to_be_ref)
 
         if exch_to_be_ref.key in self._exchanges:
-            assert exch_to_be_ref is self._exchanges[exch_to_be_ref.key]
+            # assert exch_to_be_ref is self._exchanges[exch_to_be_ref.key]
             self._exchanges.pop(exch_to_be_ref.key)
             if exch_to_be_ref.set_ref(self):
                 self._reference_entity[exch_to_be_ref.flow.external_ref, exch_to_be_ref.direction] = exch_to_be_ref
