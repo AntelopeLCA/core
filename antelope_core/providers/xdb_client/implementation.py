@@ -422,7 +422,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         obs_flows = ()
         try:
             if observed:
-                obs_flows = [DirectedFlow.from_exchange(x).dict() for x in observed]
+                obs_flows = [DirectedFlow.from_observed(x).dict() for x in observed]
             if len(obs_flows) > 0:
                 if ref_flow:
                     ress = self._archive.r.post_return_many(obs_flows, LciaResultModel, _ref(process), _ref(ref_flow),
