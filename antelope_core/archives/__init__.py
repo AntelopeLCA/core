@@ -59,11 +59,12 @@ def archive_factory(ds_type):
     raise ArchiveError('No provider found for %s' % ds_type)
 
 
-def archive_from_json(fname, factory=archive_factory, catalog=None, **archive_kwargs):
+def archive_from_json(fname, factory=archive_factory, catalog=None, drop_catalog_names=False, **archive_kwargs):
     """
     :param fname: JSON filename
     :param factory: function returning a class
     :param catalog: [None] necessary to retrieve upstream archives, if specified
+    :param drop_catalog_names: eject catalogNames from the json
     :return: an ArchiveInterface
     """
     j = from_json(fname)
@@ -72,6 +73,9 @@ def archive_from_json(fname, factory=archive_factory, catalog=None, **archive_kw
         print('**Upstream reference encountered: %s' % j['upstreamReference'])
         print('**XX Upstream is gone; catalog argument is deprecated\n')
     cls = factory(j.pop('dataSourceType', 'LcArchive'))
+    if drop_catalog_names:
+        j.pop('catalogNames', None)
+
     return cls.from_already_open_file(j, fname, quiet=True, **archive_kwargs)
 
 

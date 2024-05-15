@@ -111,12 +111,13 @@ class FileAccessor(object):
         rel_source = source[len(self._path)+1:]
         org, iface, ds_type, fn = rel_source.split(os.path.sep)  # note os.pathsep is totally different
 
-        if self._prefix is not None:
-            org = '.'.join([str(self._prefix), org])
-
         cfg = self.read_config(source)
         cfg.update(kwargs)
         priority = cfg.pop('priority', DEFAULT_PRIORITIES[iface])
+
+        if self._prefix is not None:
+            org = '.'.join([str(self._prefix), org])
+            cfg['drop_catalog_names'] = True
 
         # do this last
         ifaces = set()
@@ -156,15 +157,19 @@ class ResourceLoader(FileAccessor):
                     res.check(cat)
                     if iface == 'background':
                         check_bg = True
+        if self._prefix:
+            dest_org = '.'.join([self._prefix, org])
+        else:
+            dest_org = org
         try:
-            next(cat.gen_interfaces(org, 'basic'))
+            next(cat.gen_interfaces(dest_org, 'basic'))
             valid = True
         except StopIteration:
-            print('Warning: %s: no basic interface (add manually and save)' % org)
+            print('Warning: %s: no basic interface (add manually and save)' % dest_org)
             valid = False
         if check_bg:
             try:
-                bg = cat.query(org).check_bg()
+                bg = cat.query(dest_org).check_bg()
             except BackgroundRequired:
                 bg = False
             return valid and bg

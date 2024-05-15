@@ -98,6 +98,8 @@ class LcEntity(BaseEntity):
         # this is a potential DWR--
         # if the query does not match the entity, we want the ref to have the authentic origin
         # we're expecting this to only occur from within CatalogQuery._grounded_query() -> UnknownOrigin
+        if self.entity_type == 'quantity':
+            d['reference_entity'] = self._print_ref_field()
         if 'uuid' not in d:
             if self.uuid is not None:
                 d['uuid'] = self.uuid
