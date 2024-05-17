@@ -10,8 +10,15 @@ import os
 from uuid import uuid4
 
 from antelope import local_ref, CatalogRef
-from ..entity_store import SourceAlreadyKnown
+# from ..entity_store import SourceAlreadyKnown
 from ..basic_archive import BasicArchive
+
+
+class SourceAlreadyKnown(Exception):
+    """
+    a retired exception that was held over from the days when archives had to do catalogs' work
+    """
+
 
 WORKING_FILE = os.path.join(os.path.dirname(__file__), 'test-basic-archive.json')
 conflict_file = '/dummy/conflict/file'
@@ -65,6 +72,7 @@ class BasicArchiveTestCase(unittest.TestCase):
         self.ar.add(CatalogRef('bogus.origin', my_id, entity_type='flow'))
         self.assertEqual(self.ar[my_id].uuid, my_id)
 
+    @unittest.skip  # SourceAlreadyKnown is retired
     def test_conflicting_ref(self):
         """
         It's an error to instantiate an existing source with a new reference (why? because the source should know its
@@ -75,6 +83,7 @@ class BasicArchiveTestCase(unittest.TestCase):
         with self.assertRaises(SourceAlreadyKnown):
             a.load_from_dict(archive_json)
 
+    @unittest.skip  # SourceAlreadyKnown is retired
     def test_generic_ref(self):
         """
         If a static resource is created with a fully-qualified ref, (base.ref.index.YYYYMMDD) and then it is later

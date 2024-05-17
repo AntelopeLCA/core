@@ -117,7 +117,6 @@ class FileAccessor(object):
 
         if self._prefix is not None:
             org = '.'.join([str(self._prefix), org])
-            cfg['drop_catalog_names'] = True
 
         # do this last
         ifaces = set()

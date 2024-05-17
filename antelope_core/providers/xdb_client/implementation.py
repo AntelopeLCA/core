@@ -71,12 +71,12 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         if p.entity_type == 'process':
             try:
                 rs = p.ref.get(p.ref.reference_field)
+                return [RxRef(p, self._archive.get_or_make(r.flow), r.direction, comment=r.comment)
+                        for r in rs]
             except XdbReferenceRequired:
-                rs = None
-            if rs is None:
                 rs = self._archive.r.get_many(ReferenceValue, _ref(key), 'references')
-            return [RxRef(p, self._archive.get_or_make(r.flow), r.direction, comment=r.comment, value=r.value)
-                    for r in rs]
+                return [RxRef(p, self._archive.get_or_make(r.flow), r.direction, comment=r.comment, value=r.value)
+                        for r in rs]
         elif p.entity_type == 'flow':
             return self._archive.r.get_one(Entity, _ref(key), 'reference')
         elif p.entity_type == 'quantity':

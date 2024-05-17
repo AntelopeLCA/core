@@ -28,7 +28,7 @@ import re
 import xlrd
 from synonym_dict.lower_dict import LowerDict
 
-from antelope import EntityNotFound
+from antelope import EntityNotFound, ConversionError
 from ..implementations.quantity import convert
 from ..characterizations import DuplicateCharacterizationError
 
@@ -309,7 +309,7 @@ class XlsxUpdater(object):
             if unit is not None:
                 try:
                     value *= convert(qq, from_unit=unit)
-                except KeyError as e:
+                except ConversionError as e:
                     print('flowproperties|row: %d: target unit %s' % (row+1, e.args))
                     continue
 

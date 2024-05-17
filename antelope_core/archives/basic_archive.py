@@ -1,7 +1,7 @@
 import os
 import re
 from collections import defaultdict
-from .entity_store import EntityStore, SourceAlreadyKnown, EntityExists
+from .entity_store import EntityStore, EntityExists
 from .term_manager import TermManager
 
 from ..implementations import BasicImplementation, IndexImplementation, QuantityImplementation, ConfigureImplementation
@@ -377,10 +377,7 @@ class BasicArchive(EntityStore):
             # new style
             source = j['dataSource']
             ref = j['dataReference']
-            try:
-                self._add_name(ref, source)
-            except SourceAlreadyKnown:
-                self._add_name(ref, None)
+            self._add_name(ref, source)
 
         if jsonfile is not None:
             self._add_name(self.ref, jsonfile, rewrite=True)

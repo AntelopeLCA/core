@@ -51,7 +51,7 @@ retrieve data:
 from collections import namedtuple
 
 from synonym_dict import SynonymDict
-from synonym_dict.compartments import InconsistentLineage
+from synonym_dict.compartments import InconsistentLineage, NonSpecificCompartment
 
 from antelope import EntityNotFound
 from ..contexts import ContextManager, NullContext
@@ -325,7 +325,10 @@ class TermManager(object):
         try:
             _c = self._cm[flow.get_context()]
         except (KeyError, InconsistentLineage):
-            _c = self._add_compartments(tuple(flow.context))
+            try:
+                _c = self._add_compartments(tuple(flow.context))
+            except NonSpecificCompartment:
+                return NullContext
         _c.add_origin(flow.origin)
         return _c
 
@@ -485,7 +488,8 @@ class TermManager(object):
             elif merge_strategy == 'merge':
                 # this is trivial but has never been tested, I mean even once
                 self._print('Merging')
-                fb = self._merge_terms(*fb_map.keys())
+                # sort the keys so the one with the greatest number of terms is dominant
+                fb = self._merge_terms(*sorted(fb_map.keys(), key=lambda x: len(x), reverse=True))
             else:
                 raise ValueError('merge strategy %s' % self._merge_strategy)
 

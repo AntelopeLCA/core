@@ -60,9 +60,10 @@ def to_uuid(_in):
     return None
 
 
-
+"""" # we officially retire this anachronism 16-May-2024
 class SourceAlreadyKnown(Exception):
     pass
+"""
 
 
 class EntityExists(Exception):
@@ -340,7 +341,8 @@ class EntityStore(object):
                     self._catalog_names[k].remove(source)
                     print('%s: <source removed>' % k)
                 else:
-                    raise SourceAlreadyKnown('Source %s already registered to name %s (vs: %s)' % (source, k, ref))
+                    # drop the conflicting source
+                    source = None
         print('%s: %s' % (ref, source))
         self._catalog_names[ref].add(source)
         if ref == self.ref and self.source is None and rewrite:
