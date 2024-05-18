@@ -71,6 +71,8 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         if p.entity_type == 'process':
             try:
                 rs = p.ref.get(p.ref.reference_field)
+                if rs is None:
+                    raise XdbReferenceRequired
                 return [RxRef(p, self._archive.get_or_make(r.flow), r.direction, comment=r.comment)
                         for r in rs]
             except XdbReferenceRequired:

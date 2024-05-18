@@ -476,7 +476,8 @@ class LcCatalog(StaticCatalog):
         the_index = res.make_index(inx_file, force=force, save=stored)
         if inx_local is None:
             inx_local = the_index.ref
-        nr = self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=stored, interfaces='index',
+        nr = self.new_resource(the_index.ref, inx_local, 'json', priority=priority, store=stored,
+                               interfaces=('basic', 'index'),
                                _internal=True, static=True, preload_archive=the_index, config=cfg)
         if nr.priority > res.priority:
             # this allows the index to act to retrieve entities if the primary resource fails
@@ -496,7 +497,7 @@ class LcCatalog(StaticCatalog):
         :param origin:
         :param interface: [None]
         :param source: find_single_source input
-        :param priority: [60] priority setting for the new index
+        :param priority: [15] priority setting for the new index
         :param save: [True] whether to save the index
         :param force: [False] if True, overwrite existing index
         :param strict: [True] whether to be strict

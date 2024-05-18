@@ -163,6 +163,7 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
 
         self._debug('Performing %s query, origin %s, iface %s' % (attrname, self.origin, itype))
         message = 'itype %s required for attribute %s' % (itype, attrname)
+        props = []
         try:
             for iface in self._iface(itype, strict=strict):
                 try:
@@ -175,9 +176,16 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                 if result is None:  # successful query must return something
                     message = '(%s) %s null' % (itype, attrname)
                 else:
-                    return result
+                    if attrname == 'properties':
+                        for k in result:
+                            if k not in props:
+                                props.append(k)
+                    else:
+                        return result
         except NotImplementedError:
             pass
+        if len(props) > 0:
+            return props
 
         raise exc('%s: %s | %s' % (self.origin, message, args))
 
@@ -398,14 +406,10 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         :param res_m:
         :return:
         """
-        if isinstance(quantity, str):
-            try:
-                quantity = self._tm.get_canonical(quantity)
-            except EntityNotFound:
-                quantity = None
-
-        if quantity is None:
-            quantity = CatalogRef.from_json(res_m.quantity.serialize())  # dumbest thing ever
+        try:
+            quantity = self._tm.get_canonical(res_m.quantity.external_ref)
+        except EntityNotFound:
+            quantity = CatalogRef.from_json(res_m.quantity.serialize())  # dumbest thing ever- (the de/re/deserialize)
 
         res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
         process = self.get(process_ref)
@@ -413,7 +417,10 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
             for d in c.details:
                 value = d.result / d.factor.value
                 cx = self._tm[tuple(d.factor.context)]
-                rq = self.get_canonical(d.exchange.quantity_ref)
+                try:
+                    rq = self.get_canonical(d.exchange.quantity_ref)
+                except EntityNotFound:
+                    rq = self.get(d.exchange.quantity_ref)
                 try:
                     # OK - here we are making redundant orphan FlowRefs, one per detail, to avoid excess API calls.
                     flow_ref = FlowRef(d.exchange.external_ref, self.cascade(d.exchange.origin),

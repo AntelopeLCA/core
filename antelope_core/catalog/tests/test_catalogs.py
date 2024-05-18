@@ -11,14 +11,17 @@ import unittest
 from shutil import rmtree
 
 
-uslci_fg = LcResource('test.uslci', '/data/LCI/USLCI/USLCI_Processes_ecospold1.zip', 'EcospoldV1Archive',
-                      interfaces='inventory',
+uslci_source = os.path.join(os.path.dirname(__file__), 'USLCI_Processes_ecospold9.zip')
+
+
+uslci_fg = LcResource('test.uslci', uslci_source, 'EcospoldV1Archive',
+                      interfaces=('basic', 'inventory'),
                       priority=40,
                       static=False,
                       prefix='USLCI_Processes_ecospold1/USLCI_Processes_ecospold1')
 
 
-uslci_fg_dup = LcResource('test.uslci', '/data/LCI/USLCI/USLCI_Processes_ecospold1.zip', 'EcospoldV1Archive',
+uslci_fg_dup = LcResource('test.uslci', uslci_source, 'EcospoldV1Archive',
                           interfaces='inventory',
                           priority=40,
                           static=False,
@@ -148,6 +151,60 @@ class LcCatalogReplace(unittest.TestCase):
         cat.add_resource(uslci_fg_dup, replace=True)
         res = cat.get_resource('test.uslci')
         self.assertEqual(res.init_args.get('ringer'), 42)
+
+
+baux = 'Bauxite, at mine'
+
+
+class LcCatalogPriority(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        tmp = tempfile.mkdtemp()
+        cat = LcCatalog(tmp)
+        cat.add_resource(uslci_fg)
+        uslci_fg.add_interface('basic')
+        cat.index_ref(uslci_fg.origin, priority=10, save=True)
+        cls.tmp = tmp
+
+    @classmethod
+    def tearDownClass(cls) -> None:
+        rmtree(cls.tmp)
+
+    def test_resources(self):
+        cat = LcCatalog(self.tmp)
+        self.assertEqual(cat.get_resource(uslci_fg.origin, 'exchange').source, uslci_fg.source)
+        self.assertEqual(cat.get_resource(uslci_fg.origin, 'index', strict=False).ds_type, 'json')
+
+    def test_load_order(self):
+        cat = LcCatalog(self.tmp)
+        self.assertEqual(len(list(cat.resources(loaded=True))), 1)  # qdb
+        cat.query(uslci_fg.origin).get(baux)
+        self.assertEqual(len(list(cat.resources(loaded=True))), 2)  # qdb + index
+        cat.query(uslci_fg.origin).properties(baux)
+        self.assertEqual(len(list(cat.resources(loaded=True))), 3)  # qdb + all 'basic' resources
+
+    def test_properties(self):
+        cat = LcCatalog(self.tmp)
+        self.assertSetEqual(set(cat.query(uslci_fg.origin).properties(baux)),
+                            {'Name', 'SpatialScope', 'TemporalScope', 'Classifications', 'Comment'})
+
+    def test_different_entities(self):
+        cat = LcCatalog(self.tmp)
+        ar = cat.get_archive(uslci_fg.origin, 'exchange')
+        ix = cat.get_archive(uslci_fg.origin, 'index')
+        ar.retrieve_or_fetch_entity(baux)
+        self.assertEqual(ar[baux], ix[baux])
+        self.assertIsNot(ar[baux], ix[baux])
+
+    def test_fallthrough(self):
+        cat = LcCatalog(self.tmp)
+        with self.assertRaises(KeyError):
+            cat.query(uslci_fg.origin).get_item(baux, 'doozie')
+        ar = cat.get_archive(uslci_fg.origin, 'exchange')
+        p = ar.retrieve_or_fetch_entity(baux)
+        p['doozie'] = 'flurm'
+        self.assertIn('doozie', cat.query(uslci_fg.origin).properties(baux))
+        self.assertEqual(cat.query(uslci_fg.origin).get_item(baux, 'doozie'), 'flurm')
 
 
 if __name__ == '__main__':
