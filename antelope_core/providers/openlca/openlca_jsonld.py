@@ -38,6 +38,8 @@ from ..file_store import FileStore
 from ..parse_math import parse_math
 
 from .schema_mapping import OLCA_MAPPING
+from .olca_ps_interpreter import OlcaProductSystemInterpreter
+from .parameters import OlcaParameterResolver
 
 
 geog_tail = re.compile(',\\s([A-Z]+[o-]?[A-Z]*)$')  # capture, e.g. 'ZA', 'GLO', 'RoW', 'US-CA' but not 'PET-g'
@@ -145,7 +147,7 @@ class OpenLcaJsonLdArchive(LcArchive):
                 self._cat_lookup[lookup_key] = cat_key  # reverse lookup of tuple -> key
                 self.tm.add_context(lookup_key, cat_key)
 
-    def __init__(self, source, prefix=None, skip_index=False, **kwargs):
+    def __init__(self, source, prefix=None, skip_index=False, product_system=None, **kwargs):
         super(OpenLcaJsonLdArchive, self).__init__(source, **kwargs)
 
         self._drop_fields['process'].extend(['processDocumentation'])
@@ -156,6 +158,16 @@ class OpenLcaJsonLdArchive(LcArchive):
         self._unit_dict = dict()
         if not skip_index:
             self._gen_index()
+
+        self._defined_ps = None
+        if product_system:
+            if product_system in self.product_systems:
+                psj = self._create_object('product_systems', product_system)
+                self._defined_ps = OlcaProductSystemInterpreter(psj)
+
+    @property
+    def defined(self):
+        return bool(self._defined_ps)
 
     def _check_id(self, _id):
         return self[_id] is not None
@@ -219,6 +231,12 @@ class OpenLcaJsonLdArchive(LcArchive):
             if cx is None:
                 raise KeyError
             return self._cat_lookup[tuple(cx.as_list())]
+
+    @property
+    def product_systems(self):
+        for k, v in self._type_index.items():
+            if v == 'product_systems':
+                yield k
 
     @property
     def openlca_categories(self):
@@ -323,9 +341,18 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         return f
 
-    def _add_exchange(self, p, ex):
-        flow = self.retrieve_or_fetch_entity(ex['flow']['@id'], typ='flows')
-        value = ex['amount']
+    def _add_exchange(self, p, ex, value):
+        is_ref = ex.pop(self._get_v_field('Exchange', 'quantitativeReference'), False)
+
+        if self.defined and self._defined_ps.check_exchange_id(p.external_ref, ex['internalId']) and not is_ref:
+            flow_id = self._defined_ps.get_target_flow(p.external_ref, ex['internalId'])
+            target = self._defined_ps.get_target(p.external_ref, ex['internalId'])
+            flow = self.retrieve_or_fetch_entity(flow_id, typ='flows')
+        else:
+            flow = self.retrieve_or_fetch_entity(ex['flow']['@id'], typ='flows')
+            target = None
+
+        # value = ex['amount']  # this comes from the parameter engine now
         dirn = 'Input' if ex[self._get_v_field('Exchange', 'input')] else 'Output'
 
         fp = self.retrieve_or_fetch_entity(ex['flowProperty']['@id'], typ='flow_properties')
@@ -355,9 +382,10 @@ class OpenLcaJsonLdArchive(LcArchive):
                                              origin=self.ref)
                 value /= fp.cf(flow)
 
-        is_ref = ex.pop(self._get_v_field('Exchange', 'quantitativeReference'), False)
         if is_ref:
             term = None
+        elif target:
+            term = target
         else:
             cx = self.tm[flow.context]
             if cx is not None and cx.elementary:
@@ -494,6 +522,15 @@ class OpenLcaJsonLdArchive(LcArchive):
             return q
 
         p_j, name, cls = self._clean_object('processes', p_id)
+
+        param_engine = OlcaParameterResolver(p_j, v2=self.schema_version == 2, process_ref=p_id)
+        if self.defined:
+            try:
+                pv = self._defined_ps.get_param_values(p_id)
+                param_engine.set_values(**pv)
+            except KeyError:
+                pass
+
         loc = p_j.pop('location', {'name': 'GLO'})
         try:
             ss = loc['name']
@@ -517,8 +554,9 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         broken_exch = []
         for ex in exch:
+            val = param_engine.exchange_value(ex['internalId'])
             try:
-                self._add_exchange(p, ex)
+                self._add_exchange(p, ex, val)
             except KeyError:
                 ex_id = ex.get('internalId', -1)
                 logging.error('%s: failed to add mal-formed exchange with ID %d' % (p.uuid, ex_id))
@@ -534,6 +572,9 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         self._apply_olca_allocation(p, alloc)
 
+        if param_engine.active:
+            p['OlcaParameterEngine'] = param_engine
+
         return p
 
     def _create_lcia_quantity(self, l_j, method, **kwargs):
@@ -545,7 +586,7 @@ class OpenLcaJsonLdArchive(LcArchive):
         l_obj, l_name, cats = self._clean_object('lcia_categories', q_id)
         c_desc = l_obj.pop('description', None)
         ver = l_obj.pop('version', None)
-        indicator = l_obj.pop('referenceUnitName')
+        indicator = l_obj.pop(self._get_v_field('ImpactCategory', 'referenceUnitName'))
         unit = LcUnit(indicator)
 
         q_name = ', '.join([method, l_name])
@@ -612,7 +653,10 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         if 'nwSets' in m_obj:
             for n in m_obj['nwSets']:
-                norm_j = self._create_object('nw_sets', n['@id'])
+                if 'factors' in n:
+                    norm_j = n
+                else:
+                    norm_j = self._create_object('nw_sets', n['@id'])
                 sets.append(norm_j['name'])
                 for fac in norm_j['factors']:
                     norms[fac['impactCategory']['@id']].append(fac.get('normalisationFactor', None))
@@ -652,10 +696,14 @@ class OpenLcaJsonLdArchive(LcArchive):
 
     def _load_all(self, **kwargs):
         self._print('Loading processes')
-        for f in self._archive.listfiles(in_prefix='processes'):
-            ff = f.split('/')
-            fg = ff[1].split('.')
-            self._create_process(fg[0])
+        if self.defined:
+            for p_id in self._defined_ps.processes:
+                self._create_process(p_id)
+        else:
+            for f in self._archive.listfiles(in_prefix='processes'):
+                ff = f.split('/')
+                fg = ff[1].split('.')
+                self._create_process(fg[0])
         self._print('Loading LCIA methods')
         for f in self._archive.listfiles(in_prefix='lcia_methods'):
             ff = f.split('/')
