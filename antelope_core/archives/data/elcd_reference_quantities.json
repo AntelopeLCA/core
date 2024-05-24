@@ -836,9 +836,50 @@
       },
       "entityId": "ae957304-e4ac-4e9c-b6a8-e3d056075b8b",
       "entityType": "quantity",
-      "externalId": "node activity",
+      "externalId": "node_activity",
+      "synonyms": [
+        "q_node_activity"
+      ],
       "origin": "local.qdb",
       "referenceUnit": "activity"
+    },
+    {
+      "Comment": "Indicates fractional contribution to a unitary score",
+      "Name": "Contribution Analysis",
+      "UnitConversion": {
+        "activity": 1.0,
+        "share": 1.0,
+        "percent": 100.0,
+        "%": 100.0
+      },
+      "entityId": "365e6e6c-80d8-45b4-8675-f6acdaa47ea9",
+      "entityType": "quantity",
+      "externalId": "contribution_share",
+      "Synonyms": [
+        "contribution share"
+      ],
+      "origin": "local.qdb",
+      "referenceUnit": "share",
+      "Indicator": "share"
+    },
+    {
+      "Comment": "Indicates percent contribution to a unitary score",
+      "Name": "Contribution Analysis (percent)",
+      "UnitConversion": {
+        "activity": 0.01,
+        "share": 0.01,
+        "percent": 1.0,
+        "%": 1.0
+      },
+      "entityId": "88bf6be4-6cbf-4b7a-89f5-3ced3ed59ff6",
+      "entityType": "quantity",
+      "externalId": "contribution_percent",
+      "Synonyms": [
+        "contribution percent"
+      ],
+      "origin": "local.qdb",
+      "referenceUnit": "percent",
+      "Indicator": "percent"
     }
   ]
 }

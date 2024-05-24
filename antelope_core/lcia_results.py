@@ -8,6 +8,17 @@ from .autorange import AutoRange
 from numbers import Number
 from math import isclose
 from collections import defaultdict
+from antelope import CatalogRef
+
+
+q_contrib = CatalogRef(origin='local.qdb', external_ref='contribution_share', entity_type='quantity',
+                       reference_entity='share',
+                       Name='Contribution Analysis', uuid='365e6e6c-80d8-45b4-8675-f6acdaa47ea9')
+
+q_percent = CatalogRef(origin='local.qdb', external_ref='contribution_percent', entity_type='quantity',
+                       reference_entity='percent',
+                       Name='Contribution Analysis (percent)', uuid='88bf6be4-6cbf-4b7a-89f5-3ced3ed59ff6')
+
 
 from antelope.models import SummaryLciaScore, DisaggregatedLciaScore, LciaDetail
 # from lcatools.interfaces import to_uuid
@@ -486,10 +497,24 @@ class AggregateLciaResult(object):
             if d.result != 0:
                 yield d
 
-    def show_detailed_result(self, key=lambda x: x.result, show_all=False):
+    def show_detailed_result(self, key=lambda x: x.result, show_all=False, count=None, threshold=None):
+        residual = 0.0
+        resid_c = 0
         for d in sorted(self.LciaDetails, key=key, reverse=True):
             if d.result != 0 or show_all:
+                if count is not None and count <= 0 and not show_all:
+                    residual += d.result
+                    resid_c += 1
+                    continue
+                if threshold is not None and abs(d.result) < abs(threshold) and not show_all:
+                    residual += d.result
+                    resid_c += 1
+                    continue
                 print('%s' % d)
+                if count is not None:
+                    count -= 1
+        if residual != 0.0:
+            print(' %s   remainder (%d items)' % (number(residual), resid_c))
         # print('=' * 60)
         # print('             Total score: %g ' % self.cumulative_result)
 
@@ -662,6 +687,35 @@ class LciaResult(object):
         if isinstance(item, int):
             return
     '''
+    def contrib(self, percent=False):
+        """
+        Convert the LCIA result to a result with a unitary value.  If the score is an Aggregated score, it will first
+        be aggregated by flow name
+        :param percent: [False] if True, the score will add up to 100
+        :return:
+        """
+        if percent:
+            q = q_percent
+            check = 100.0
+        else:
+            q = q_contrib
+            check = 1.0
+
+        norm = self.total()
+        contrib = LciaResult(q, scenario=self.scenario)
+
+        if self.has_summaries:
+            for k, c in self._LciaScores.items():
+                contrib.add_summary(k, c.entity, check, c.cumulative_result / norm)
+        else:
+            flat = self.flatten()  # this ensures meaningful components
+            agg = flat.aggregate(key=str)
+            for k, c in agg._LciaScores.items():
+                contrib.add_summary(k, c.entity, check, c.cumulative_result / norm)
+
+        if not isclose(check, contrib.total(), rel_tol=1e-6):
+            raise ValueError('Total %g does not match target %g !' % (contrib.total(), check))
+        return contrib
 
     def aggregate(self, key=lambda x: x.fragment['StageName'], entity_id=None):
         """
@@ -911,27 +965,55 @@ class LciaResult(object):
         self._header()
         print('%s' % self)
 
-    def show_components(self, percent=False):
+    def show_components(self, percent=False, count=None, threshold=None):
+        """
+
+        :param percent:
+        :param count: [None] a maximum number of components to print
+        :param threshold: [None] an absolute value below which scores are aggregated
+        :return:
+        """
         self._header()
+        residual = 0.0
+        resid_c = 0
+
         if not self._private:
             for v in sorted(self._LciaScores.values(), key=lambda x: x.cumulative_result, reverse=True):
+                if count is not None and count <= 0:
+                    residual += v.cumulative_result
+                    resid_c += 1
+                    continue
+                elif threshold is not None and abs(v.cumulative_result) < abs(threshold):
+                    residual += v.cumulative_result
+                    resid_c += 1
+                    continue
                 if percent:
                     pct = (v.cumulative_result / self.total()) * 100
                     pfx = '%5.2f %% ' % pct
                 else:
                     pfx = ''
                 print('%s%s' % (pfx, v))
+                if count is not None:
+                    count -= 1
+            if residual != 0.0:
+                if percent:
+                    pct = (residual / self.total()) * 100
+                    pfx = '%5.2f %% ' % pct
+                else:
+                    pfx = ''
+                print('%s %s  remainder (%d items)' % (pfx, number(residual), resid_c))
             print('==========')
         if percent:
             print('%5.2f %% %s' % (100, self))
         else:
             print('%s' % self)
 
-    def show_details(self, key=None, **kwargs):
+    def show_details(self, key=None, count=None, threshold=None):
         """
         Sorting by parts is not ideal but it will have to do.
         :param key:
-        :param kwargs:
+        :param count:
+        :param threshold:
         :return:
         """
         self._header()
@@ -944,9 +1026,9 @@ class LciaResult(object):
                         print('\n%s:' % self._LciaScores[e].entity)
                     except TypeError:
                         print('\n%s:' % str(self._LciaScores[e].entity))
-                    self._LciaScores[e].show_detailed_result(**kwargs)
+                    self._LciaScores[e].show_detailed_result(count=count, threshold=threshold)
             else:
-                self._LciaScores[key].show_detailed_result(**kwargs)
+                self._LciaScores[key].show_detailed_result(count=count, threshold=threshold)
         print('%s' % self)
 
     def __add__(self, other):
