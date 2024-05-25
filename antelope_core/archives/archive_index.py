@@ -19,14 +19,37 @@ class AbstractIndex(object):
 
 class BasicIndex(AbstractIndex, BasicArchive):
     _ns_uuid_required = None
+
     def serialize(self, characterizations=False, values=False, domesticate=False):
-        return super(BasicIndex, self).serialize(characterizations=False, values=False, domesticate=False)
+        return super(BasicIndex, self).serialize(characterizations=False, values=False, domesticate=domesticate)
+
+    def write_to_file(self, filename, gzip=True, **kwargs):
+        """
+        created to make gzip=True by default for index archives
+        :param filename:
+        :param gzip:
+        :param kwargs:
+        :return:
+        """
+        return super(BasicIndex, self).write_to_file(filename, gzip=gzip, **kwargs)
 
 
 class LcIndex(AbstractIndex, LcArchive):
     _ns_uuid_required = None
+
     def serialize(self, exchanges=False, characterizations=False, values=False, domesticate=False):
-        return super(LcIndex, self).serialize(exchanges=False, characterizations=False, values=False, domesticate=False)
+        return super(LcIndex, self).serialize(exchanges=False, characterizations=False, values=False,
+                                              domesticate=domesticate)
+
+    def write_to_file(self, filename, gzip=True, **kwargs):
+        """
+        created to make gzip=True by default for index archives
+        :param filename:
+        :param gzip:
+        :param kwargs:
+        :return:
+        """
+        return super(LcIndex, self).write_to_file(filename, gzip=gzip, **kwargs)
 
 
 def index_archive(archive, source, ref=None, signifier='index', force=False, save=True):

@@ -19,6 +19,7 @@ import os
 import json
 from .lc_resource import LcResource, INTERFACE_TYPES
 from antelope import BackgroundRequired
+from shutil import copy2
 
 
 DEFAULT_PRIORITIES = {
@@ -192,3 +193,52 @@ class ResourceLoader(FileAccessor):
         else:
             status = self._load_origin(cat, origin, check, replace=replace)
         return status
+
+
+class ResourceWriter(object):
+
+    def __init__(self, resource, root_dir, origin=None, interface=None, **kwargs):
+        self.res = resource
+        self.fa = FileAccessor(root_dir)
+        if origin is None:
+            self._origin = self.res.origin
+        else:
+            self._origin = origin
+        if interface is None:
+            for k in ('exchange', 'quantity', 'index', 'background'):
+                if k in self.res.interfaces:
+                    interface = k
+                    break
+            if interface is None:
+                raise AttributeError('no interfaces!')
+
+        self.interface = interface
+        self.add_interfaces = [k for k in self.res.interfaces if k != interface]
+        self.write(**kwargs)
+
+    @property
+    def origin(self):
+        return self._origin
+
+    @property
+    def target_path(self):
+        return os.path.join(self.fa.path, self.origin, self.interface, self.res.ds_type)
+
+    @property
+    def target(self):
+        return os.path.join(self.target_path, os.path.basename(self.res.source))
+
+    def write(self, force=False, **kwargs):
+        if os.path.exists(self.target):
+            if not force:
+                raise FileExistsError(self.target)
+        os.makedirs(self.target_path, exist_ok=True)
+        if os.path.exists(self.res.source):
+            copy2(self.res.source, self.target)
+        else:
+            self.res.archive.write_to_file(self.target, domesticate=True)
+        ex_cfg = self.res.init_args
+        ex_cfg.update(kwargs)
+        ex_cfg['config'] = self.res.export_config()
+        self.fa.write_config(self.target, add_interfaces=self.add_interfaces, **ex_cfg)
+        print('written to %s' % self.target)
