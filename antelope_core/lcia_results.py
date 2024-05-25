@@ -687,11 +687,12 @@ class LciaResult(object):
         if isinstance(item, int):
             return
     '''
-    def contrib(self, percent=False):
+    def contrib(self, percent=False, count=None):
         """
         Convert the LCIA result to a result with a unitary value.  If the score is an Aggregated score, it will first
         be aggregated by flow name
         :param percent: [False] if True, the score will add up to 100
+        :param count: [None] number of distinct categories to report (plus remainder)
         :return:
         """
         if percent:
@@ -703,15 +704,35 @@ class LciaResult(object):
 
         norm = self.total()
         contrib = LciaResult(q, scenario=self.scenario)
+        residual = 0.0
+        resid_c = 0
 
         if self.has_summaries:
             for k, c in self._LciaScores.items():
+                if count is not None:
+                    if count <= 0:
+                        residual += c.cumulative_result
+                        resid_c += 1
+                        continue
+                    else:
+                        count -= 1
                 contrib.add_summary(k, c.entity, check, c.cumulative_result / norm)
         else:
             flat = self.flatten()  # this ensures meaningful components
             agg = flat.aggregate(key=str)
             for k, c in agg._LciaScores.items():
+                if count is not None:
+                    if count <= 0:
+                        residual += c.cumulative_result
+                        resid_c += 1
+                        continue
+                    else:
+                        count -= 1
                 contrib.add_summary(k, c.entity, check, c.cumulative_result / norm)
+
+        if residual != 0.0:
+            k = 'remainder (%d items)' % resid_c
+            contrib.add_summary(k, k, check, residual / norm)
 
         if not isclose(check, contrib.total(), rel_tol=1e-6):
             raise ValueError('Total %g does not match target %g !' % (contrib.total(), check))
