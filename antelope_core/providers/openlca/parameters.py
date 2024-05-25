@@ -179,7 +179,7 @@ class OlcaParameterResolver(object):
         _input_param = 'inputParameter'
 
         if v2:
-            _input_param = OLCA_MAPPING['Parameter']['InputParameter']
+            _input_param = OLCA_MAPPING['Parameter'][_input_param]
 
         self._noisy = bool(noisy)
 

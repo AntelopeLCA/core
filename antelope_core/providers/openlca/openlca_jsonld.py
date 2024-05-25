@@ -400,7 +400,11 @@ class OpenLcaJsonLdArchive(LcArchive):
         if is_ref:
             p.set_reference(flow, dirn)
 
-        if 'description' in ex:
+        if 'amountFormula' in ex:
+            exch.comment = ex['amountFormula'].strip()
+            if 'description' in ex:
+                logging.warning('%s:%d skipping description in favor of comment' % (p.external_ref, ex['internalId']))
+        elif 'description' in ex:
             exch.comment = ex['description']
 
         return exch

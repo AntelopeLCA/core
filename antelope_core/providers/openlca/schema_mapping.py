@@ -6,7 +6,7 @@ OLCA_MAPPING = {
     'Flow': {'infrastructureFlow': 'isInfrastructureFlow'},
     'FlowPropertyFactor': {'referenceFlowProperty': 'isRefFlowProperty'},
     'ImpactCategory': {'referenceUnitName': 'refUnit'},
-    'Parameter': {'inputParameter': 'isIputParameter'},
+    'Parameter': {'inputParameter': 'isInputParameter'},
     'Process': {'infrastructureProcess': 'isInfrastructureProcess'},
     'ProcessDocumentation': {'copyright': 'isCopyrightProtected'},
     'ProductSystem': {'referenceExchange': 'refExchange',
