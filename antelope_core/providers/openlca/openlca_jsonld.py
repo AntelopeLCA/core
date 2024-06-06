@@ -150,7 +150,7 @@ class OpenLcaJsonLdArchive(LcArchive):
     def __init__(self, source, prefix=None, skip_index=False, product_system=None, **kwargs):
         super(OpenLcaJsonLdArchive, self).__init__(source, **kwargs)
 
-        self._drop_fields['process'].extend(['processDocumentation'])
+        self._drop_fields['process'].extend(['processDocumentation', 'OlcaParameterEngine'])
 
         self._archive = FileStore(source, internal_prefix=prefix)
 
@@ -360,12 +360,15 @@ class OpenLcaJsonLdArchive(LcArchive):
         try:
             v_unit = self._unit_dict[ex['unit']['@id']]
         except KeyError:
-            logging.warning('%s: %d No unit! using default %s' % (p.external_ref, ex['internalId'], fp.unit))
+            logging.warning('%s: %d: bad unit %s for flow property %s! using default' % (p.external_ref,
+                                                                                         ex['internalId'],
+                                                                                         ex['unit']['name'],
+                                                                                         fp.name))
             v_unit = fp.unit
 
         if v_unit != fp.unit:
             oldval = value
-            value *= fp.convert(from_unit=v_unit)
+            value *= fp.convert(from_unit=v_unit)  # ConversionErrors caught in add_process
 
             self._print('%s: Unit Conversion exch: %g %s to native: %g %s' % (p.uuid, oldval, v_unit, value, fp.unit))
 

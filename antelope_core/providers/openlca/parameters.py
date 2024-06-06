@@ -35,7 +35,12 @@ class NodeCalculator(ast.NodeTransformer):
 
 
 class _Param(object):
+    """
+    Creates a param from a dictionary spec.
+    At this level, the only required dictionary key is 'name'. optional 'unit' can also be overwritten.
+    """
     _mkr = '_#'
+    _unit = None
 
     def __init__(self, param):
         self._param = param
@@ -43,6 +48,22 @@ class _Param(object):
     @property
     def name(self):
         return self._param['name'].strip()
+
+    @property
+    def unit(self):
+        if self._unit:
+            return self._unit
+        return self._param.get('unit')
+
+    @unit.setter
+    def unit(self, value):
+        if self._unit:
+            if value is None:
+                self._unit = None
+            elif str(value) != self._unit:
+                raise ValueError('Unit %s conflicts with existing value %s' % (value, self._unit))
+        else:
+            self._unit = str(value)
 
     @property
     def level(self):
@@ -58,7 +79,8 @@ class _Param(object):
 
 class ParamConstant(_Param):
     """
-    An input
+    An input.  'param' API:
+    dict. keys: 'name', 'value' (a float), 'unit' (an optional string)
     """
     @property
     def _mkr(self):
@@ -101,7 +123,8 @@ class ConditionalParam(object):
 
 class FormulaParser(_Param):
     """
-    give it a parameter spec; it will act as a dynamic calculator
+    give it a parameter spec; it will act as a dynamic calculator.
+    'param' api: dict with keys 'name' (str), 'value' (float), 'formula' (str with elementary operations + groups)
     """
     _mkr = '  '
     _faulty = False
@@ -195,6 +218,24 @@ class OlcaParameterResolver(object):
         self._xp = {x['internalId']: x['amountFormula'] for x in process_json['exchanges'] if x.get('amountFormula')}
         self._xs = {x['internalId']: x['amount'] for x in process_json['exchanges']}
 
+        # try and set units, noting that OLCA schema does not enforce consistency
+        for x in process_json['exchanges']:
+            formula = x.get('amountFormula')
+            if formula:
+                try:
+                    p = self._map[formula]
+                except KeyError:
+                    adhoc = {'name': formula, 'value': x['amount'], 'formula': formula}
+                    p = FormulaParser(self, adhoc)
+                    self._formulas.append(p)
+                    self._map[p.name] = p
+                try:
+                    p.unit = x['unit']['name']
+                except ValueError:
+                    logging.warning('Conflicting units for %s (set: %s, attempted: %s)' % (x['amountFormula'],
+                                                                                           p.unit,
+                                                                                           x['unit']['name']))
+
         self._ordered = []
         self._order_params()
 
@@ -265,6 +306,9 @@ class OlcaParameterResolver(object):
     def __getitem__(self, item):
         return self._map[item.strip()]
 
+    def __contains__(self, item):
+        return self._map.__contains__(item)
+
     def set_value(self, key, value):
         param = self._map[key]
         if param in self._inputs:
@@ -306,3 +350,12 @@ class OlcaParameterResolver(object):
             return self.value(self._xp[internal_id])
         except KeyError:
             return self._xs[internal_id]
+
+    def param_unit(self, param):
+        """
+        This is inaccurate because the same param can be used for multiple exchanges regardless of their flow
+        property. This will only capture the units applied to ONE USE of the parameter name (nondeterministically)
+        :param param:
+        :return:
+        """
+        return self._map[param].unit
