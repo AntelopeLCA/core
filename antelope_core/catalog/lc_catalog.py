@@ -393,14 +393,20 @@ class LcCatalog(StaticCatalog):
                 rtn.append(r)
         return rtn
 
-    def refresh_xdb_tokens(self, origin):
+    def refresh_xdb_tokens(self, origin=None):
         """
         requires an active blackbook client (try blackbook_authenticate() if it has expired)
         :param origin:
         :return:
         """
-        tok = self._blackbook_client.get_one(str, 'origins', origin, 'token')
         rtn = []
+        if origin is None:
+            for r in self.resources(loaded=True):
+                if r.ds_type == 'XdbClient':
+                    rtn.extend(self.refresh_xdb_tokens(r.origin))
+            return rtn
+
+        tok = self._blackbook_client.get_one(str, 'origins', origin, 'token')
         for res in self._resolver.resources:
             if res.origin == origin:  # and hasattr(res.archive, 'r'):
                 res.init_args['token'] = tok
@@ -497,7 +503,7 @@ class LcCatalog(StaticCatalog):
         :param origin:
         :param interface: [None]
         :param source: find_single_source input
-        :param priority: [15] priority setting for the new index
+        :param priority: [60] priority setting for the new index -- authentic source is highest
         :param save: [True] whether to save the index
         :param force: [False] if True, overwrite existing index
         :param strict: [True] whether to be strict

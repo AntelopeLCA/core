@@ -301,7 +301,7 @@ class XlsxUpdater(object):
             if refunit is not None:
                 try:
                     value *= convert(rq, to=refunit)
-                except KeyError as e:
+                except ConversionError as e:
                     print('flowproperties|row: %d ref unit %s' % (row+1, e.args))
                     continue
 

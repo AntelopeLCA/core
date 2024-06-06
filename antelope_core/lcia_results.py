@@ -708,7 +708,7 @@ class LciaResult(object):
         resid_c = 0
 
         if self.has_summaries:
-            for k, c in self._LciaScores.items():
+            for k, c in sorted(self._LciaScores.items(), key=lambda x: x[1].cumulative_result, reverse=True):
                 if count is not None:
                     if count <= 0:
                         residual += c.cumulative_result
@@ -720,7 +720,7 @@ class LciaResult(object):
         else:
             flat = self.flatten()  # this ensures meaningful components
             agg = flat.aggregate(key=str)
-            for k, c in agg._LciaScores.items():
+            for k, c in sorted(agg._LciaScores.items(), key=lambda x: x[1].cumulative_result, reverse=True):
                 if count is not None:
                     if count <= 0:
                         residual += c.cumulative_result
