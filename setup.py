@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.2.5'
+VERSION = '0.2.6'
 
 requires = [
     "synonym_dict>=0.2.4",
-    "antelope_interface>=0.2.5",
+    "antelope_interface>=0.2.6.1",
     "xlstools>=0.1.3",
     "python-magic>=0.4.18",
     "requests>=2.25",
@@ -14,6 +14,8 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.2.6   2024-06-06 - ItemNotFound added to interface
+
 0.2.5   2024-05-06 - move bg_lcia() into basic interface; sys_lcia() as fully-featured background analogue
 
 0.2.4.1 2024-04-24 - implement pagination in BasicArchive search
