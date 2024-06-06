@@ -1,3 +1,4 @@
+from antelope import ItemNotFound
 
 from .. import LcCatalog
 from ...lc_resource import LcResource
@@ -198,7 +199,7 @@ class LcCatalogPriority(unittest.TestCase):
 
     def test_fallthrough(self):
         cat = LcCatalog(self.tmp)
-        with self.assertRaises(KeyError):
+        with self.assertRaises(ItemNotFound):
             cat.query(uslci_fg.origin).get_item(baux, 'doozie')
         ar = cat.get_archive(uslci_fg.origin, 'exchange')
         p = ar.retrieve_or_fetch_entity(baux)

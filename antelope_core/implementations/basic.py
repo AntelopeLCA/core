@@ -1,4 +1,4 @@
-from antelope import EntityNotFound, NoAccessToEntity, NullEntity
+from antelope import EntityNotFound, NoAccessToEntity, NullEntity, ItemNotFound
 
 
 class BasicImplementation(object):
@@ -81,9 +81,9 @@ class BasicImplementation(object):
         if entity.has_property(item):
             obj = entity[item]
             if obj is None:
-                raise KeyError
+                raise ItemNotFound
             return obj
-        raise KeyError('%s: %s [%s]' % (self.origin, external_ref, item))
+        raise ItemNotFound('%s: %s [%s]' % (self.origin, external_ref, item))
         # raise EntityNotFound(external_ref)
 
     def get_reference(self, key):
