@@ -357,13 +357,16 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         fp = self.retrieve_or_fetch_entity(ex['flowProperty']['@id'], typ='flow_properties')
 
-        try:
-            v_unit = self._unit_dict[ex['unit']['@id']]
-        except KeyError:
-            logging.warning('%s: %d: bad unit %s for flow property %s! using default' % (p.external_ref,
-                                                                                         ex['internalId'],
-                                                                                         ex['unit']['name'],
-                                                                                         fp.name))
+        if 'unit' in ex:
+            try:
+                v_unit = self._unit_dict[ex['unit']['@id']]
+            except KeyError:
+                logging.warning('%s: %d: bad unit %s for flow property %s! using default' % (p.external_ref,
+                                                                                             ex['internalId'],
+                                                                                             ex['unit']['name'],
+                                                                                             fp.name))
+                v_unit = fp.unit
+        else:
             v_unit = fp.unit
 
         if v_unit != fp.unit:
@@ -564,9 +567,9 @@ class OpenLcaJsonLdArchive(LcArchive):
             val = param_engine.exchange_value(ex['internalId'])
             try:
                 self._add_exchange(p, ex, val)
-            except KeyError:
+            except KeyError as e:
                 ex_id = ex.get('internalId', -1)
-                logging.error('%s: failed to add mal-formed exchange with ID %d' % (p.uuid, ex_id))
+                logging.error('%s: failed to add mal-formed exchange with ID %d: {%s}' % (p.uuid, ex_id, e.args[0]))
                 broken_exch.append(ex)
             except ConversionError:
                 ex_id = ex.get('internalId', -1)
