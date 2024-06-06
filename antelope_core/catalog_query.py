@@ -146,15 +146,21 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
     def _iface(self, itype, strict=False):
         if self._catalog is None:
             raise NoCatalog
+        returned = set()
         if itype in self._iface_cache:
             self._debug('Returning cached iface')
-            yield self._iface_cache[itype]
+            i = self._iface_cache[itype]
+            yield i
+            returned.add(i._archive)
         for i in self._catalog.gen_interfaces(self._origin, itype, strict=strict):
+            if i._archive in returned:
+                continue
             if itype == 'background':  # all our background implementations must provide setup_bm(query)
                 self._setup_background(i)
 
             self._debug('yielding %s' % i)
-            self._iface_cache[itype] = i  # only cache the most recent iface
+            if itype not in self._iface_cache:
+                self._iface_cache[itype] = i  # only cache the first iface
             yield i
 
     def _perform_query(self, itype, attrname, exc, *args, strict=False, **kwargs):
@@ -170,8 +176,11 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                     self._debug('Attempting %s query on iface %s' % (attrname, iface))
                     result = getattr(iface, attrname)(*args, **kwargs)
                     message = '(%s) %s' % (itype, attrname)  # implementation found
-                except exc:  # allow nonimplementations to pass silently
+                except exc:  
                     message = '(%s) %s except %s' % (itype, attrname, exc.__name__)
+                    continue
+                except NotImplementedError:  # allow nonimplementations to pass silently
+                    message = '(%s) %s not implemented' % (itype, attrname)
                     continue
                 if result is None:  # successful query must return something
                     message = '(%s) %s null' % (itype, attrname)
@@ -182,8 +191,8 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                                 props.append(k)
                     else:
                         return result
-        except NotImplementedError:
-            pass
+        except AttributeError:
+            message = '(%s) Attribute error %s' % (itype, attrname)
         if len(props) > 0:
             return props
 
