@@ -130,6 +130,12 @@ class FileAccessor(object):
 
         return LcResource(org, source, ds_type, interfaces=tuple(ifaces), priority=priority, **cfg)
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        return
+
 
 class ResourceLoader(FileAccessor):
     """
@@ -237,8 +243,7 @@ class ResourceWriter(object):
             copy2(self.res.source, self.target)
         else:
             self.res.archive.write_to_file(self.target, domesticate=True)
-        ex_cfg = self.res.init_args
+        ex_cfg = self.res.serialize(stripped=True)
         ex_cfg.update(kwargs)
-        ex_cfg['config'] = self.res.export_config()
         self.fa.write_config(self.target, add_interfaces=self.add_interfaces, **ex_cfg)
         print('written to %s' % self.target)

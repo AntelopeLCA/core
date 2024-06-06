@@ -431,9 +431,9 @@ class LcResource(object):
                 "priority": self.priority,
                 "static": self.static
             }
+            if self.internal:
+                j['_internal'] = True
         j.update(self._args)
-        if self.internal:
-            j['_internal'] = True
         j['config'] = self._serialize_config()
         return j
 
