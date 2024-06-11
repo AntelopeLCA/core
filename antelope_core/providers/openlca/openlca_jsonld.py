@@ -161,9 +161,17 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         self._defined_ps = None
         if product_system:
-            if product_system in self.product_systems:
-                psj = self._create_object('product_systems', product_system)
-                self._defined_ps = OlcaProductSystemInterpreter(psj)
+            self.select_product_system(product_system)
+
+    def select_product_system(self, product_system):
+        if self._loaded:
+            raise OpenLcaException('Database is already loaded!')
+        if self._type_index[product_system] == 'product_systems':
+            psj = self._create_object('product_systems', product_system)
+            self._defined_ps = OlcaProductSystemInterpreter(psj)
+        else:
+            raise TypeError('product system %s not found' % product_system)
+
 
     @property
     def defined(self):
@@ -234,9 +242,8 @@ class OpenLcaJsonLdArchive(LcArchive):
 
     @property
     def product_systems(self):
-        for k, v in self._type_index.items():
-            if v == 'product_systems':
-                yield k
+        return {k: self._create_object('product_systems', k).get('name')
+                for k, v in self._type_index.items() if v == 'product_systems'}
 
     @property
     def openlca_categories(self):
