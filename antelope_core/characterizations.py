@@ -231,17 +231,19 @@ class Characterization(object):
 
     def __eq__(self, other):
         """
-        Returns true if all of other's location-specific values equal self's values for the same location
+        returns True if the hash elements are all the same
+        # This is clearly broken
+        # Returns true if all of other's location-specific values equal self's values for the same location
         :param other:
         :return:
         """
         if other is None:
             return False
-        if ((self.flowable == other.flowable) &
-                (self.quantity == other.quantity)):
-            if all(self[l] == other[l] for l in other.locations):
-                return True
-        return False
+        try:
+            return ((self.flowable == other.flowable) & (self.quantity == other.quantity) &
+                    (self.ref_quantity == other.ref_quantity) & (self.context == other.context))
+        except AttributeError:
+            return False
 
     def __str__(self):
         if self.is_null:

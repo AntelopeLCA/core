@@ -345,19 +345,14 @@ class TermManager(object):
             self._fq_map[fb] = set()
         return fb
 
-    def _merge_terms(self, dominant, *syns):
+    def _check_merge_conflicts(self, dominant, *syns):
         """
-        Two parts to this: merge the entries in the flowables manager; update local reverse mappings:
-         _q_dict [maps canonical quantities to a map of canonical flowables to CLookups]
-         _fq_map (nonconflicting) maps flowable to quantities characterized by that flowable
-         _flow_map (nonconflicting) maps flowable to flows having that flowable
-        Before we can do either, we need to check for collisions
         This just brute forces it which must be ungodly slow, and btw it also hasn't been tested
 
-        the second two are nonconflicting- we just union the sets when we merge the flowables. The first one will
-        raise a conflict if the two flowables are characterized differently by any one quantity
-        :param dominant: MUST BE [canonical] flowables (already stored in _fm)
-        :param syns: MUST BE [canonical] flowables (already stored in _fm)
+        Inputs must all be canonical _fm entries
+
+        :param dominant:
+        :param syns:
         :return:
         """
         fq_conflicts = []
@@ -380,6 +375,22 @@ class TermManager(object):
         if len(fq_conflicts) > 0:
             print('%d Merge conflicts encountered' % len(fq_conflicts))
             raise FactorConflict(fq_conflicts)
+
+    def _merge_terms(self, dominant, *syns):
+        """
+        Two parts to this: merge the entries in the flowables manager; update local reverse mappings:
+         _q_dict [maps canonical quantities to a map of canonical flowables to CLookups]
+         _fq_map (nonconflicting) maps flowable to quantities characterized by that flowable
+         _flow_map (nonconflicting) maps flowable to flows having that flowable
+        Before we can do either, we need to check for collisions
+
+        the second two are nonconflicting- we just union the sets when we merge the flowables. The first one will
+        raise a conflict if the two flowables are characterized differently by any one quantity
+        :param dominant: MUST BE [canonical] flowables (already stored in _fm)
+        :param syns: MUST BE [canonical] flowables (already stored in _fm)
+        :return:
+        """
+        self._check_merge_conflicts(dominant, *syns)
 
         for qq, f_dict in self._q_dict.items():
             # once we are sure there are no conflicts, we perform the actual merge
@@ -597,7 +608,7 @@ class TermManager(object):
         else:
             if cf.ref_quantity != rq:
                 try:
-                    return self._create_conversion_cf(cf)
+                    return self._create_conversion_cf(cf, rq, cx, origin, location, value, overwrite=overwrite)
                 except DuplicateCharacterizationError as e:
                     print((qq.link, fb, cx.as_list(), origin, flowable, location))
                     print('recursing to %s %s' % (cf.ref_quantity.name, cf.ref_quantity.uuid))

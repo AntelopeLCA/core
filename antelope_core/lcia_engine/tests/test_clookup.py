@@ -20,7 +20,6 @@ cx_rg = Context('from ground', parent=cx_r)
 
 cf = Characterization.from_flow(f1, q2, context=cx_air, value=47)
 cfo = Characterization.from_flow(f1d, q2, context=cx_air, value=92, origin='dummy')
-cfd = Characterization.from_flow(f1d, q2, context=cx_air, value=84)
 cfua = Characterization.from_flow(f1, q2, context=cx_ua, value=58)
 cfra = Characterization.from_flow(f1, q2, context=cx_ra, value=51)
 
@@ -43,12 +42,24 @@ class SingleCfTest(unittest.TestCase):
         with self.assertRaises(DuplicateOrigin):
             g.add(cfd)
         '''
+        cfd = Characterization.from_flow(f1d, q2, context=cx_air, value=84)
+
         with self.assertRaises(FactorCollision):
             gs.add(cfd)
         g.add(cfd)
         g.add(cfo)
         with self.assertRaises(FactorCollision):
             gs.add(cfo)
+
+    def test_locales(self):
+        cfd = Characterization.from_flow(f1d, q2, context=cx_air, value=84)
+        cfd_us = Characterization.from_flow(f1d, q2, context=cx_air, value=96, location='US')
+        g = CLookup()
+        g.add(cfd)
+        g.add(cfd_us)
+
+        self.assertEqual(len(g.find(cf.context)), 1)
+        self.assertEqual(g.find(cf.context)[0]['US'], cfd_us.value)
 
     def test_quantity_mismatch(self):
         g = CLookup()

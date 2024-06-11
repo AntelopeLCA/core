@@ -2,7 +2,7 @@ import logging
 from collections import defaultdict
 import os
 
-from ..archives.term_manager import TermManager, NoFQEntry, DuplicateCharacterization
+from ..archives.term_manager import TermManager, NoFQEntry, DuplicateCharacterization, FactorConflict
 from ..contexts import Context, NullContext
 from .clookup import CLookup, SCLookup, FactorCollision
 
@@ -363,7 +363,7 @@ class LciaEngine(TermManager):
                 if rq != ex_cf.ref_quantity:
                     for loc in cf.locations:
                         cf = self._create_conversion_cf(ex_cf, rq, cx, qq.origin, loc, cf[loc], overwrite=False)
-                        logging.info('Created unit-conversion CF\n%s' % cf)
+                        logging.warning('Created unit-conversion CF\n%s' % cf)
                 else:
                     logging.warning('FactorCollision for %s into %s: %g != %g' % (fb, cx, cf.value, ex_cf.value))
                     self._dupes.append(DuplicateCharacterization(qq.link, fb, cx.as_list(), qq.origin, cf.flowable, None))
@@ -425,6 +425,38 @@ class LciaEngine(TermManager):
 
         super(LciaEngine, self)._qassign(qq, fb, new_cf, context)
         self._origins.add(new_cf.origin)
+
+    def _check_merge_conflicts(self, dominant, *syns):
+        """
+        This just brute forces it which must be ungodly slow, and btw it also hasn't been tested
+
+        Inputs must all be canonical _fm entries
+
+        :param dominant:
+        :param syns:
+        :return:
+        """
+        fq_conflicts = []
+        for f_dict in self._q_dict.values():
+            try:
+                combo = f_dict[dominant]
+            except KeyError:
+                combo = self._cl_typ()
+            for syn in syns:
+                if syn not in f_dict:
+                    continue
+                cl = f_dict[syn]
+                for k in cl.keys():  # of course, we have to check all contexts
+                    if k in combo:
+                        cand = ({c.value for c in combo[k]},
+                                {c.value for c in cl[k]})
+                        if cand[0] == cand[1]:
+                            continue
+                        fq_conflicts.append(cand)  # but it's really only a conflict if the cf values differ
+
+        if len(fq_conflicts) > 0:
+            print('%d Merge conflicts encountered' % len(fq_conflicts))
+            raise FactorConflict(fq_conflicts)
 
     def merge_flowables(self, dominant, *syns):
         """

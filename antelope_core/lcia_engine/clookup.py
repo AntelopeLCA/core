@@ -25,6 +25,7 @@ that applied to a given query-- that graph database would replace the current Te
 its hood. But first we will learn to walk...
 """
 from ..contexts import Context, NullContext
+from ..characterizations import DuplicateCharacterizationError
 
 
 class QuantityMismatch(Exception):
@@ -61,7 +62,7 @@ class CLookup(object):
             raise TypeError('Supplied CLookup key is not a Context: %s (%s)' % (item, type(item)))
         if item in self._dict:
             return self._dict[item]
-        return set()
+        return []
 
     def __contains__(self, item):
         return item in self._dict
@@ -79,12 +80,20 @@ class CLookup(object):
         if isinstance(key, Context):
             self._check_qty(value)
             if key not in self._dict:
-                self._dict[key] = set()
+                self._dict[key] = []
             '''
             if any(k.origin == value.origin for k in self._dict[key]):
                 raise DuplicateOrigin(value.origin)
             '''
-            self._dict[key].add(value)
+            if value in self._dict[key]:
+                try:
+                    exis = next(v for v in self._dict[key] if hash(v) == hash(value))
+                    for l in value.locations:
+                        exis[l] = value[l]
+                except DuplicateCharacterizationError:
+                    self._dict[key].append(value)
+            else:
+                self._dict[key].append(value)
         else:
             raise ValueError('Context is not valid: %s (%s)' % (key, type(key)))
 
@@ -195,7 +204,7 @@ class SCLookup(CLookup):
         if key is None:
             key = value.context
         if key in self._dict and len(self._dict[key]) > 0:
-            existing = list(self._dict[key])[0]
+            existing = self._dict[key][0]
             if existing.value == value.value:
                 return
             print('Collision with context: %s' % repr(key))

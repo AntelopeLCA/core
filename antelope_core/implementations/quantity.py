@@ -202,7 +202,7 @@ class QuantityConversion(object):
 
 
 class QuantityConversionError(object):
-    def __init__(self, qrresult, ref_quantity):
+    def __init__(self, qrresult: QuantityConversion, ref_quantity):
         self._qrr = qrresult
         self._ref = ref_quantity
 
@@ -233,6 +233,14 @@ class QuantityConversionError(object):
     @property
     def value(self):
         return None
+
+    def repair(self, flow):
+        cf = flow.cf(self._qrr.ref)
+        if cf == 0:
+            raise NoFactorsFound
+        self._qrr.add_result(QRResult(flow.name, flow.reference_entity, self._qrr.ref, flow.context, flow.locale,
+                                      flow.origin, cf))
+        return self._qrr
 
     def __repr__(self):
         return '%s(%s; %s %s =X=> %s)' % (self.__class__.__name__, self.flowable, self.context, self._qrr.ref, self._ref)
@@ -274,7 +282,11 @@ def do_lcia(quantity, inventory, locale=None, group=None, dist=2, **kwargs):
             else:
                 res.add_score(group(x), x, qrr)
         elif isinstance(qrr, QuantityConversionError):
-            res.add_error(x, qrr)
+            try:  # if it's down to a unit conversion, our flow could repair it
+                repd = qrr.repair(x.flow)
+                res.add_score(group(x), x, repd)
+            except (NoFactorsFound, ConversionReferenceMismatch):
+                res.add_error(x, qrr)
         elif isinstance(qrr, QuelledCO2):
             res.add_zero(x)
         elif qrr is None:
@@ -501,7 +513,21 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 return qr_results, qr_geog, qr_mismatch
 
         for cf in self._archive.tm.factors_for_flowable(fb, quantity=qq, context=cx, **kwargs):
-            res = QuantityConversion(cf.query(locale), query=qq, context=cx)
+            try:
+                qrr = cf.query(locale)
+            except LocaleMismatch as e:
+                loc = e.args[1][0]
+                res = QuantityConversion(cf.query(loc), query=qq, context=cx)
+                if res.value == 0:
+                    qr_geog.append(res)
+                    continue
+                try:
+                    qr_geog.append(self._ref_qty_conversion(rq, fb, cx, res, loc))
+                    continue
+                except ConversionReferenceMismatch:
+                    # conversion error after geog error-- just ditch it
+                    continue
+            res = QuantityConversion(qrr, query=qq, context=cx)
             if res.value == 0:  # no unit conversion will change this
                 qr_results.append(res)
                 continue
@@ -510,7 +536,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
             except ConversionReferenceMismatch:
                 qr_mismatch.append(QuantityConversionError(res, rq))
             except LocaleMismatch as e:
-                locales = e.args[0]
+                locales = e.args[1]
                 for loc in locales:
                     qr_geog.append(self._ref_qty_conversion(rq, fb, cx, res, loc))
 
