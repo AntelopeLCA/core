@@ -92,7 +92,7 @@ class FragmentFlow(object):
 
         generate FragmentFlows of the process's intermediate exchanges.  the ensuing list should be suitable to feed
         directly into frag_flow_lcia() to generate a contribution analysis
-        :param query: used to
+        :param query: only requires .get(), so an implementation will work fine
         :param process:
         :param ref_flow:
         :param elementary: [False] if True, also generate FFs for elementary exchanges (these will otherwise get
@@ -101,14 +101,14 @@ class FragmentFlow(object):
         :return:
         """
         rx = process.reference(ref_flow)
-        parent = Fragment(process.external_ref, rx.flow, comp_dir(rx.direction), anchor=process,
+        parent = Fragment(process.external_ref, rx.flow, comp_dir(rx.direction),
                           exchange_value=1.0, observe=True)
-        node = parent.observe_anchor(None, process)
+        node = parent.observe_anchor(None, process, anchor_flow=rx.flow)
         ff = [cls(parent, 1.0, 1.0, node, False)]
         for ex in process.ad(ref_flow):  # returns exchangevalues
             n = query.get(ex.termination)
             cf = Fragment(n.external_ref, ex.flow, ex.direction, exchange_value=ex.value, observe=True,
-                          parent=parent, anchor=n)
+                          parent=parent, anchor=n, anchor_flow=ex.flow)
 
             ff.append(cls(cf, ex.value, ex.value, cf.anch, False))
         if exterior:

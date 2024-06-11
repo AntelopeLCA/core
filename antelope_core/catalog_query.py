@@ -17,6 +17,8 @@ from .lcia_results import LciaResult, MixedComponents
 from .characterizations import QRResult, Characterization
 from .contexts import NullContext
 
+from .fragment_flows import FragmentFlow, frag_flow_lcia
+
 from synonym_dict import InconsistentLineage
 
 INTERFACE_TYPES = ('basic', 'index', 'exchange', 'background', 'quantity', 'foreground')
@@ -486,6 +488,13 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                 return self._result_from_model(process_ref=process, quantity=query_qty, res_m=ress)
             else:
                 return ress
+
+    def contrib_lcia(self, process, quantity=None, ref_flow=None, **kwargs):
+        p = self.get(process)
+        r = p.reference(ref_flow)
+        ffs = FragmentFlow.from_process_inventory(self, p, r.flow, **kwargs)
+        res = frag_flow_lcia(ffs, quantity)
+        return res.contrib()
 
     def sys_lcia(self, process, query_qty, observed=None, ref_flow=None, **kwargs):
         """
