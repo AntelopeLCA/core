@@ -107,6 +107,7 @@ class IndexImplementation(BasicImplementation, IndexInterface):
     def contexts(self, **kwargs):
         return self._archive.tm.contexts(**kwargs)
 
+    '''
     def get_context(self, term, **kwargs):
         """
         I think this needs to be moved into the quantity interface
@@ -118,6 +119,7 @@ class IndexImplementation(BasicImplementation, IndexInterface):
         if cx is None:
             return NullContext
         return cx
+    '''
 
     '''
     def mix(self, flow_ref, direction):

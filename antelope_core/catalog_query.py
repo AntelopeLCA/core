@@ -8,6 +8,7 @@ from antelope import (BasicInterface, IndexInterface, BackgroundInterface, Excha
 #                      IndexRequired, PropertyExists,
 #                      )
 from antelope.refs.exchange_ref import RxRef
+from .contexts import NullContext
 
 INTERFACE_TYPES = ('basic', 'index', 'exchange', 'background', 'quantity', 'foreground')
 READONLY_INTERFACE_TYPES = {'basic', 'index', 'exchange', 'background', 'quantity'}
@@ -152,8 +153,10 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
 
         self._debug('Performing %s query, origin %s, iface %s' % (attrname, self.origin, itype))
         message = 'itype %s required for attribute %s' % (itype, attrname)
+        run = 0
         try:
             for iface in self._iface(itype, strict=strict):
+                run += 1
                 try:
                     self._debug('Attempting %s query on iface %s' % (attrname, iface))
                     result = getattr(iface, attrname)(*args, **kwargs)
@@ -162,6 +165,9 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                     continue
                 if result is not None:  # successful query must return something
                     return result
+            if attrname == 'get_context':
+                if run > 0:
+                    return NullContext
         except NotImplementedError:
             pass
 
