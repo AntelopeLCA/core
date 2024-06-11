@@ -170,8 +170,10 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         self._debug('Performing %s query, origin %s, iface %s' % (attrname, self.origin, itype))
         message = 'itype %s required for attribute %s' % (itype, attrname)
         props = []
+        run = 0
         try:
             for iface in self._iface(itype, strict=strict):
+                run += 1
                 try:
                     self._debug('Attempting %s query on iface %s' % (attrname, iface))
                     result = getattr(iface, attrname)(*args, **kwargs)
@@ -191,6 +193,10 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                                 props.append(k)
                     else:
                         return result
+            if attrname == 'get_context':
+                if run:
+                    return NullContext
+
         except AttributeError:
             message = '(%s) Attribute error %s' % (itype, attrname)
         if len(props) > 0:

@@ -145,6 +145,15 @@ class BasicImplementation(object):
                 return e
         raise EntityNotFound(external_ref)
 
+    def get_context(self, term, **kwargs):
+        """
+        I think this needs to be moved into the quantity interface
+        :param term:
+        :param kwargs:
+        :return:
+        """
+        return self._archive.tm[term]
+
     def is_lcia_engine(self, **kwargs):
         """
         suggests expansion to a graph-based TM
