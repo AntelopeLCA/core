@@ -531,6 +531,17 @@ class LciaResult(object):
      so is (theoretically) dynamic. This is not yet useful in practice.  LCIA Results are in sharp need of testing /
      refactoring.
     """
+
+    _type = None
+
+    def _check_type(self, t):
+        if self._type is None:
+            self._type = t
+            return
+        if t != self._type:
+            self.show_components()
+            raise MixedComponents(self._type, t)
+
     def __init__(self, quantity, scenario=None, private=False, scale=1.0, autorange=False):
         """
         If private, the LciaResult will not return any unaggregated results
@@ -757,9 +768,7 @@ class LciaResult(object):
         return _neg, _pos
 
     def add_component(self, key, entity=None):
-        if any(isinstance(c, SummaryLciaResult) for c in self._LciaScores.values()):
-            self.show_components()
-            raise MixedComponents(key, entity)
+        self._check_type('component')
         if entity is None:
             entity = key
         if key not in self._LciaScores.keys():
@@ -775,9 +784,7 @@ class LciaResult(object):
         self._LciaScores[key].add_detailed_result(exchange, qrresult)
 
     def add_summary(self, key, entity, node_weight, unit_score):
-        if any(isinstance(c, AggregateLciaScore) for c in self._LciaScores.values()):
-            self.show_components()
-            raise MixedComponents
+        self._check_type('summary')
         summary = SummaryLciaResult(self, entity, node_weight, unit_score)
         if key in self._LciaScores.keys():
             # raise DuplicateResult('Key %s is already present' % key)
