@@ -172,7 +172,7 @@ class LciaEngine(TermManager):
             elif hint_type == 'flowable':
                 print('Applying flowable hint %s -> %s' % (term, canonical))
                 try:
-                    self._fm.add_synonym(canonical, term)
+                    self.add_terms('flowable', canonical, term)
                 except TermExists:
                     assert self._fm[canonical] == self._fm[term]
             else:

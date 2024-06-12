@@ -240,6 +240,7 @@ class QuantityConversionError(object):
             raise NoFactorsFound
         self._qrr.add_result(QRResult(flow.name, flow.reference_entity, self._qrr.ref, flow.context, flow.locale,
                                       flow.origin, cf))
+        flow.see_chars(self.query, flow.context, [self._qrr])
         return self._qrr
 
     def __repr__(self):
