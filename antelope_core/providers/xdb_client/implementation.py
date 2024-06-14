@@ -218,6 +218,20 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
             return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(UnallocatedExchange, _ref(node),
                                                                                 'inventory'))
 
+    def exchange_relation(self, process, ref_flow, exch_flow, direction, termination=None, **kwargs):
+        if direction is None:
+            if ref_flow is None:
+                return self._archive.r.get_one(float, 'exchange_relation', _ref(process), _ref(exch_flow))
+            else:
+                return self._archive.r.get_one(float, 'exchange_relation', _ref(process), _ref(ref_flow),
+                                               _ref(exch_flow))
+        else:
+            if ref_flow is None:
+                return self._archive.r.get_one(float, 'exchange_relation', _ref(process), _ref(exch_flow), direction)
+            else:
+                return self._archive.r.get_one(float, 'exchange_relation', _ref(process), _ref(ref_flow),
+                                               _ref(exch_flow), direction)
+
     def dependencies(self, process, ref_flow=None, **kwargs):
         if ref_flow:
             # process inventory

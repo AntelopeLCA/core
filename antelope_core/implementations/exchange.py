@@ -2,6 +2,13 @@ from antelope import ExchangeInterface, EntityNotFound
 from .basic import BasicImplementation
 
 
+class MixedDirections(Exception):
+    """
+    When exchange_relation is called without a direction but the process has mixed directions
+    """
+    pass
+
+
 class ExchangeImplementation(BasicImplementation, ExchangeInterface):
     """
     This provides access to detailed exchange values and computes the exchange relation.
@@ -50,7 +57,7 @@ class ExchangeImplementation(BasicImplementation, ExchangeInterface):
         :param process:
         :param ref_flow:
         :param exch_flow:
-        :param direction:
+        :param direction: can be None; however, if the process has mixed directions this will raise an error
         :param termination:
         :return:
         """
@@ -58,6 +65,10 @@ class ExchangeImplementation(BasicImplementation, ExchangeInterface):
         norm = p.reference(ref_flow)
         if termination is None:
             xs = [x for x in p.exchange_values(flow=exch_flow, direction=direction)]
+            dtest = set(x.direction for x in xs)
+            if len(dtest) > 1:
+                raise MixedDirections
+
             '''
             if len(xs) == 1:
                 return xs[0][norm]
