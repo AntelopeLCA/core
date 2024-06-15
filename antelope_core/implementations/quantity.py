@@ -286,7 +286,7 @@ def do_lcia(quantity, inventory, locale=None, group=None, dist=2, **kwargs):
             try:  # if it's down to a unit conversion, our flow could repair it
                 repd = qrr.repair(x.flow)
                 res.add_score(group(x), x, repd)
-            except (NoFactorsFound, ConversionReferenceMismatch):
+            except (NoFactorsFound, ConversionReferenceMismatch, QuantityRequired):
                 res.add_error(x, qrr)
         elif isinstance(qrr, QuelledCO2):
             res.add_zero(x)
