@@ -277,7 +277,7 @@ def do_lcia(quantity, inventory, locale=None, group=None, dist=2, **kwargs):
         elif xt == 'self':
             continue
         qrr = x.flow.lookup_cf(quantity, x.termination, locale, dist=dist, **kwargs)
-        if isinstance(qrr, QuantityConversion):
+        if isinstance(qrr, QuantityConversion) or isinstance(qrr, QRResult):
             if qrr.value == 0:
                 res.add_zero(x)
             else:
@@ -293,7 +293,7 @@ def do_lcia(quantity, inventory, locale=None, group=None, dist=2, **kwargs):
         elif qrr is None:
             res.add_cutoff(x)
         else:
-            raise TypeError('Unknown qrr type %s' % qrr)
+            raise TypeError('Unknown qrr type %s' % (qrr,))
     e = len(list(res.errors()))
     if e:
         print('%s: %d CF errors encountered' % (quantity, e))
@@ -383,7 +383,8 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
             elif hasattr(quantity, 'entity_type') and quantity.entity_type == 'quantity':
                 # this is reimplementing CatalogQuery.get_canonical() -> catalog.register_entity_ref()
                 if quantity.is_entity:
-                    raise TypeError('Supplied argument is an entity')
+                    print('Warning: %s: adding non-ref entity %s to foreign origin' % (self.origin, quantity.link))
+                    # raise TypeError('%s: Supplied argument is an entity: %s' % (self.origin, quantity.link))
                 self._archive.add(quantity)
                 return self._archive.tm.get_canonical(quantity)
             else:
