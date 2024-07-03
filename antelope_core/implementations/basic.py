@@ -145,7 +145,11 @@ class BasicImplementation(object):
         :param kwargs:
         :return:
         """
-        return self._archive.tm[term]
+        cx = self._archive.tm[term]
+        if cx is not None:
+            if cx.fullname == cx.name:
+                cx.add_origin(self.origin)
+        return cx
 
     def is_lcia_engine(self, **kwargs):
         """
