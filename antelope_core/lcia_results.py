@@ -338,7 +338,7 @@ class SummaryLciaResult(object):
                     unit_score = self._static_value + other.unit_score
                 else:
                     # in conflicts, prefer unit node weights if they exist (i.e. in aggregations)
-                    if 0:  # self.node_weight == 1.0 or other.node_weight == 1.0:
+                    if self.node_weight == 1.0 or other.node_weight == 1.0:  # we still need this for grouping by stage
                         _node_weight = 1.0
                         unit_score = self.cumulative_result + other.cumulative_result
                     else:
