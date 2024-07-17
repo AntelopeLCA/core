@@ -956,14 +956,16 @@ class TermManager(object):
     section should include flowables, contexts, and characterizations, but only the minimal ones required to cover the
     specified quantities.
     
+    The serialized CFs should include ONLY CFs whose QUANTITY is owned by the SPECIFIED ORIGIN.
+    
     Then de-serialization is straightforward: after quantities are loaded, simply apply all flowables, contexts, and
     then characterizations- flows not required!
     '''
-    def _serialize_qdict(self, origin, quantity, values=False):
+    def _serialize_qdict(self, quantity, values=False):
         _ql = self._qaccess(quantity)
         d = {}
         for fb, cl in _ql.items():
-            _od = {str(c): cf.serialize(values=values, concise=True) for c, cf in cl.items() if cf.origin == origin}
+            _od = {str(c): cf.serialize(values=values, concise=True) for c, cf in cl.items()}
             if len(_od) > 0:
                 d[str(fb)] = _od
         return d
@@ -975,7 +977,7 @@ class TermManager(object):
 
         in LciaEngine We [may] need a way to record the original flowable + context names, so that origin-specific
         serialization stays closed.
-        :param origin:
+        :param origin: this is NEVER called with origin=None (i.e. ONLY the single-origin case actually occurs)
         :param quantities:
         :param values:
         :return:
@@ -986,7 +988,9 @@ class TermManager(object):
             qqs = [self._canonical_q(q) for q in quantities]
         j = dict()
         for q in qqs:
-            _sq = self._serialize_qdict(origin, q, values=values)
+            if origin is not None and q.origin != origin:
+                continue
+            _sq = self._serialize_qdict(q, values=values)
             if len(_sq) > 0:
                 j[self._canonical_q_ref(q)] = _sq
         return j

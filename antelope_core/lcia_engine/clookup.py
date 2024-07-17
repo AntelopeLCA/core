@@ -121,7 +121,7 @@ class CLookup(object):
           dist = 0: equivalent to __getitem__
           dist = 1: also check compartment's children (subcompartments), to any depth, returning all CFs encountered
             (unless return_first is True, in which case all CFs from the first nonempty compartment found are returned)
-          dist = 2: also check compartment's parent
+          dist = 2: also check compartment's parents (excluding root=Null context)
           dist = 3: also check all compartment's parents until root. Useful for finding unit conversions.
         By default (dist==1), checks compartment self and children. Returns a set.
         :param item: a Compartment
@@ -149,16 +149,18 @@ class CLookup(object):
                     return results
 
         if dist > 1:
-            item = item.parent
-            results += self._context_origin(item, origin)
-            if found(results):
-                return results
+            while item.parent is not None:
+                item = item.parent
+                results += self._context_origin(item, origin)
+                if found(results):
+                    return results
 
-        while dist > 2 and item is not None:
-            item = item.parent
-            results += self._context_origin(item, origin)
-            if found(results):
-                return results
+        if dist > 2:
+            while item is not None:
+                item = item.parent
+                results += self._context_origin(item, origin)
+                if found(results):
+                    return results
 
         return results
 
@@ -183,11 +185,16 @@ class CLookup(object):
         """
         cxs = dict()
         for c, cfs in self._dict.items():
-            try:
-                cf_filt = next(cf for cf in cfs if cf.origin == origin)  # duplicate entries per origin not allowed
-            except StopIteration:
+            if len(cfs) > 1:
+                try:
+                    cf = next(cf for cf in cfs if cf.origin == origin)  # duplicate entries per origin not allowed
+                except StopIteration:
+                    continue
+            elif len(cfs) == 1:
+                cf = next(cf for cf in cfs)
+            else:
                 continue
-            cxs[str(c)] = cf_filt.serialize(values=values, concise=True)
+            cxs[str(c)] = cf.serialize(values=values, concise=True)
         return cxs
 
 
