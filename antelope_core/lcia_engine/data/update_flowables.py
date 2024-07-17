@@ -12,6 +12,8 @@ import os
 from synonym_dict import MergeError, FlowablesDict
 
 
+NUM_FLOWABLES = 4006
+
 DEFAULT_FLOWABLES = os.path.join(os.path.dirname(__file__), 'flowables.json')
 
 discovered_synonyms = [

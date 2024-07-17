@@ -10,6 +10,8 @@ from ..lcia_engine import NUM_DEFAULT_CONTEXTS
 from ...entities import LcQuantity, LcFlow
 from ...contexts import Context
 from ...archives.tests.test_qdb import num_ref_quantities
+from ..data.update_flowables import NUM_FLOWABLES
+
 
 class LciaEngineTest(unittest.TestCase):
     @classmethod
@@ -18,7 +20,7 @@ class LciaEngineTest(unittest.TestCase):
 
     def test_0_init(self):
         self.assertEqual(len([x for x in self.lcia.query.contexts()]), NUM_DEFAULT_CONTEXTS + 1)  # add Intermediate Flows
-        self.assertEqual(len([x for x in self.lcia.query.flowables()]), 4005)
+        self.assertEqual(len([x for x in self.lcia.query.flowables()]), NUM_FLOWABLES)  # update flowables
         self.assertEqual(len([x for x in self.lcia.query.quantities()]), num_ref_quantities)
         self.assertEqual(len(self.lcia.tm._q_dict), 3)
 
