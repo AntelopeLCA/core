@@ -25,7 +25,7 @@ The required fields should be: external_ref, *signature_fields.  uuid is support
 """
 import os
 import re
-import xlrd
+from xlstools import open_xl
 from synonym_dict.lower_dict import LowerDict
 
 from antelope import EntityNotFound, ConversionError
@@ -203,7 +203,7 @@ class XlsxUpdater(object):
         self._quiet = quiet
         self._merge = _check_merge(merge)
         if isinstance(xlrd_like, str) and os.path.exists(xlrd_like):
-            self._xl = xlrd.open_workbook(xlrd_like)
+            self._xl = open_xl(xlrd_like)
         else:
             self._xl = xlrd_like
 
