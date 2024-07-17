@@ -5,6 +5,7 @@ from synonym_dict import LowerDict  # apparently Andreas does not check case
 import logging
 
 from .schema_mapping import OLCA_MAPPING
+import re
 
 
 class NodeIdentifier(ast.NodeVisitor):
@@ -146,7 +147,11 @@ class FormulaParser(_Param):
     def formula(self):
         if self._faulty:
             return str(self._param['value'])
-        return self._param['formula']
+        form = self._param['formula']
+        if form.find('^') > 0:
+            pattern = r"(\s|\b)(\^)(\s|\b)"
+            form = re.sub(pattern, r'\1**\3', form)
+        return form
 
     @property
     def variables(self):
