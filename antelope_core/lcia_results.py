@@ -439,12 +439,9 @@ class AggregateLciaResult(object):
         if isinstance(self.entity, tuple):
             return '; '.join(str(k) for k in self.entity)
         try:
-            return self.entity.fragment.name
+            return self.entity.name
         except AttributeError:
-            try:
-                return self.entity.name
-            except AttributeError:
-                return str(self.entity)
+            return str(self.entity)
 
     @property
     def cumulative_result(self):

@@ -106,14 +106,6 @@ class LcQuantity(LcEntity):
         syns.add(k)
         self['Synonyms'] = syns
 
-    def serialize(self, domesticate=False, drop_fields=()):
-        """
-        Quantities (i.e. non-refs) should always be serialized with domesticate=True
-        :param domesticate:
-        :param drop_fields:
-        :return:
-        """
-        return super(LcQuantity, self).serialize(domesticate=True, drop_fields=drop_fields)
     """
     Quantity Interface Methods
     Quantity entities use the quantity interface provided by the parent archive; this emulates the operation of 

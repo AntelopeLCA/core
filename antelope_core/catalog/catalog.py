@@ -312,6 +312,13 @@ class StaticCatalog(object):
             raise KeyError('Origin %s not found' % origin)
         self._nicknames[nickname] = (origin, interface)
 
+    def is_nickname(self, nickname):
+        try:
+            org, _ = self._nicknames[nickname]
+        except KeyError:
+            org = False
+        return org
+
     def has_resource(self, res):
         return self._resolver.has_resource(res)
 

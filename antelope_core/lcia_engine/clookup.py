@@ -185,16 +185,18 @@ class CLookup(object):
         """
         cxs = dict()
         for c, cfs in self._dict.items():
-            if len(cfs) > 1:
+            if origin:
                 try:
-                    cf = next(cf for cf in cfs if cf.origin == origin)  # duplicate entries per origin not allowed
+                    cf_filt = next(cf for cf in cfs if cf.origin == origin)  # duplicate entries per origin not allowed
                 except StopIteration:
                     continue
-            elif len(cfs) == 1:
-                cf = next(cf for cf in cfs)
             else:
-                continue
-            cxs[str(c)] = cf.serialize(values=values, concise=True)
+                if len(cfs) == 0:
+                    continue
+                else:
+                    cf_filt = next(cf for cf in cfs)
+
+            cxs[str(c)] = cf_filt.serialize(values=values, concise=True)
         return cxs
 
 

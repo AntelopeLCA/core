@@ -402,7 +402,7 @@ class LcCatalog(StaticCatalog):
         rtn = []
         if origin is None:
             for r in self.resources(loaded=True):
-                if r.ds_type == 'XdbClient':
+                if r.ds_type == 'XdbClient' or r.ds_type == 'OryxClient':
                     rtn.extend(self.refresh_xdb_tokens(r.origin))
             return rtn
 

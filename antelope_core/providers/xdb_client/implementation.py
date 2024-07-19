@@ -80,7 +80,8 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
                 return [RxRef(p, self._archive.get_or_make(r.flow), r.direction, comment=r.comment, value=r.value)
                         for r in rs]
         elif p.entity_type == 'flow':
-            return self._archive.r.get_one(Entity, _ref(key), 'reference')
+            ref_q = self._archive.r.get_one(Entity, _ref(key), 'reference')
+            return self._archive.get_or_make(ref_q)
         elif p.entity_type == 'quantity':
             return self._archive.r.get_one(str, _ref(key), 'reference')
         else:
@@ -366,7 +367,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         return res
 
     def get_factors(self, quantity, flow_specs, **kwargs):
-    #def _result_from_model(self, process_ref, quantity, res_m: LciaResultModel):
+    # def _result_from_model(self, process_ref, quantity, res_m: LciaResultModel):
         """
 
         :param quantity:
@@ -390,8 +391,8 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         exchanges = [UnallocatedExchange.from_inv(x).dict() for x in inventory]
         exch_map = {(x.flow.external_ref, x.term_ref): x for x in inventory}
 
-        ress = self._archive.r.origin_post_return_many('qdb', exchanges, LciaResultModel, _ref(quantity), 'do_lcia')
-        return [self._result_from_exchanges(quantity, exch_map, res) for res in ress]
+        res = self._archive.r.origin_post_return_one('qdb', exchanges, LciaResultModel, _ref(quantity), 'do_lcia')
+        return self._result_from_exchanges(quantity, exch_map, res)
 
     def bg_lcia(self, process, query_qty=None, ref_flow=None, **kwargs):
         """
@@ -412,11 +413,11 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
                                                     'lcia', **kwargs)
             else:
                 if ref_flow:
-                    ress = self._archive.r.get_many(LciaResultModel, _ref(process), _ref(ref_flow),
-                                                    'lcia', _ref(query_qty), **kwargs)
+                    ress = self._archive.r.get_one(LciaResultModel, _ref(process), _ref(ref_flow),
+                                                   'lcia', _ref(query_qty), **kwargs)
                 else:
-                    ress = self._archive.r.get_many(LciaResultModel, _ref(process),
-                                                    'lcia', _ref(query_qty), **kwargs)
+                    ress = self._archive.r.get_one(LciaResultModel, _ref(process),
+                                                   'lcia', _ref(query_qty), **kwargs)
         except HTTPError as e:
             if e.args[0] == 404:
                 content = json.loads(e.args[1])
@@ -441,18 +442,18 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
                 obs_flows = [DirectedFlow.from_observed(x).dict() for x in observed]
             if len(obs_flows) > 0:
                 if ref_flow:
-                    ress = self._archive.r.post_return_many(obs_flows, LciaResultModel, _ref(process), _ref(ref_flow),
-                                                            'lcia', _ref(query_qty), **kwargs)
+                    ress = self._archive.r.post_return_one(obs_flows, LciaResultModel, _ref(process), _ref(ref_flow),
+                                                           'lcia', _ref(query_qty), **kwargs)
                 else:
-                    ress = self._archive.r.post_return_many(obs_flows, LciaResultModel, _ref(process),
-                                                            'lcia', _ref(query_qty), **kwargs)
+                    ress = self._archive.r.post_return_one(obs_flows, LciaResultModel, _ref(process),
+                                                           'lcia', _ref(query_qty), **kwargs)
             else:
                 if ref_flow:
-                    ress = self._archive.r.get_many(LciaResultModel, _ref(process), _ref(ref_flow),
-                                                    'lcia', _ref(query_qty), **kwargs)
+                    ress = self._archive.r.get_one(LciaResultModel, _ref(process), _ref(ref_flow),
+                                                   'lcia', _ref(query_qty), **kwargs)
                 else:
-                    ress = self._archive.r.get_many(LciaResultModel, _ref(process),
-                                                    'lcia', _ref(query_qty), **kwargs)
+                    ress = self._archive.r.get_one(LciaResultModel, _ref(process),
+                                                   'lcia', _ref(query_qty), **kwargs)
         except HTTPError as e:
             if e.args[0] == 404:
                 content = json.loads(e.args[1])

@@ -534,11 +534,11 @@ class LciaEngine(TermManager):
         self._check_factors(self._canonical_q(quantity))
         return super(LciaEngine, self).factors_for_quantity(quantity, flowable=flowable, context=context, **kwargs)
 
-    def _serialize_qdict(self, quantity, values=False):
+    def _serialize_qdict(self, quantity, values=False, origin=None):
         _ql = self._qaccess(quantity)
         d = {}
         for fb, cl in _ql.items():
-            _od = cl.serialize_for_origin(quantity.origin, values=values)
+            _od = cl.serialize_for_origin(origin, values=values)
             if len(_od) > 0:
                 d[str(fb)] = _od
         return d

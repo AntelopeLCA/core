@@ -50,7 +50,7 @@ retrieve data:
 """
 from collections import namedtuple
 
-from synonym_dict import SynonymDict
+from synonym_dict import SynonymDict, MergeError
 from synonym_dict.compartments import InconsistentLineage, NonSpecificCompartment
 
 from antelope import EntityNotFound
@@ -375,6 +375,9 @@ class TermManager(object):
         if len(fq_conflicts) > 0:
             print('%d Merge conflicts encountered' % len(fq_conflicts))
             raise FactorConflict(fq_conflicts)
+
+    def merge_flowables(self, dominant, *syns):
+        return self._merge_terms(dominant, *syns)
 
     def _merge_terms(self, dominant, *syns):
         """
@@ -961,19 +964,20 @@ class TermManager(object):
     Then de-serialization is straightforward: after quantities are loaded, simply apply all flowables, contexts, and
     then characterizations- flows not required!
     '''
-    def _serialize_qdict(self, quantity, values=False):
+    def _serialize_qdict(self, quantity, values=False, origin=None):
         _ql = self._qaccess(quantity)
         d = {}
         for fb, cl in _ql.items():
-            _od = {str(c): cf.serialize(values=values, concise=True) for c, cf in cl.items()}
+            if origin:
+                _od = {str(c): cf.serialize(values=values, concise=True) for c, cf in cl.items() if cf.origin == origin}
+            else:
+                _od = {str(c): cf.serialize(values=values, concise=True) for c, cf in cl.items()}
             if len(_od) > 0:
                 d[str(fb)] = _od
         return d
 
     def _serialize_factors(self, origin, *quantities, values=False):
         """
-        This does not exactly work because, if done from an lcia-engine the result will not be closed to the origin
-        specified.  Anyway, in the single-origin case this should be the default.
 
         in LciaEngine We [may] need a way to record the original flowable + context names, so that origin-specific
         serialization stays closed.
@@ -989,8 +993,11 @@ class TermManager(object):
         j = dict()
         for q in qqs:
             if origin is not None and q.origin != origin:
-                continue
-            _sq = self._serialize_qdict(q, values=values)
+                # serialize CFs belonging to this origin from remote quantities
+                _sq = self._serialize_qdict(q, values=values, origin=origin)
+            else:
+                # serialize all CFs for local quantities
+                _sq = self._serialize_qdict(q, values=values)
             if len(_sq) > 0:
                 j[self._canonical_q_ref(q)] = _sq
         return j
@@ -998,7 +1005,8 @@ class TermManager(object):
     def serialize(self, origin, *quantities, values=False):
         """
 
-        :param origin:
+        :param origin: CFs are limited to: (for quantities belonging to origin) all CFs (for other quantities) only
+         CFs that match origin. If origin is None, all quantities are serialized with all CFs
         :param quantities:
         :param values:
         :return: 3-tuple:
@@ -1047,7 +1055,12 @@ class TermManager(object):
             j['Flowables'] = j.pop('SynonymSets')
 
         self._cm.load_dict(j)  # automatically pulls out 'Compartments'
-        self._fm.load_dict(j)
+        # self._fm.load_dict(j)
+        for flowable in j['Flowables']:
+            try:
+                self.add_terms('flowable', flowable['name'], *flowable['synonyms'])
+            except MergeError:
+                self.merge_flowables(flowable['name'], *flowable['synonyms'])
         for f in self._fm.objects:
             if f not in self._fq_map:
                 self._fq_map[f] = set()
