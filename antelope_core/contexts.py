@@ -161,10 +161,13 @@ class Context(Compartment):
 
     @property
     def terms(self):
+        j = None
         if self._first_origin is not None:
             yield self.fullname
+            j = self.fullname
         for t in super(Context, self).terms:
-            yield t
+            if t != j:
+                yield t
 
     @property
     def sense(self):
