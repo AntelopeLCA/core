@@ -173,7 +173,7 @@ class LcCatalog(StaticCatalog):
             store = False
         else:
             source = self._localize_source(source)
-        res = self._resolver.new_resource(reference, source, ds_type, store=store, **kwargs)  # explicit store= for doc purposes
+        res = self._resolver.new_resource(reference, source, ds_type, store=store, **kwargs)
         if res.origin in self._nicknames:
             self._nicknames.pop(res.origin)
         return res
@@ -436,7 +436,7 @@ class LcCatalog(StaticCatalog):
         res = next(r for r in self._resolver.resources_with_source(source))
         res.check(self)
         # priority = min([priority, res.priority])  # we want index to have higher priority i.e. get loaded second
-        stored = self._resolver.is_permanent(res)
+        stored = self._resolver.is_permanent(res) and save
 
         # save configuration hints in derived index
         cfg = None
@@ -463,11 +463,11 @@ class LcCatalog(StaticCatalog):
                         return inx.ref
 
                 print('Re-indexing %s' % source)
-                # TODO: need to delete the old index resource!!
                 stale_res = list(self._resolver.resources_with_source(inx_local))
                 stale_refs = list(set(res.origin for res in stale_res))
                 for stale in stale_res:
-                    # this should be postponed to after creation of new, but that fails in case of naming collision (bc YYYYMMDD)
+                    # this should be postponed to after creation of new, but that fails in case of naming collision
+                    # (bc YYYYMMDD)
                     # so golly gee we just delete-first.
                     print('deleting %s' % stale.origin)
                     self.delete_resource(stale)

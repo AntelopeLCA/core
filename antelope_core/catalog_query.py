@@ -199,8 +199,8 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                 if run:
                     return NullContext
 
-        except AttributeError:
-            message = '(%s) Attribute error %s' % (itype, attrname)
+        except AttributeError as e:
+            message = '(%s) Attribute error %s' % (attrname, e.args)
         if len(props) > 0:
             return props
 

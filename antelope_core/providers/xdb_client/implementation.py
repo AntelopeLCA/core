@@ -1,6 +1,7 @@
 # from collections import defaultdict
 import json
-from antelope import IndexInterface, ExchangeInterface, QuantityInterface, BackgroundInterface, NoFactorsFound
+from antelope import (IndexInterface, ExchangeInterface, QuantityInterface, BackgroundInterface, NoFactorsFound,
+                      ItemNotFound)
 from antelope import RxRef, EntityNotFound
 from antelope.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceValue, UnallocatedExchange,
                              LciaResult as LciaResultModel, AllocatedExchange,
@@ -99,7 +100,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
             return self._archive.r.get_raw(_ref(external_ref), 'doc', item)
         except HTTPError as e:
             if e.args[0] == 404:
-                raise KeyError(external_ref, item)
+                raise ItemNotFound(external_ref, item)
             raise e
 
     def get_uuid(self, external_ref):
