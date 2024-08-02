@@ -135,9 +135,18 @@ class CheckTerms(object):
 
     def show(self):
         print('%d processes\n%d reference exchanges\n%d dependent exchanges' % (self._p, self._rx, self._x))
-        for k, v in self._check.items():
-            if len(v) > 0:
-                print('%s: %d exchanges' % (k, len(v)))
+        ks = list(self._check.keys())
+        for k in ('terminated', 'cutoff', 'elementary', 'self'):
+            if k in ks:
+                v = self._check[k]
+                ks.remove(k)
+            else:
+                v = []
+            print('%s: %d exchanges' % (k, len(v)))
+        print('')
+        for k in ks:
+            v = self._check[k]
+            print('%s: %d exchanges' % (k, len(v)))
 
     def exchanges(self, key):
         return self._check[key]

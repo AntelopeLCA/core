@@ -329,6 +329,18 @@ class LcCatalog(StaticCatalog):
             resource_list = self._blackbook_client.get_many(ResourceSpec, 'origins', origin, 'resource')
             return self._configure_blackbook_resources(resource_list, store=store, **kwargs)
 
+    def blackbook_request_third_party_resource(self, origin, resource_for):
+        """
+
+        :param origin: the data resource
+        :param resource_for: the foreground that needs access
+        :return:
+        """
+        return self._blackbook_client.get_many(ResourceSpec, 'origins', origin, 'resource_for', resource_for)
+
+    def blackbook_reset_tokens(self, foreground):
+        return self._blackbook_client.get_one(int, 'origins', foreground, 'refresh_tokens')
+
     '''
     def get_blackbook_resources_by_client(self, bb_client, username, origin, store=False):
         """

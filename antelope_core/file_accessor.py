@@ -17,7 +17,7 @@ For now, generating the sources is probably fine.
 
 import os
 import json
-from .lc_resource import LcResource, INTERFACE_TYPES
+from .lc_resource import LcResource
 from antelope import BackgroundRequired
 from shutil import copy2
 
@@ -45,6 +45,9 @@ class FileAccessor(object):
     def origins(self):
         for k in self._origins:
             yield k
+
+    def refresh(self):
+        self._origins = os.listdir(self._path)
 
     @staticmethod
     def read_config(source):
@@ -239,6 +242,8 @@ class ResourceWriter(object):
             if not force:
                 raise FileExistsError(self.target)
         os.makedirs(self.target_path, exist_ok=True)
+        if self.origin not in self.fa.origins:
+            self.fa.refresh()
         if os.path.exists(self.res.source):
             copy2(self.res.source, self.target)
         else:
