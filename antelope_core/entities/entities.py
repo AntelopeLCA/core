@@ -112,6 +112,11 @@ class LcEntity(BaseEntity):
             self._query_ref = self._make_ref(query)
         return self._query_ref
 
+    def apply_ref_properties(self):
+        if self._query_ref is not None:
+            for k in self._query_ref.properties():
+                self.__setitem__(k, self._query_ref.get(k))
+
     @property
     def entity_type(self):
         return self._entity_type

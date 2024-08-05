@@ -731,7 +731,17 @@ class EntityStore(object):
     def init_args(self):
         return self._serialize_dict
 
-    def serialize(self, **kwargs):
+    def serialize(self, apply_changes=True, **kwargs):
+        """
+
+        :param apply_changes: [True] any properties assigned to catalog refs are applied to the entities prior to saving
+        :param kwargs:
+        :return:
+        """
+        if apply_changes:
+            for k in set(self._entities.values()):
+                if k.is_entity:
+                    k.apply_ref_properties()
         j = {
             'dataSourceType': self.__class__.__name__,
             'dataSource': self.source,
