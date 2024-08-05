@@ -5,8 +5,6 @@ can also be upgraded to an LciaEngine, which extends the synonymization strategy
 from antelope import (QuantityInterface, NoFactorsFound, ConversionReferenceMismatch, EntityNotFound, FlowInterface,
                       convert, ConversionError, QuantityRequired, RefQuantityRequired)
 
-from antelope.flows.flow import QuelledCO2
-
 from .basic import BasicImplementation
 from ..characterizations import QRResult, LocaleMismatch
 from ..contexts import NullContext
@@ -201,6 +199,14 @@ class QuantityConversion(object):
     # TODO: add serialization, other outputs
 
 
+class CO2QuantityConversion(QuantityConversion):
+    @property
+    def value(self):
+        if self.query.get('quell_biogenic_co2'):
+            return 0.0
+        return super(CO2QuantityConversion, self).value
+
+
 class QuantityConversionError(object):
     def __init__(self, qrresult: QuantityConversion, ref_quantity):
         self._qrr = qrresult
@@ -278,7 +284,10 @@ def do_lcia(quantity, inventory, locale=None, group=None, dist=2, **kwargs):
             continue
         qrr = x.flow.lookup_cf(quantity, x.termination, locale, dist=dist, **kwargs)
         if isinstance(qrr, QuantityConversion) or isinstance(qrr, QRResult):
-            if qrr.value == 0:
+            if x.flow.quell_co2:
+                co2_qrr = CO2QuantityConversion.copy(qrr)
+                res.add_score(group(x), x, co2_qrr)
+            elif qrr.value == 0:
                 res.add_zero(x)
             else:
                 res.add_score(group(x), x, qrr)
@@ -288,8 +297,6 @@ def do_lcia(quantity, inventory, locale=None, group=None, dist=2, **kwargs):
                 res.add_score(group(x), x, repd)
             except (NoFactorsFound, ConversionReferenceMismatch, QuantityRequired):
                 res.add_error(x, qrr)
-        elif isinstance(qrr, QuelledCO2):
-            res.add_zero(x)
         elif qrr is None:
             res.add_cutoff(x)
         else:
