@@ -288,17 +288,17 @@ class SummaryLciaResult(object):
                                          number(self.unit_score * self._lc.autorange),
                                          self.entity)
 
-    def show(self):
+    def show(self, **kwargs):
         if self.static:
             print('%s' % self)
         else:
-            self._internal_result.show()
+            self._internal_result.show(**kwargs)
 
-    def show_detailed_result(self):
+    def show_detailed_result(self, **kwargs):
         if self.static:
-            self.show()
+            self.show(**kwargs)
         else:
-            self._internal_result.show_components()
+            self._internal_result.show_components(**kwargs)
 
     def flatten(self):
         if self.static:
