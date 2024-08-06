@@ -318,6 +318,16 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         except HTTPError:
             return 0.0
 
+    def characterize(self, flowable, ref_quantity, query_quantity, value, context=None, location='GLO', **kwargs):
+        if context:
+            context = self.get_context(context).as_list()
+        if not isinstance(value, dict):
+            value = {location: value}
+        cf = CharacterizationModel(origin=self.origin, flowable=flowable, ref_quantity=_ref(ref_quantity),
+                                   query_quantity=_ref(query_quantity), context=context,
+                                   value=value)
+        return self._archive.r.post_return_one(cf.model_dump(), CharacterizationModel, 'characterize', **kwargs)
+
     def quantity_relation(self, flowable, ref_quantity, query_quantity, context, locale='GLO', **kwargs):
         """
         not yet implemented

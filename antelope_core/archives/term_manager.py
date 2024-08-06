@@ -435,7 +435,8 @@ class TermManager(object):
         """
         pass
 
-    def flows_for_flowable(self, fb):
+    def flows_for_flowable(self, flowable):
+        fb = self.get_flowable(flowable)
         if fb in self._flow_map:
             for f in self._flow_map[fb]:
                 yield f

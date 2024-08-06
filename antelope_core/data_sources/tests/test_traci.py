@@ -56,7 +56,8 @@ class TestTraci(unittest.TestCase):
         gwp = self.cat.query(traci_origin).get('Global Warming Air')
         inv = list(generate_gwp_inventory(self.cat))
         self.assertEqual(gwp.do_lcia(inv).total(), 15.8)
-        self.assertEqual(gwp.do_lcia(inv, quell_biogenic_co2=True).total(), 14.7)
+        gwp['quell_biogenic_co2'] = True
+        self.assertEqual(gwp.do_lcia(inv).total(), 14.7)
 
 
 if __name__ == '__main__':
