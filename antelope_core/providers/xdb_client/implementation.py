@@ -160,6 +160,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
     '''
     def _resolve_ex(self, ex):
         # self.get_canonical(ex.flow.quantity_ref)  # wtf was this for
+        ex.process = self._archive.get(ex.process)
         ex.flow = self._archive.get_or_make(FlowEntity.from_exchange_model(ex))  # must get turned into a ref with make_ref
 
         if ex.type == 'context':

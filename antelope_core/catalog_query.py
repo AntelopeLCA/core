@@ -432,7 +432,10 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         process = self.get(process_ref)
         for c in res_m.components:
             for d in c.details:
-                value = d.result / d.factor.value
+                try:
+                    value = d.result / d.factor.value
+                except ZeroDivisionError:
+                    value = 0.0
                 cx = self._tm[tuple(d.factor.context)]
                 try:
                     rq = self.get_canonical(d.exchange.quantity_ref)

@@ -815,7 +815,7 @@ class LciaResult(object):
         for k, l in totals.items():
             factor, dirn, term = k
             for x in l:
-                name = '; '.join([x.flow.name, str(term or factor.context)])
+                name = '; '.join([x.flow.name, factor.context.name])
                 flat.add_component(name)
                 exch = ExchangeValue(x.process, x.flow, dirn,
                                      value=x.value * _apply_scale * self.scale,
