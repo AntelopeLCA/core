@@ -16,6 +16,7 @@ from antelope.models import LciaResult as LciaResultModel, Characterization as C
 from .lcia_results import LciaResult, MixedComponents
 from .characterizations import QRResult, Characterization
 from .contexts import NullContext
+from .implementations.quantity import CO2QuantityConversion
 
 from .fragment_flows import FragmentFlow, frag_flow_lcia
 
@@ -463,6 +464,8 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                                  termination=cx, value=value)
                 cf = QRResult(d.factor.flowable, rq, quantity, cx,
                               d.factor.locale, d.factor.origin, d.factor.value)
+                if ex.flow.quell_co2:
+                    cf = CO2QuantityConversion(cf)
                 res.add_score(c.component, ex, cf)
         for s in res_m.summaries:
             res.add_summary(s.component, s.component, s.node_weight, s.unit_score)
