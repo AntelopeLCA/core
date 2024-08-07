@@ -137,10 +137,13 @@ class XdbClient(LcArchive):
 
     _base_type = XdbEntity
 
-    def __init__(self, source, ref=None, token=None, **requester_args):
+    def __init__(self, source, ref=None, token=None, blackbook_origin=None, **requester_args):
         self._requester_args = requester_args
+        if blackbook_origin is None:
+            blackbook_origin = ref
+        self._blackbook_origin = blackbook_origin
         try:
-            self._requester = XdbRequester(source, ref, token=token, **self._requester_args)
+            self._requester = XdbRequester(source, self._blackbook_origin, token=token, **self._requester_args)
         except HTTPError as e:
             raise InterfaceError('HTTP Request failed %s, %s' % (e.args[0], e.args[1]))
         if ref is None:
@@ -151,7 +154,7 @@ class XdbClient(LcArchive):
         self._requester.set_token(new_token)
 
     def refresh_auth(self, new_source, new_token):
-        self._requester = XdbRequester(new_source, self.ref, token=new_token, **self._requester_args)
+        self._requester = XdbRequester(new_source, self._blackbook_origin, token=new_token, **self._requester_args)
         self.tm.update_requester(self._requester)
 
     @property
@@ -166,6 +169,8 @@ class XdbClient(LcArchive):
         raise InterfaceError(iface)
 
     def _model_to_entity(self, model):
+        model.properties['blackbook_origin'] = model.origin
+        model.origin = self.ref
         entity = self._base_type(model)
         self._entities[model.link] = entity
         return entity

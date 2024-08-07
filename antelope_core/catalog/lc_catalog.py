@@ -314,19 +314,25 @@ class LcCatalog(StaticCatalog):
             for org in sorted(self._blackbook_client.get_raw('origins')):
                 yield org
 
-    def get_blackbook_resources(self, origin, store=False, **kwargs):
+    def get_blackbook_resources(self, origin, store=False, assign_ref=None, **kwargs):
         """
         Use a blackbook server to obtain resources for a given origin.
         :param origin:
         :param store: whether to save resources. by default we don't, assuming the tokens are short-lived.
+        :param assign_ref: give the resource a named ref locally
         :param kwargs: init args to add to returned resources, such as 'verify' certificate paths
         :return:
         """
-        res = list(self.resources(origin))
+        if assign_ref is None:
+            assign_ref = origin
+        res = list(self.resources(assign_ref))
         if len(res) > 0:
-            return self.refresh_xdb_tokens(origin)
+            return self.refresh_xdb_tokens(assign_ref)
         else:
             resource_list = self._blackbook_client.get_many(ResourceSpec, 'origins', origin, 'resource')
+            for r in resource_list:
+                r.options['blackbook_origin'] = r.origin
+                r.origin = assign_ref
             return self._configure_blackbook_resources(resource_list, store=store, **kwargs)
 
     def blackbook_request_third_party_resource(self, origin, resource_for):
@@ -370,7 +376,7 @@ class LcCatalog(StaticCatalog):
            = else, update source and token
          - else: create it
 
-        :param resource_dict: a list of [resource specs]
+        :param resource_list: a list of [resource specs]
         :return:
         """
 
@@ -405,22 +411,22 @@ class LcCatalog(StaticCatalog):
                 rtn.append(r)
         return rtn
 
-    def refresh_xdb_tokens(self, origin=None):
+    def refresh_xdb_tokens(self, remote_origin=None):
         """
         requires an active blackbook client (try blackbook_authenticate() if it has expired)
-        :param origin:
+        :param remote_origin:
         :return:
         """
         rtn = []
-        if origin is None:
+        if remote_origin is None:
             for r in self.resources(loaded=True):
                 if r.ds_type == 'XdbClient' or r.ds_type == 'OryxClient':
-                    rtn.extend(self.refresh_xdb_tokens(r.origin))
+                    rtn.extend(self.refresh_xdb_tokens(r.init_args['blackbook_origin']))
             return rtn
 
-        tok = self._blackbook_client.get_one(str, 'origins', origin, 'token')
+        tok = self._blackbook_client.get_one(str, 'origins', remote_origin, 'token')
         for res in self._resolver.resources:
-            if res.origin == origin:  # and hasattr(res.archive, 'r'):
+            if res.init_args.get('blackbook_origin') == remote_origin:
                 res.init_args['token'] = tok
                 if res.archive is None:
                     res.check(self)
