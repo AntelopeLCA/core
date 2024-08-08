@@ -1,4 +1,5 @@
 from antelope import EntityNotFound, NoAccessToEntity, NullEntity, ItemNotFound
+from ..contexts import NullContext
 
 
 class BasicImplementation(object):
@@ -152,7 +153,12 @@ class BasicImplementation(object):
         :param kwargs:
         :return:
         """
-        return self._archive.tm[term]
+        cx = self._archive.tm[term]
+        if cx is None:
+            return NullContext
+        if cx.fullname == cx.name:
+            cx.add_origin(self.origin)
+        return cx
 
     def is_lcia_engine(self, **kwargs):
         """

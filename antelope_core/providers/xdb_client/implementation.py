@@ -315,9 +315,13 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         :return:
         """
         try:
-            return self._archive.r.get_one(float, _ref(flow), 'cf', _ref(quantity), context=context, locale=locale)
-        except HTTPError:
-            return 0.0
+            return self._archive.r.get_one(float, _ref(flow), 'cf', _ref(quantity), context=context, locale=locale,
+                                           ref_quantity=ref_quantity)
+        except HTTPError as e:
+            if e.args[0] == 404:
+                return 0.0
+            else:
+                raise
 
     def characterize(self, flowable, ref_quantity, query_quantity, value, context=None, location='GLO', **kwargs):
         if context:

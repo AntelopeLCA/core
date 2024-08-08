@@ -48,7 +48,7 @@ class QuantityConversion(object):
     def copy(cls, conv):
         return cls(*conv.results, query=conv.query, context=conv.context)
 
-    def __init__(self, *args, query=None, context=NullContext):
+    def __init__(self, *args, query=None, context=None):
         self._query = query  # this is just a stub to give ref conversion machinery something to grab hold of
         self._context = context  # this is the canonical context that was used to generate the QR Results
         self._results = []

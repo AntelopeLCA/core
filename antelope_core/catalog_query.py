@@ -465,8 +465,10 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                 cf = QRResult(d.factor.flowable, rq, quantity, cx,
                               d.factor.locale, d.factor.origin, d.factor.value)
                 if ex.flow.quell_co2:
-                    cf = CO2QuantityConversion(cf)
-                res.add_score(c.component, ex, cf)
+                    co2_cf = CO2QuantityConversion(cf)
+                    res.add_score(c.component, ex, co2_cf)
+                else:
+                    res.add_score(c.component, ex, cf)
         for s in res_m.summaries:
             res.add_summary(s.component, s.component, s.node_weight, s.unit_score)
         if len(res) == 0:
