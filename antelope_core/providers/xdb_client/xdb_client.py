@@ -170,7 +170,8 @@ class XdbClient(LcArchive):
 
     def _model_to_entity(self, model):
         model.properties['blackbook_origin'] = model.origin
-        model.origin = self.ref
+        if model.origin == self._blackbook_origin:
+            model.origin = self.ref  # yet another masquerade
         entity = self._base_type(model)
         self._entities[model.link] = entity
         return entity

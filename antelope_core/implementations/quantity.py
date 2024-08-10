@@ -253,7 +253,7 @@ class QuantityConversionError(object):
         return '%s(%s; %s %s =X=> %s)' % (self.__class__.__name__, self.flowable, self.context, self._qrr.ref, self._ref)
 
 
-def do_lcia(quantity, inventory, locale=None, group=None, dist=2, **kwargs):
+def do_lcia(quantity, inventory, locale=None, group=None, dist=2, quell_biogenic_co2=None, **kwargs):
     """
     Successively implement the quantity relation over an iterable of exchanges.
 
@@ -269,6 +269,7 @@ def do_lcia(quantity, inventory, locale=None, group=None, dist=2, **kwargs):
       1 - match child contexts (code default)
       2 - match parent contexts [this default]
       3 - match any ancestor context, including NullContext
+    :param quell_biogenic_co2: suppressed. no longer used
     :param kwargs:
     :return:
     """

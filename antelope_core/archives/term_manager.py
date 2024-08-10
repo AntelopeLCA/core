@@ -1059,7 +1059,8 @@ class TermManager(object):
         # self._fm.load_dict(j)
         for flowable in j['Flowables']:
             try:
-                self.add_terms('flowable', flowable['name'], *flowable['synonyms'])
+                syns = flowable.pop('synonyms', [])
+                self.add_terms('flowable', flowable['name'], *syns)
             except MergeError:
                 self.merge_flowables(flowable['name'], *flowable['synonyms'])
         for f in self._fm.objects:
