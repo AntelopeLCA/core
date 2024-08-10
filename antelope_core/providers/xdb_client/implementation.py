@@ -3,6 +3,7 @@ import json
 from antelope import (IndexInterface, ExchangeInterface, QuantityInterface, BackgroundInterface, NoFactorsFound,
                       ItemNotFound)
 from antelope import RxRef, EntityNotFound
+from antelope.refs.base import NoUuid
 from antelope.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceValue, UnallocatedExchange,
                              LciaResult as LciaResultModel, AllocatedExchange,
                              Characterization as CharacterizationModel,
@@ -109,7 +110,12 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         :param external_ref:
         :return:
         """
-        return self._archive.r.get_raw(_ref(external_ref), 'uuid')
+        try:
+            return self._archive.r.get_raw(_ref(external_ref), 'uuid')
+        except HTTPError as e:
+            if e.args[0] == 404:
+                return NoUuid
+            raise
 
     '''
     Index routes
