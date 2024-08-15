@@ -12,7 +12,7 @@ import os
 from synonym_dict import MergeError, FlowablesDict
 
 
-NUM_FLOWABLES = 4006
+NUM_FLOWABLES = 4644  # add ecoinvent 3.10 synonyms
 
 DEFAULT_FLOWABLES = os.path.join(os.path.dirname(__file__), 'flowables.json')
 
