@@ -467,13 +467,13 @@ class LciaEngine(TermManager):
         :return:
         """
         dom_fb = self.get_flowable(dominant)
-        to_merge = []
+        to_merge = set()
         for syn in syns:
             try:
                 c = self.get_flowable(syn)
                 if c is dom_fb:
                     continue
-                to_merge.append(c)
+                to_merge.add(c)
             except KeyError:
                 self.add_synonym(dom_fb, syn)
         if to_merge:

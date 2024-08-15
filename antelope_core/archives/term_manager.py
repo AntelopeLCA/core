@@ -1058,11 +1058,11 @@ class TermManager(object):
         self._cm.load_dict(j)  # automatically pulls out 'Compartments'
         # self._fm.load_dict(j)
         for flowable in j['Flowables']:
+            syns = flowable.pop('synonyms', [])
             try:
-                syns = flowable.pop('synonyms', [])
                 self.add_terms('flowable', flowable['name'], *syns)
             except MergeError:
-                self.merge_flowables(flowable['name'], *flowable['synonyms'])
+                self.merge_flowables(flowable['name'], *syns)
         for f in self._fm.objects:
             if f not in self._fq_map:
                 self._fq_map[f] = set()
