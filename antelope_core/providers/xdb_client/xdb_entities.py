@@ -1,4 +1,4 @@
-from antelope import BaseEntity, CatalogRef
+from antelope import BaseEntity, CatalogRef, EntityNotFound
 from antelope.models import Entity, FlowEntity, ReferenceExchange
 
 import re
@@ -80,7 +80,11 @@ class XdbEntity(BaseEntity):
             args['reference_entity'] = args.pop('unit')
         elif self.entity_type == 'flow':
             if 'referenceQuantity' in args:
-                args['reference_entity'] = query.get(args.pop('referenceQuantity'))
+                rq = args.pop('referenceQuantity')
+                try:
+                    args['reference_entity'] = query.get_canonical(rq)
+                except EntityNotFound:
+                    args['reference_entity'] = query.get(rq)
             if isinstance(self._model, FlowEntity):
                 args['context'] = self._model.context
                 args['locale'] = self._model.locale

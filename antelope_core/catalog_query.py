@@ -225,10 +225,10 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         :return:
         """
         try:
-            return self._tm.get_canonical(eid)
-        except EntityNotFound:
             entity = self._perform_query('basic', 'get', EntityNotFound, eid, **kwargs)
             return self.make_ref(entity)
+        except EntityNotFound:
+            return self._tm.get_canonical(eid)
 
     def get_reference(self, external_ref):
         ref = self._perform_query('basic', 'get_reference', EntityNotFound, external_ref)
@@ -371,16 +371,14 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
             True, the data won't match the source.  but we will still RECOGNIZE the source because we will register the 
             quantity terms with the term manager.  Which we WEREN"T doing before.
             
+            2024-08-10 we are officially abandoning the following corollary: just send back canonical
             A corollary of this is that CatalogQuery.get() should get_canonical FIRST
             '''
             try:
-                _ = self._tm.get_canonical(entity)
+                return self._tm.get_canonical(entity)  # returns the existing canonical unless there is a unit conflict
             except EntityNotFound:
                 self._catalog.register_entity_ref(e_ref)
                 return self._tm.get_canonical(entity)
-            # print('@@@ Canonical quantity missing link-- adding direct to qm')  # I predict this never occurs
-            # in fact, it occurred several times immediately
-            return self._tm.add_quantity(entity)  # this will be identical to _ unless there is a unit conflict
         else:
             return e_ref
 
