@@ -430,6 +430,11 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         res = LciaResult(quantity, scenario=res_m.scenario, scale=res_m.scale)
         process = self.get(process_ref)
         for c in res_m.components:
+            try:
+                entity = self.cascade(c.origin).get(c.entity_id)
+            except (UnknownOrigin, EntityNotFound):
+                entity = c.component
+            res.add_component(c.component, entity)
             for d in c.details:
                 try:
                     value = d.result / d.factor.value
@@ -468,7 +473,11 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                 else:
                     res.add_score(c.component, ex, cf)
         for s in res_m.summaries:
-            res.add_summary(s.component, s.component, s.node_weight, s.unit_score)
+            try:
+                entity = self.cascade(s.origin).get(s.entity_id)
+            except (UnknownOrigin, EntityNotFound):
+                entity = s.component
+            res.add_summary(s.component, entity, s.node_weight, s.unit_score)
         if len(res) == 0:
             res.add_summary('Total', 'total', 1.0, res_m.total)
         else:

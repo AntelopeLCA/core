@@ -9,6 +9,7 @@ from numbers import Number
 from math import isclose
 from collections import defaultdict
 from antelope import CatalogRef
+import logging
 
 
 q_contrib = CatalogRef(origin='local.qdb', external_ref='contribution_share', entity_type='quantity',
@@ -49,6 +50,33 @@ def number(val):
         return '%10.3g' % val
     except TypeError:
         return '%10.10s' % '----'
+
+
+class StringEntity(object):
+    """
+    To be used in cases where a component's entity is a plain string, to still allow aggregation
+    """
+    def __init__(self, name):
+        self.name = str(name)
+
+    def __getitem__(self, item):
+        return item
+
+    def get(self, item, default=None):
+        if default:
+            return default
+        return self.__getitem__(item)
+
+    def __str__(self):
+        return self.name
+
+    def __eq__(self, other):
+        if hasattr(other, 'name'):
+            return self.name == other.name
+        return self.name == str(other)
+
+    def __hash__(self):
+        return hash(self.name)
 
 
 class DetailedLciaResult(object):
@@ -183,6 +211,8 @@ class SummaryLciaResult(object):
         :param node_weight: stand-in for exchange value
         :param unit_score: stand-in for factor value
         """
+        if isinstance(entity, str):
+            entity = StringEntity(entity)
         self.entity = entity
         self._node_weight = node_weight
         if isinstance(unit_score, Number):
@@ -427,6 +457,8 @@ class AggregateLciaResult(object):
     """
 
     def __init__(self, lc_result, entity):
+        if isinstance(entity, str):
+            entity = StringEntity(entity)
         self.entity = entity
         self._lc = lc_result
         self.LciaDetails = []  # what exactly was having unique membership protecting us from??
@@ -742,7 +774,7 @@ class LciaResult(object):
             raise ValueError('Total %g does not match target %g !' % (contrib.total(), check))
         return contrib
 
-    def aggregate(self, key=lambda x: x.fragment['StageName'], entity_id=None):
+    def aggregate(self, key=lambda x: x.get('StageName'), entity_id=None):
         """
         returns a new LciaResult object in which the components of the original LciaResult object are aggregated into
         static values according to a key.  The key is a lambda expression that is applied to each AggregateLciaResult
@@ -816,6 +848,8 @@ class LciaResult(object):
             factor, dirn, term = k
             for x in l:
                 name = '; '.join([x.flow.name, factor.context.name])
+                if factor.context.name == 'None':
+                    logging.warning('XXX None context found\n%s\n%s\n%s' % (x.flow.external_ref, x, factor))
                 flat.add_component(name)
                 exch = ExchangeValue(x.process, x.flow, dirn,
                                      value=x.value * _apply_scale * self.scale,
