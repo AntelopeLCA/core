@@ -1,4 +1,4 @@
-from antelope import NoReference
+from antelope import NoReference, EntityNotFound
 
 from .entity_store import EntityStore, EntityExists, uuid_regex
 from .basic_archive import BasicArchive, BASIC_ENTITY_TYPES, InterfaceError, ArchiveError
@@ -6,6 +6,9 @@ from .archive_index import index_archive, BasicIndex, LcIndex
 from .term_manager import TermManager
 from .lc_archive import LcArchive, LC_ENTITY_TYPES
 from ..from_json import from_json
+
+from ..entities.flows import new_flow
+from ..implementations.quantity import UnknownRefQuantity
 
 from pathlib import Path
 from collections import defaultdict
@@ -32,6 +35,24 @@ class Qdb(BasicArchive):
 
     def _load_all(self, **kwargs):
         self.load_from_dict(from_json(self.source))
+
+    def new_flow(self, name, ref_quantity=None, **kwargs):
+        """
+        :param name:
+        :param ref_quantity: defaults to "Number of items"
+        :param kwargs:
+        :return:
+        """
+
+        if ref_quantity is None:
+            ref_quantity = 'Number of items'
+        try:
+            ref_q = self.tm.get_canonical(ref_quantity)
+        except EntityNotFound:
+            raise UnknownRefQuantity(ref_quantity)
+        f = new_flow(name, ref_q, **kwargs)
+        self.add_entity_and_children(f)
+        return self.get(f.external_ref)
 
 
 def update_archive(archive, json_file):

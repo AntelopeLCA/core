@@ -20,11 +20,11 @@ class TestQuantityRelation(unittest.TestCase):
         qdb = Qdb.new()
         qi = qdb.make_interface('quantity')
 
-        f4 = qi.new_flow('Another mass flow', 'mass')
+        f4 = qdb.new_flow('Another mass flow', 'mass')
         qi.characterize(f4.link, f4.reference_entity, 'net calorific value', value=cls.f4_mj_kg)
 
         cls.f4 = f4
-        cls.f6 = qi.new_flow('An energetic conservation flow', 'net calorific value')
+        cls.f6 = qdb.new_flow('An energetic conservation flow', 'net calorific value')
         cls.qdb = qdb
 
     @property

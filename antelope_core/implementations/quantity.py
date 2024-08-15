@@ -9,8 +9,8 @@ from .basic import BasicImplementation
 from ..characterizations import QRResult, LocaleMismatch
 from ..contexts import NullContext
 from ..lcia_results import LciaResult
-from ..entities.quantities import new_quantity
-from ..entities.flows import new_flow
+# from ..entities.quantities import new_quantity
+# from ..entities.flows import new_flow
 
 
 class UnknownRefQuantity(Exception):
@@ -335,7 +335,10 @@ def try_convert(flowable, rq, qq, context, locale):
 
 
 class QuantityImplementation(BasicImplementation, QuantityInterface):
+    """
 
+    """
+    '''
     def new_quantity(self, name, ref_unit=None, **kwargs):
         """
 
@@ -366,6 +369,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
         f = new_flow(name, ref_q, **kwargs)
         self._archive.add_entity_and_children(f)
         return self.get(f.link)
+    '''
 
     """
     Uses the archive's term manager to index cfs, by way of the canonical quantities
