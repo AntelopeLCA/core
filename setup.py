@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.3.2.2'
+VERSION = '0.3.2.3'
 
 requires = [
     "synonym_dict>=0.2.4",
-    "antelope_interface>=0.2.6.2",
+    "antelope_interface>=0.2.6.3",
     "xlstools>=0.1.3",
     "python-magic>=0.4.18",
     "requests>=2.25",
@@ -14,6 +14,13 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.3.2.3 2024-08-15 - lots of remote traversal compatibility changes
+                     StringEntities in LciaResults
+                     repair biogenic CO2 switching
+                     ecoinvent 3.10 flowables
+                     assign_ref for blackbook resources
+                     zillions of tiny, costly bugs
+
 0.3.2.2 2024-06-11 - get_context into basic interface
 0.3.2   2024-06-06 - create ItemNotFound - bump interface version
 

@@ -1,5 +1,5 @@
 synonym_dict>=0.2.4
-antelope-interface>=0.2.6.2
+antelope-interface>=0.2.6.3
 xlstools>=0.1.3
 python-magic>=0.4.18
 requests>=2.25
