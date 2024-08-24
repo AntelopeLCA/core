@@ -201,8 +201,13 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         :param kwargs:
         :return:
         """
-        return list(self._resolve_exv(exv) for exv in self._archive.r.get_many(RemoteExchangeValues, _ref(process),
+        exvs = list(self._resolve_exv(exv) for exv in self._archive.r.get_many(RemoteExchangeValues, _ref(process),
                                                                                'exchanges', _ref(flow)))
+        if direction:
+            exvs = list(filter(lambda x: x.direction == direction, exvs))
+        if reference:
+            exvs = list(filter(lambda x: x.is_reference == reference, exvs))
+        return exvs
 
     def inventory(self, node, ref_flow=None, scenario=None, **kwargs):
         """
