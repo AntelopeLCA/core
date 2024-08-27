@@ -661,6 +661,8 @@ class LciaResult(object):
         """
         if value:
             self._autorange = AutoRange(value, **kwargs)
+        elif value is False:
+            self.unset_autorange()
         else:
             self._autorange = AutoRange(self.span, **kwargs)
 
@@ -1020,7 +1022,7 @@ class LciaResult(object):
         self._header()
         print('%s' % self)
 
-    def show_components(self, percent=False, count=None, threshold=None):
+    def show_components(self, percent=False, count=100, threshold=None):
         """
 
         :param percent:
@@ -1063,7 +1065,7 @@ class LciaResult(object):
         else:
             print('%s' % self)
 
-    def show_details(self, key=None, count=None, threshold=None):
+    def show_details(self, key=None, count=500, threshold=None):
         """
         Sorting by parts is not ideal but it will have to do.
         :param key:

@@ -97,7 +97,8 @@ class LciaEngine(TermManager):
         self._fb_by_origin[None] = set(str(k) for k in self._fm.objects)
 
         if quell_biogenic_co2 is not None:
-            print('WARNING: quell_biogenic_co2 LciaEngine argument is DEPRECATED - it is now kwarg to lcia()')
+            print('''WARNING: quell_biogenic_co2 LciaEngine argument is DEPRECATED
+It is now a PROPERTY SETTING on a quantity.''')
 
         self._factors_for_later = defaultdict(bool)
 

@@ -15,6 +15,8 @@ class LciaDb(Qdb):
     def new(cls, source=REF_QTYS, **kwargs):
         lcia = LciaEngine(**kwargs)
         qdb = cls.from_file(source, term_manager=lcia, quiet=True)
+        # long overdue
+        lcia.add_characterization('Water', lcia.get_canonical('volume'), lcia.get_canonical('mass'), value=1000.0)
         return qdb
 
     def _add_char(self, flow, q, v):
