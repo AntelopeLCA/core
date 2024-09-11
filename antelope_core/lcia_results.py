@@ -526,7 +526,8 @@ class AggregateLciaResult(object):
     def show_detailed_result(self, key=lambda x: x.result, show_all=False, count=None, threshold=None):
         residual = 0.0
         resid_c = 0
-        for d in sorted(self.LciaDetails, key=key, reverse=True):
+        rev = bool(self.cumulative_result > 0)  # we need to reverse the reverse-sort if results are negative
+        for d in sorted(self.LciaDetails, key=key, reverse=rev):
             if d.result != 0 or show_all:
                 if count is not None and count <= 0 and not show_all:
                     residual += d.result
@@ -744,9 +745,10 @@ class LciaResult(object):
         contrib = LciaResult(q, scenario=self.scenario)
         residual = 0.0
         resid_c = 0
+        rev = bool(self.total() > 0)   # we need to reverse the reverse-sort if results are negative
 
         if self.has_summaries:
-            for k, c in sorted(self._LciaScores.items(), key=lambda x: x[1].cumulative_result, reverse=True):
+            for k, c in sorted(self._LciaScores.items(), key=lambda x: x[1].cumulative_result, reverse=rev):
                 if count is not None:
                     if count <= 0:
                         residual += c.cumulative_result
@@ -758,7 +760,7 @@ class LciaResult(object):
         else:
             flat = self.flatten()  # this ensures meaningful components
             agg = flat.aggregate(key=str)
-            for k, c in sorted(agg._LciaScores.items(), key=lambda x: x[1].cumulative_result, reverse=True):
+            for k, c in sorted(agg._LciaScores.items(), key=lambda x: x[1].cumulative_result, reverse=rev):
                 if count is not None:
                     if count <= 0:
                         residual += c.cumulative_result
@@ -1035,7 +1037,8 @@ class LciaResult(object):
         resid_c = 0
 
         if not self._private:
-            for v in sorted(self._LciaScores.values(), key=lambda x: x.cumulative_result, reverse=True):
+            rev = bool(self.total() > 0)  # we need to reverse the reverse-sort if results are negative
+            for v in sorted(self._LciaScores.values(), key=lambda x: x.cumulative_result, reverse=rev):
                 if count is not None and count <= 0:
                     residual += v.cumulative_result
                     resid_c += 1
@@ -1065,7 +1068,7 @@ class LciaResult(object):
         else:
             print('%s' % self)
 
-    def show_details(self, key=None, count=500, threshold=None):
+    def show_details(self, key=None, count=100, threshold=None):
         """
         Sorting by parts is not ideal but it will have to do.
         :param key:
@@ -1076,9 +1079,10 @@ class LciaResult(object):
         self._header()
         if not self._private:
             if key is None:
+                rev = bool(self.total() > 0)  # we need to reverse the reverse-sort if results are negative
                 for e in sorted(self._LciaScores.keys(),
                                 key=lambda x: self._LciaScores[x].cumulative_result,
-                                reverse=True):
+                                reverse=rev):
                     try:
                         print('\n%s:' % self._LciaScores[e].entity)
                     except TypeError:
@@ -1314,5 +1318,6 @@ class LciaResult(object):
         :param detailed:
         :return:
         """
+        rev = bool(self.total() > 0)  # we need to reverse the reverse-sort if results are negative
         return [c.serialize(detailed=detailed) for c in sorted(self.components(), key=lambda x: x.cumulative_result,
-                                                               reverse=True)]
+                                                               reverse=rev)]

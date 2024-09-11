@@ -179,7 +179,7 @@ class Context(Compartment):
 
     def _check_sense(self, v_sense):
         if self.sense is not None and self.sense != v_sense:
-            raise InconsistentSense('Value %s conflicts with current v_sense %s' % (v_sense, self.sense))
+            raise InconsistentSense('%s: %s conflicts with self.sense=%s' % (self.name, v_sense, self.sense))
         for sub in self.subcompartments:
             sub._check_sense(v_sense)
 
@@ -441,8 +441,9 @@ class ContextManager(CompartmentManager):
                         """
                         try:
                             nxt = self.new_entry(this.name, parent=current, sense=this.sense)
-                        except MergeError:
+                        except (MergeError, InconsistentSense):
                             # for some reason USLCI FY21 has a "from ground, subterranean" category??
+                            # and USEEIO has "from water; subterranean; fresh water body" and "to water; fresh water body"
                             merge_name = ', '.join([current.name, this.name])
                             nxt = self.new_entry(merge_name, parent=current, sense=this.sense)
                             # this fix is awfully special-purpose but hey- things are mostly working

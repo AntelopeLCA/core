@@ -43,10 +43,10 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
         """
         if self._index is None:
             if index is None:
-                print('%%%%%% Setting up Background Impl for %s from archive %s' % (self.origin, self._archive))
+                # print('%%%%%% Setting up Background Impl for %s from archive %s' % (self.origin, self._archive))
                 self._index = self._archive.make_interface('index')
             else:
-                print('%%%%%% Setting up Background Impl for %s from index %s' % (self.origin, index))
+                # print('%%%%%% Setting up Background Impl for %s from index %s' % (self.origin, index))
                 self._index = index
 
     def _ensure_ref_flow(self, ref_flow):
@@ -225,7 +225,15 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
             raise NotImplementedError  # we can't proceed
         if observed is None:
             observed = ()
-        obs = set((x.flow.external_ref, x.direction) for x in observed)
+        lci = p_ref.unobserved_lci(observed, ref_flow=ref_flow)
+        '''
+        obs = set()
+        for k in observed:
+            if k.value < 0:
+                obs.add((k.flow.external_ref, comp_dir(k.direction)))
+            else:
+                obs.add((k.flow.external_ref, k.direction))
+        # obs = set((k.flow.external_ref, k.direction) for k in observed)
         if len(obs) > 0:
             exts = chain(p_ref.emissions(ref_flow=ref_flow),
                          p_ref.cutoffs(ref_flow=ref_flow))
@@ -234,5 +242,5 @@ class BackgroundImplementation(BasicImplementation, BackgroundInterface):
             lci = chain(self.sys_lci(incl), ext)
         else:
             lci = p_ref.lci(ref_flow=ref_flow)
-        # aggregation
+        '''  # aggregation
         return query_qty.do_lcia(lci, **kwargs)

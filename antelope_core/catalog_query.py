@@ -162,8 +162,9 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                 self._setup_background(i)
 
             self._debug('yielding %s' % i)
-            if itype not in self._iface_cache:
-                self._iface_cache[itype] = i  # only cache the first iface
+            if itype not in self._iface_cache:  # only cache the first iface
+                if i.origin == self.origin:  # only cache iface if it is a strict match
+                    self._iface_cache[itype] = i
             yield i
 
     def _perform_query(self, itype, attrname, exc, *args, strict=False, **kwargs):

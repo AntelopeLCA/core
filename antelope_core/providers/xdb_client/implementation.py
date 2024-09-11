@@ -4,7 +4,8 @@ from antelope import (IndexInterface, ExchangeInterface, QuantityInterface, Back
                       ItemNotFound)
 from antelope import RxRef, EntityNotFound
 from antelope.refs.base import NoUuid
-from antelope.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceValue, UnallocatedExchange,
+from antelope.models import (OriginCount, Entity, FlowEntity, Exchange, ReferenceExchange, ReferenceValue,
+                             UnallocatedExchange,
                              LciaResult as LciaResultModel, AllocatedExchange,
                              Characterization as CharacterizationModel,
                              ExchangeValues, DirectedFlow, FlowFactors)
@@ -255,6 +256,24 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
             return list(self._resolve_ex(ex) for ex in self._archive.r.get_many(AllocatedExchange, _ref(process),
                                                                                 'dependencies'))
 
+    def consumers(self, process, ref_flow=None, **kwargs):
+        """
+        This returns reference exchanges for activities that consume the named reference exchange
+        the puzzle here is how to generate the RxRefs-- I guess we should just do it here
+        :param process:
+        :param ref_flow:
+        :param kwargs:
+        :return:
+        """
+        if ref_flow:
+            return list(self._resolve_ex(rx) for rx in self._archive.r.get_many(ReferenceExchange,
+                                                                                _ref(process), _ref(ref_flow),
+                                                                                'consumers'))
+        else:
+            return list(self._resolve_ex(rx) for rx in self._archive.r.get_many(ReferenceExchange,
+                                                                                _ref(process),
+                                                                                'consumers'))
+
     def emissions(self, process, ref_flow=None, **kwargs):
         if ref_flow:
             # process inventory
@@ -458,7 +477,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         We want to override the interface implementation and send a simple request to the backend
         :param process:
         :param query_qty:
-        :param observed:
+        :param observed: iterable of DirectedFlows
         :param ref_flow:
         :param kwargs: locale, quell_biogenic_co2
         :return:
@@ -466,7 +485,7 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
         obs_flows = ()
         try:
             if observed:
-                obs_flows = [DirectedFlow.from_observed(x).dict() for x in observed]
+                obs_flows = [k.model_dump() for k in observed]
             if len(obs_flows) > 0:
                 if ref_flow:
                     ress = self._archive.r.post_return_one(obs_flows, LciaResultModel, _ref(process), _ref(ref_flow),

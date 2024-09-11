@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.3.2.3'
+VERSION = '0.3.3'
 
 requires = [
     "synonym_dict>=0.2.4",
-    "antelope_interface>=0.2.6.3",
+    "antelope_interface>=0.2.7",
     "xlstools>=0.1.3",
     "python-magic>=0.4.18",
     "requests>=2.25",
@@ -14,6 +14,12 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.3.3   2024-08-10 - consumers implementation
+                     sorting direction on LciaResults
+                     clean up unobserved_lci in preparation for folding it into lci()
+                     catch some errors
+                     some new unit conversions
+                     
 0.3.2.3 2024-08-15 - lots of remote traversal compatibility changes
                      StringEntities in LciaResults
                      repair biogenic CO2 switching
