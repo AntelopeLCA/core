@@ -36,7 +36,7 @@ plugins:
 - mkdocstrings:
     handlers:
       python:
-        paths: [antelope_core]
+        paths: [., antelope_core]
         options:
           docstring_style: "sphinx"
           show_inheritance_diagram: true
