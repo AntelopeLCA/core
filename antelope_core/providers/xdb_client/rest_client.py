@@ -221,6 +221,17 @@ class RestClient(object):
         else:
             return model(response)
 
+    def patch(self, patchdata, model, *args, form=False, **kwargs):
+        url = '/'.join(map(str, args))
+        if form:
+            response = self._request('PATCH', url, data=patchdata, params=kwargs)
+        else:
+            response = self._request('PATCH', url, json=patchdata, params=kwargs)
+        if issubclass(model, BaseModel):
+            return model(**response)
+        else:
+            return model(response)
+
     def delete(self, *args, **kwargs):
         url = '/'.join(map(str, args))
         return self._request('DELETE', url, params=kwargs)
