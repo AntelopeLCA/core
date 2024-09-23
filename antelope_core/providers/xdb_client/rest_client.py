@@ -11,6 +11,7 @@ class OAuthToken(BaseModel):
     token_type: str
     access_token: str
     message: Optional[str] = None
+    expires_in: Optional[int] = None
 
     @property
     def auth(self):
@@ -75,6 +76,8 @@ class RestClient(object):
             self._token = token
             if token.message:
                 print(token.message)
+            if token.expires_in:
+                print('token expires in %d s' % token.expires_in)
         elif isinstance(token, str):
             toks = token.split(' ')
             if len(toks) == 1:

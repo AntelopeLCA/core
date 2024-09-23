@@ -74,7 +74,7 @@ class LcCatalog(StaticCatalog):
     @classmethod
     def make_tester(cls, **kwargs):
         """
-        Sets a flag that tells the rootdir to be deleted when the catalog is garbage collected
+        This is no longer necessary; the same thing can be accomplished just by calling the constructor with no root.
         :param kwargs:
         :return:
         """
@@ -107,26 +107,16 @@ class LcCatalog(StaticCatalog):
         if not os.path.exists(self._reference_qtys):
             copy2(REF_QTYS, self._reference_qtys)
 
-    def __init__(self, rootdir, _test=False, **kwargs):
-        self._test = _test
-        if self._test:
+    def __init__(self, rootdir=None, _test=False, **kwargs):
+        if rootdir is None or _test is True:
+            self._test = True
             self._rootdir = None
         else:
+            self._test = False
             self._rootdir = os.path.abspath(rootdir)
             self._make_rootdir()  # this will be a git clone / fork;; clones reference quantities
         self._blackbook_client = None
         super(LcCatalog, self).__init__(self._rootdir, **kwargs)
-
-    def __del__(self):
-        """
-        This is unreliable- temp directories tend to accumulate
-        :return:
-        """
-        if self._blackbook_client:
-            self._blackbook_client.close()
-        # if self._test:  # no longer need to do this
-        #     # print('tryna delete %s' % self.root)
-        #     rmtree(self.root, ignore_errors=True)
 
     def save_local_changes(self):
         if self._test:
@@ -394,7 +384,7 @@ class LcCatalog(StaticCatalog):
                 if exis.source == res.source:
                     exis.archive.refresh_token(res.options['token'])
                 else:
-                    exis.source = res.source
+                    exis._source = res.source
                     exis.archive.refresh_auth(res.source, res.options['token'])
                 for i in res.interfaces:
                     if i not in exis.interfaces:
@@ -424,10 +414,10 @@ class LcCatalog(StaticCatalog):
                     rtn.extend(self.refresh_xdb_tokens(r.init_args['blackbook_origin']))
             return rtn
 
-        tok = self._blackbook_client.get_one(str, 'origins', remote_origin, 'token')
+        tok = self._blackbook_client.get_one(OAuthToken, 'origins', remote_origin, 'token')
         for res in self._resolver.resources:
             if res.init_args.get('blackbook_origin') == remote_origin:
-                res.init_args['token'] = tok
+                res.init_args['token'] = tok.access_token
                 if res.archive is None:
                     res.check(self)
                 elif hasattr(res.archive, 'r'):
