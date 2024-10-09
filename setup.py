@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.3.4'
+VERSION = '0.3.4.1'
 
 requires = [
     "synonym_dict>=0.2.4",
@@ -14,6 +14,8 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.3.4.1 2024-10-09 - fixed a flowables issue: PM2.5 and PM10 had become merged.
+
 0.3.4  2024-09-22  - workshop release.  Ditch make_tester()
 
 0.3.4-pre 2024-09-22 - workshop pre-release. fix lots of wee bugs; add docs

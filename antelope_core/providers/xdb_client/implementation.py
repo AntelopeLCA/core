@@ -66,6 +66,9 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
     def setup_bm(self, query):
         return True
 
+    def check_bg(self, **kwargs):
+        return True
+
     def get(self, external_ref, origin=None, **kwargs):
         return self._archive.retrieve_or_fetch_entity(external_ref, origin=origin, **kwargs)
 

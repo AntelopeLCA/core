@@ -1,8 +1,9 @@
-include antelope_core/lcia_engine/data/*.json
+include antelope_core/lcia_engine/data/contexts.json
+include antelope_core/lcia_engine/data/flowables.json
+include antelope_core/lcia_engine/data/ipcc_2007_gwp.json
 include antelope_core/providers/data/*.xlsx
 recursive-include antelope_core/providers/ilcd/tests/data *.xml
 include antelope_core/catalog/tests/USLCI_Processes_ecospold9.zip
 include antelope_core/archives/data/*.json
 include antelope_core/archives/tests/test_json.json
 include antelope_core/entities/tests/test_archive.json
-exclude *+map_external_refs.py
