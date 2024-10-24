@@ -441,7 +441,8 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
                     value = d.result / d.factor.value
                 except ZeroDivisionError:
                     value = 0.0
-                cx = self._tm[tuple(d.factor.context)]
+                r_cx = self.get_context(d.factor.context)
+                cx = self._tm[r_cx]
                 try:
                     rq = self.get_canonical(d.exchange.quantity_ref)
                 except EntityNotFound:
