@@ -30,7 +30,7 @@ metric_prefixes = dict([(v, k) for k, v in metric_offsets.items()])
 metric_prefixes[0] = ''
 
 
-DISALLOW = {'mol', 'MT', 'PM'}  # units that start with these phrases should NOT use inferred prefix
+DISALLOW = {'mol', 'MT', 'PM', 'm3'}  # units that start with these phrases should NOT use inferred prefix
 
 
 class AutoRange(object):
@@ -117,8 +117,9 @@ class AutoRange(object):
         :return:
         """
         prefix = unit[0]
+        disallow = any([unit.startswith(x) for x in self.disallow_prefix])
 
-        if any([unit.startswith(x) for x in self.disallow_prefix]) or prefix not in metric_offsets:
+        if disallow or (prefix not in metric_offsets):
             pre_shift = 0
             adj = unit
         else:
@@ -126,6 +127,9 @@ class AutoRange(object):
             adj = unit[1:]
 
         post_shift = pre_shift - self._shift
+
+        if disallow:  # not sure whether i should do "k PM2.5" or "thousand PM2.5"
+            return '%s %s' % (metric_prefixes[post_shift], adj)
 
         if unit.startswith('kg') and post_shift >= 2 and self.kg_to_t:
             post_shift -= 2
