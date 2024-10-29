@@ -1,7 +1,7 @@
 from antelope import NoReference, EntityNotFound
 
 from .entity_store import EntityStore, EntityExists, uuid_regex
-from .basic_archive import BasicArchive, BASIC_ENTITY_TYPES, InterfaceError, ArchiveError
+from .basic_archive import BasicArchive, BASIC_ENTITY_TYPES, InterfaceError, ArchiveError, LD_CONTEXT
 from .archive_index import index_archive, BasicIndex, LcIndex
 from .term_manager import TermManager
 from .lc_archive import LcArchive, LC_ENTITY_TYPES

@@ -242,6 +242,13 @@ class LcEntity(BaseEntity):
             return '%s' % self.reference_entity.external_ref
 
     def serialize(self, domesticate=False, drop_fields=()):
+        """
+        'domesticate=True' causes the entity to be saved without its origin, allowing it to take on the local origin
+        whenever it is loaded.
+        :param domesticate: [False] if True, drop origin.
+        :param drop_fields: fields to ignore from serialization
+        :return:
+        """
         j = {
             'entityType': self.entity_type,
             'externalId': self.external_ref,
@@ -300,9 +307,7 @@ class LcEntity(BaseEntity):
             self._d[key] = value
 
     def merge(self, other):
-        if False:  # not isinstance(other, LcEntity):  ## This is not a requirement! cf. EntityRefs, Disclosure objs
-            raise EntityMergeError('Incoming is not an LcEntity: %s' % other)
-        elif self.entity_type != other.entity_type:
+        if self.entity_type != other.entity_type:
             raise EntityMergeError('Incoming entity type %s mismatch with %s' % (other.entity_type, self.entity_type))
         elif self.external_ref != other.external_ref:
             raise EntityMergeError('Incoming External ref %s conflicts with existing %s' % (other.external_ref,

@@ -12,7 +12,6 @@ from ..characterizations import DuplicateCharacterizationError
 from ..from_json import from_json, to_json
 
 
-
 class OldJson(Exception):
     pass
 
@@ -396,7 +395,7 @@ class BasicArchive(EntityStore):
         if 'flows' in j:
             for e in j['flows']:
                 e['entityType'] = 'flow'
-                self.entity_from_json(e)
+                self.entity_from_json(e)  # do we need to catch EntityNotFound?
 
         if 'loaded' in j:
             self._loaded = j['loaded']
@@ -489,6 +488,8 @@ class BasicArchive(EntityStore):
 
     def serialize(self, characterizations=False, values=False, domesticate=False):
         """
+        Serialize flows and quantities.  If characterizations==True, also save Term Manager content
+        (characterizations, contexts, flowables)
 
         :param characterizations:
         :param values:

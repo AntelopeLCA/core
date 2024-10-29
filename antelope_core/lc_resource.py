@@ -332,7 +332,7 @@ class LcResource(object):
 
     @property
     def source(self):
-        return self._source
+        return str(self._source)
 
     @property
     def ds_type(self):
