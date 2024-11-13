@@ -183,7 +183,10 @@
       "Name": "Number of items",
       "UnitConversion": {
         "Dozen(s)": 0.08333333333333333,
+        "Dozen": 0.08333333333333333,
+        "dozen": 0.08333333333333333,
         "Item(s)": 1.0,
+        "Item": 1.0,
         "item": 1.0,
         "Items": 1.0,
         "items": 1.0,
@@ -576,10 +579,12 @@
       "externalId": "93a60a56-a3c8-11da-a746-0800200c9a66",
       "origin": "elcd.3.2",
       "referenceUnit": "MJ",
-      "synonyms": ["flowproperties/93a60a56-a3c8-11da-a746-0800200c9a66"]
+      "synonyms": ["flowproperties/93a60a56-a3c8-11da-a746-0800200c9a66",
+        "Energy (net calorific value)"
+      ]
     },
     {
-      "Comment": "Reference Flow Property Data Set of the International Reference Life Cycle Data System (ILCD).",
+      "Comment": "Reference Flow Property Data Set of the International Reference Life Cycle Data System (ILCD). Normal volume is the volume occupied by a gas at 0C, 1 bar",
       "Name": "Normal Volume",
       "UnitConversion": {
         "US fl oz": 33814.022701842994,
@@ -600,6 +605,7 @@
         "l": 1000.0,
         "L": 1000.0,
         "liter": 1000.0,
+        "Nm3": 1.0,
         "m3": 1.0,
         "cu m": 1.0,
         "ml": 1000000.0,
@@ -613,8 +619,46 @@
       "entityType": "quantity",
       "externalId": "93a60a56-a3c8-13da-a746-0800200c9a66",
       "origin": "elcd.3.2",
-      "referenceUnit": "m3",
+      "referenceUnit": "Nm3",
       "synonyms": ["flowproperties/93a60a56-a3c8-13da-a746-0800200c9a66"]
+    },
+    {
+      "Comment": "Standard volume is the volume occupied by a gas at 15C, 1 bar",
+      "Name": "Standard Volume",
+      "UnitConversion": {
+        "US fl oz": 33814.022701842994,
+        "bbl": 6.289810770432105,
+        "bl (Imp)": 6.110256897196883,
+        "bl (US beer)": 8.521683850642152,
+        "bl (US dry)": 8.648409373989104,
+        "bl (US fl)": 8.38641436057614,
+        "bsh (Imp)": 27.496156037385973,
+        "bsh (US)": 28.377593255889252,
+        "cu ft": 35.31466672148859,
+        "fl oz (Imp)": 35195.07972785404,
+        "gal (Imp)": 219.96924829908778,
+        "gal (US dry)": 227.02074606721396,
+        "gal (US fl)": 264.1720523581484,
+        "gal (US liq)": 264.1720372841846,
+        "gal": 264.1720372841846,
+        "l": 1000.0,
+        "L": 1000.0,
+        "liter": 1000.0,
+        "Sm3": 1.0,
+        "m3": 1.0,
+        "cu m": 1.0,
+        "ml": 1000000.0,
+        "mL": 1000000.0,
+        "pt (Imp)": 1759.7539863927022,
+        "pt (US dry)": 1816.1659685377117,
+        "pt (US fl)": 2113.376418865187,
+        "ul": 1000000000.0
+      },
+      "entityId": "f67c1de1-3f65-457c-82a6-5683cc73b4fb",
+      "entityType": "quantity",
+      "externalId": "f67c1de1-3f65-457c-82a6-5683cc73b4fb",
+      "origin": "local.qdb",
+      "referenceUnit": "Sm3"
     },
     {
       "Comment": "Reference Flow Property Data Set of the International Reference Life Cycle Data System (ILCD).",
@@ -636,7 +680,9 @@
       "externalId": "93a60a56-a3c8-14da-a746-0800200c9a66",
       "origin": "elcd.3.2",
       "referenceUnit": "MJ",
-      "synonyms": ["flowproperties/93a60a56-a3c8-14da-a746-0800200c9a66"]
+      "synonyms": ["flowproperties/93a60a56-a3c8-14da-a746-0800200c9a66",
+        "Energy (gross calorific value)"
+      ]
     },
     {
       "Comment": "Reference Flow Property Data Set of the International Reference Life Cycle Data System (ILCD).",
