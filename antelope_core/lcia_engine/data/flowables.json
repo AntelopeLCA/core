@@ -11527,6 +11527,7 @@
         "36c96aed-9335-4564-8cdd-46f01a13700c",
         "3f5339ef-1939-4f44-8cd6-98ac7584d456",
         "NMVOC",
+        "base rog mixture",
         "d3260d0e-8203-4cbb-a45a-6a13131a5108",
         "ecoinvent.3.10.cutoff/175baa64-d985-4c5e-84ef-67cc3a1cf952",
         "ecoinvent.3.10.cutoff/33b38ccb-593b-4b11-b965-10d747ba3556",
@@ -17222,10 +17223,6 @@
         "ecoinvent.3.10.cutoff/7d685caf-34cf-5466-b048-6841a368dcee",
         "149979-41-9"
       ]
-    },
-    {
-      "name": "base rog mixture",
-      "synonyms": []
     },
     {
       "name": "basic yellow 2",
