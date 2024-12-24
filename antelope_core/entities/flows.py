@@ -81,8 +81,13 @@ class LcFlow(LcEntity, Flow):
 
     def characterize(self, quantity, value, context=None, origin=None, location='GLO', **kwargs):
         if context is None:
-            context = self.context
-        flowable = self.name
+            if bool(self.context):
+                context = self.context
+                flowable = self.name
+            else:
+                flowable = self.link
+        else:
+            flowable = self.name
         if origin is None:
             origin = self.origin
         self.pop_char(quantity, context, location)

@@ -105,14 +105,14 @@ class FragmentFlow(object):
                           exchange_value=1.0, observe=True)
         node = parent.observe_anchor(None, process, anchor_flow=rx.flow)
         ff = [cls(parent, 1.0, 1.0, node, False)]
-        for ex in process.ad(ref_flow):  # returns exchangevalues
+        for ex in process.dependencies(ref_flow):  # returns exchangevalues
             n = query.get(ex.termination)
             cf = Fragment(n.external_ref, ex.flow, ex.direction, exchange_value=ex.value, observe=True,
                           parent=parent, anchor=n, anchor_flow=ex.flow)
 
             ff.append(cls(cf, ex.value, ex.value, cf.anch, False))
         if exterior:
-            for ex in process.bf(ref_flow=ref_flow):
+            for ex in process.emissions(ref_flow=ref_flow):
                 if ex.termination.elementary and not elementary:
                     continue
                 # still include non-elementary cutoffs

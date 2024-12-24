@@ -113,6 +113,9 @@ class Context(Compartment):
         for k in self.as_list():
             yield k
 
+    def __bool__(self):
+        return not self.is_null
+
     def __hash__(self):
         return hash(self._id)  # don't mess with the hash
 

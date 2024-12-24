@@ -219,5 +219,7 @@ class SCLookup(CLookup):
             print('Collision with context: %s' % repr(key))
             print(repr(value))
             print('%s current' % repr(existing))
+            print(existing.value)
+            print(value.value)
             raise FactorCollision('This context already has a CF defined!')
         super(SCLookup, self).add(value, key)
