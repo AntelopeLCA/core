@@ -316,7 +316,7 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         return self._tm.add_characterization(flowable, rq, qq, value, context=context, location=location,
                                              origin=origin, **kwargs)
 
-    def clear_seen_characterizations(self, quantity):
+    def clear_seen_characterizations(self, quantity=None):
         """
         An ugly hack to deal with the absolutely terrible way we are working around our slow-ass Qdb implementation
         the proper solution is for qdb lookup to be local,  fast and correct, so as to not require caching at all.
@@ -326,13 +326,9 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         for i in self._iface_cache.values():
             if i._archive:
                 for f in i._archive.entities_by_type('flow'):
-                    k = [cf for cf in f._chars_seen.keys() if cf[0] is quantity]
-                    for cf in k:
-                        f.pop_char(*cf)
-                    if f._query_ref:
-                        k = [cf for cf in f._query_ref._chars_seen.keys() if cf[0] is quantity]
-                        for cf in k:
-                            f._query_ref.pop_char(*cf)
+                    f.clear_chars(quantity)
+                    if f.is_entity and f._query_ref is not None:
+                        f._query_ref.clear_chars(quantity)
 
     def make_ref(self, entity):
         if isinstance(entity, list):

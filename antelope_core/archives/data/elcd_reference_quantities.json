@@ -548,6 +548,11 @@
         "Tonnes": 0.001,
         "tonne": 0.001,
         "tonnes": 0.001,
+        "metric ton": 0.001,
+        "metric tons": 0.001,
+        "Metric Ton": 0.001,
+        "Metric Tons": 0.001,
+        "MT": 0.001,
         "ug": 1000000000.0
       },
       "entityId": "93a60a56-a3c8-11da-a746-0800200b9a66",
