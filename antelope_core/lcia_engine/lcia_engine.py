@@ -180,20 +180,23 @@ It is now a PROPERTY SETTING on a quantity.''')
                 raise ValueError('Unknown hint type %s' % hint_type)
 
     def add_synonym(self, existing_term, synonym):
+        return self.add_synonyms(existing_term, synonym)
+
+    def add_synonyms(self, existing_term, *synonyms):
         """
 
         :param existing_term: flowable or quantity (cx is TBD)
-        :param synonym: string term to add
+        :param synonym: one or more string terms to add
         :return:
         """
-        synonym = str(synonym).strip()
         try:
             ent = self._fm[existing_term]
-            self._add_to_existing_flowable(ent, (synonym,))
+            self._add_to_existing_flowable(ent, synonyms)
         except KeyError:
             try:
                 ent = self._qm[existing_term]
-                self._qm.add_synonym(ent, synonym)
+                for synonym in synonyms:
+                    self._qm.add_synonym(ent, str(synonym).strip())
             except KeyError:
                 raise KeyError('No entry found for %s' % existing_term)
 
@@ -227,7 +230,7 @@ It is now a PROPERTY SETTING on a quantity.''')
         :return:
         """
         for term in new_terms:
-            self._fm.add_synonym(fb, term)
+            self._fm.add_synonym(fb, str(term).strip())
 
     def add_flow_terms(self, flow, merge_strategy=None):
         """
@@ -476,7 +479,7 @@ It is now a PROPERTY SETTING on a quantity.''')
                     continue
                 to_merge.add(c)
             except KeyError:
-                self.add_synonym(dom_fb, syn)
+                self.add_synonyms(dom_fb, syn)
         if to_merge:
             return self._merge_terms(dom_fb, *to_merge)
         else:
