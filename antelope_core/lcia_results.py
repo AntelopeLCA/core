@@ -876,6 +876,13 @@ class LciaResult(object):
     def total(self):
         return sum([i.cumulative_result for i in self._LciaScores.values()])
 
+    def __eq__(self, other):
+        try:
+            return (list(c.cumulative_result for c in self.components()) ==
+                    list(c.cumulative_result for c in other.components()))
+        except (AttributeError, TypeError):
+            return False
+
     def a_total(self):
         """
         I don't want any logic in total()
