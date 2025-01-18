@@ -304,7 +304,10 @@ class LcEntity(BaseEntity):
         elif key.lower() in ('entityid', 'entitytype', 'externalid', 'origin'):
             raise KeyError('Disallowed Keyname %s' % key)
         else:
-            self._d[key] = value
+            if value is None:
+                self._d.pop(key, None)
+            else:
+                self._d[key] = value
 
     def merge(self, other):
         if self.entity_type != other.entity_type:
