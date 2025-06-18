@@ -8,6 +8,8 @@ from time import time
 from lxml import objectify
 from lxml.etree import XMLSyntaxError
 
+from antelope import EntityNotFound
+
 from ...characterizations import QRResult
 from ...entities import LcQuantity, LcFlow, LcProcess
 from ...entities.processes import AlreadyAReference
@@ -26,6 +28,10 @@ EcospoldExchange = namedtuple('EcospoldExchange', ('flow', 'direction', 'value',
 EcospoldLciaResult = namedtuple('EcospoldLciaResult', ('Method', 'Category', 'Indicator', 'score'))
 
 
+class EcospoldV2Error(Exception):
+    pass
+
+
 def spold_reference_flow(filename):
     """
     second UUID, first match should be reference flow uuid
@@ -39,12 +45,8 @@ def spold_reference_flow(filename):
         try:
             return m[0][0], None
         except IndexError:
-            print('No UUID found in %s' % filename)
-            raise
-
-
-class EcospoldV2Error(Exception):
-    pass
+            # print('No UUID found in %s' % filename)
+            raise EcospoldV2Error('No UUID found in %s' % filename)
 
 
 def _add_syn_if(syn, synset):
@@ -581,7 +583,10 @@ class EcospoldV2Archive(LcArchive):
         if ext_ref in self._master.intermediate_exchanges:
             return self._create_flow(self._master.intermediate_exchanges[ext_ref])
 
-        p_uuid, _ = spold_reference_flow(ext_ref)  # will error if at least one UUID is not present
+        try:
+            p_uuid, _ = spold_reference_flow(ext_ref)  # will error if at least one UUID is not present
+        except EcospoldV2Error:
+            raise EntityNotFound
 
         p = self[p_uuid]
 

@@ -79,6 +79,14 @@ class StringEntity(object):
         return hash(self.name)
 
 
+def _dirn_adjust(context_sense, exchange_direction):
+    if context_sense is None:
+        return 1.0
+    elif comp_dir(context_sense) == exchange_direction:
+        return 1.0
+    return -1.0
+
+
 class DetailedLciaResult(object):
     """
     Contains exchange, factor, result
@@ -99,6 +107,9 @@ class DetailedLciaResult(object):
         self._exchange = exchange
         self._qr = qrresult
         self._lc = lc_result
+        # literally zero reason to compute these dynamically
+        self._exchange_value = 0.0 if exchange.value is None else exchange.value
+        self._dirn_adjust = _dirn_adjust(qrresult.context.sense, exchange.direction)
 
     @property
     def exchange(self):
@@ -107,14 +118,6 @@ class DetailedLciaResult(object):
     @property
     def factor(self):
         return self._qr
-
-    @property
-    def _dirn_adjust(self):
-        if self._qr.context.sense is None:
-            return 1.0
-        elif comp_dir(self._qr.context.sense) == self._exchange.direction:
-            return 1.0
-        return -1.0
 
     @property
     def is_null(self):
@@ -150,9 +153,7 @@ class DetailedLciaResult(object):
 
     @property
     def value(self):
-        if self._exchange.value is None:
-            return 0.0
-        return self._exchange.value * self._lc.scale
+        return self._exchange_value * self._lc.scale
 
     @property
     def result(self):

@@ -30,7 +30,7 @@ metric_prefixes = dict([(v, k) for k, v in metric_offsets.items()])
 metric_prefixes[0] = ''
 
 
-DISALLOW = {'mol', 'MT', 'PM', 'm3'}  # units that start with these phrases should NOT use inferred prefix
+DISALLOW = {'mol', 'MT', 'PM', 'm3', 'Item'}  # units that start with these phrases should NOT use inferred prefix
 
 
 class AutoRange(object):
