@@ -305,9 +305,12 @@ class LcEntity(BaseEntity):
             raise KeyError('Disallowed Keyname %s' % key)
         else:
             if value is None:
-                self._d.pop(key, None)
+                if value not in self.signature_fields():
+                    self._d.pop(key, None)
             else:
                 self._d[key] = value
+                if self._query_ref is not None:
+                    self._query_ref[key] = value
 
     def merge(self, other):
         if self.entity_type != other.entity_type:
