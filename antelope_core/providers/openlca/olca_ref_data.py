@@ -65,6 +65,10 @@ class OlcaRefQuantityImplementation(BasicImplementation, QuantityInterface):
             # [Factor] [Indicator] / [Flow unit]  * [convert to] / [convert from] = value [Indicator] / rq.unit
             value = float(factor['Factor']) * rq.convert(to=rq_unit)
             locale = factor['Location']
+            if flow.name.lower().startswith('occupation') and value < 0:
+                # deal with OpenLCA bug https://github.com/GreenDelta/data/issues/25
+                logging.error('%5.5s: Correcting negative cf for %s (%g)' % (qq.uuid, flow.name, value))
+                value = abs(value)
             if locale:
                 l_count += 1
             else:
