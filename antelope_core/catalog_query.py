@@ -316,6 +316,19 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         return self._tm.add_characterization(flowable, rq, qq, value, context=context, location=location,
                                              origin=origin, **kwargs)
 
+    def cf(self, flow, quantity, **kwargs):
+        """
+        Ask the qdb first
+        :param flow:
+        :param quantity:
+        :param kwargs: ref_quantity, context, locale, strategy, etc
+        :return:
+        """
+        cf = self._catalog.qdb.cf(flow, quantity, **kwargs)
+        if cf == 0:
+            cf = super(CatalogQuery, self).cf(flow, quantity, **kwargs)
+        return cf
+
     def clear_seen_characterizations(self, quantity=None):
         """
         An ugly hack to deal with the absolutely terrible way we are working around our slow-ass Qdb implementation
