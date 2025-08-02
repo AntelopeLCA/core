@@ -743,7 +743,7 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
                 raise AssertionError('Something went wrong')
         return result
 
-    def cf(self, flow, quantity, ref_quantity=None, context=None, locale='GLO', **kwargs):
+    def cf(self, flow, quantity, ref_quantity=None, context=None, locale='GLO', dist=2, **kwargs):
         """
         Should Always return a number and catch errors
         :param flow:
@@ -751,11 +751,13 @@ class QuantityImplementation(BasicImplementation, QuantityInterface):
         :param ref_quantity: [None] taken from flow.reference_entity if flow is entity or locally known external_ref
         :param context: [None] taken from flow.reference_entity if flow is entity or locally known external_ref
         :param locale:
+        :param dist: default 2: take cf from subcontexts, then parent contexts
         :param kwargs: allow_proxy [False], strategy ['first'] -> passed to quantity_relation
         :return: the value of the QRResult found by the quantity_relation
         """
         try:
-            qr = self.quantity_relation(flow, ref_quantity, quantity, context=context, locale=locale, **kwargs)
+            qr = self.quantity_relation(flow, ref_quantity, quantity, context=context, locale=locale, dist=dist,
+                                        **kwargs)
             return qr.value
         except ConversionReferenceMismatch:
             return 0.0
