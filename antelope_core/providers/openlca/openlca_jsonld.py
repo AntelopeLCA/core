@@ -172,7 +172,6 @@ class OpenLcaJsonLdArchive(LcArchive):
         else:
             raise TypeError('product system %s not found' % product_system)
 
-
     @property
     def defined(self):
         return bool(self._defined_ps)
@@ -378,7 +377,14 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         if v_unit != fp.unit:
             oldval = value
-            value *= fp.convert(from_unit=v_unit)  # ConversionErrors caught in add_process
+            try:
+                value *= fp.convert(from_unit=v_unit)  # ConversionErrors caught in add_process
+            except ConversionError:
+                cf_error = '\nExchange ID %d (%s): Conversion Error from unit %s to %s' % (ex['internalId'],
+                                                                                           flow.uuid,
+                                                                                           v_unit, fp.unit)
+                p['Comment'] += cf_error
+                value = 0
 
             self._print('%s: Unit Conversion exch: %g %s to native: %g %s' % (p.uuid, oldval, v_unit, value, fp.unit))
 
@@ -416,7 +422,9 @@ class OpenLcaJsonLdArchive(LcArchive):
         if 'amountFormula' in ex:
             exch.comment = ex['amountFormula'].strip()
             if 'description' in ex:
-                logging.warning('%s:%d skipping description in favor of comment' % (p.external_ref, ex['internalId']))
+                exch_desc = '\nExchange ID %d (%s): Description: %s' % (ex['internalId'], exch.flow.uuid,
+                                                                        ex['description'])
+                p['Comment'] += exch_desc
         elif 'description' in ex:
             exch.comment = ex['description']
 
@@ -577,10 +585,6 @@ class OpenLcaJsonLdArchive(LcArchive):
             except KeyError as e:
                 ex_id = ex.get('internalId', -1)
                 logging.error('%s: failed to add mal-formed exchange with ID %d: {%s}' % (p.uuid, ex_id, e.args[0]))
-                broken_exch.append(ex)
-            except ConversionError:
-                ex_id = ex.get('internalId', -1)
-                logging.info('%s: Unit Conversion Error for exchange with ID %d' % (p.uuid, ex_id))
                 broken_exch.append(ex)
 
         if len(broken_exch) > 0:
