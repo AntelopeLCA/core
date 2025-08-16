@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.3.5'
+VERSION = '0.3.6'
 
 requires = [
     "synonym_dict>=0.2.4",
-    "antelope_interface>=0.2.7",
+    "antelope_interface>=0.3.2",
     "xlstools>=0.1.3",
     "python-magic>=0.4.18",
     "requests>=2.25",
@@ -14,6 +14,7 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.3.6 2025-08-15  - bump bg interface changes
 0.3.5 2025-06-18  - bug fix catch-up release for ISSST workshop
 0.3.4.4 2024-10-24 - fetch remote contexts when reading in remote LCIA results. 
 0.3.4.3 2024-10-09 - fixed a flowables issue: gaseous Nitrogen | organic nitrogen. also removed a big data file.

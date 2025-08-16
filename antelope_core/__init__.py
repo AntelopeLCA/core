@@ -9,6 +9,7 @@ Package Includes:
 
 
 from synonym_dict import LowerDict
+from .archives import CheckTerms
 from antelope import antelope_herd
 
 import importlib

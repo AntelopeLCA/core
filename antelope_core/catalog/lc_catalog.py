@@ -149,21 +149,22 @@ class LcCatalog(StaticCatalog):
     Create + Add data resources
     '''
 
-    def new_resource(self, reference, source, ds_type, store=True, **kwargs):
+    def new_resource(self, reference, source, ds_type, interfaces='basic', store=True, **kwargs):
         """
         Create a new data resource by specifying its properties directly to the constructor
         :param reference:
         :param source:
         :param ds_type:
-        :param store: [True] permanently store this resource
-        :param kwargs: interfaces=None, priority=0, static=False; **kwargs passed to archive constructor
+        :param interfaces: string or tuple of valid interfaces. Defaults to just 'basic' for now.
+        :param store: [True] permanently store this resource (disabled for rootless catalogs)
+        :param kwargs: priority=0, static=False; **kwargs passed to archive constructor
         :return:
         """
         if self._test:
             store = False
         else:
             source = self._localize_source(source)
-        res = self._resolver.new_resource(reference, source, ds_type, store=store, **kwargs)
+        res = self._resolver.new_resource(reference, source, ds_type, store=store, interfaces=interfaces, **kwargs)
         if res.origin in self._nicknames:
             self._nicknames.pop(res.origin)
         return res
@@ -547,7 +548,7 @@ class LcCatalog(StaticCatalog):
         res.check(self)
         res.make_cache(self.cache_file(self._localize_source(source)))
 
-    def _background_for_origin(self, ref, strict=False):
+    def background_for_origin(self, ref, strict=False):
         res = self.get_resource(ref, iface='exchange')
         store = self._resolver.is_permanent(res) and not self._test
         inx_ref = self.index_ref(ref, interface='exchange', strict=strict, save=store)
@@ -575,7 +576,7 @@ class LcCatalog(StaticCatalog):
 
         if itype == 'background':
             if origin.startswith('local') or origin.startswith('test'):
-                yield self._background_for_origin(origin, strict=strict)
+                yield self.background_for_origin(origin, strict=strict)
 
     def create_descendant(self, origin, interface=None, source=None, force=False, signifier=None, strict=True,
                           priority=None, **kwargs):

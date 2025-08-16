@@ -1,7 +1,7 @@
 from antelope import NoReference, EntityNotFound
 
 from .entity_store import EntityStore, EntityExists, uuid_regex
-from .basic_archive import BasicArchive, BASIC_ENTITY_TYPES, InterfaceError, ArchiveError, LD_CONTEXT
+from .basic_archive import BasicArchive, BASIC_ENTITY_TYPES, InterfaceError, ArchiveError, LD_CONTEXT, ContextCollision
 from .archive_index import index_archive, BasicIndex, LcIndex
 from .term_manager import TermManager
 from .lc_archive import LcArchive, LC_ENTITY_TYPES
@@ -119,7 +119,14 @@ class CheckTerms(object):
     A utility for reviewing the integrity of exchanges in an archive
     """
     def __init__(self, query):
+        """
+        Analyzes the linking characteristics of a data source. Requires exchange and index interfaces.
+        :param query:
+        """
+        self._q = query
         self._check = defaultdict(list)
+        self._broken = dict()
+        self._ambig = dict()
         self._p = 0
         self._rx = 0
         self._x = 0
@@ -133,41 +140,116 @@ class CheckTerms(object):
                     if x.type == 'node':
                         try:
                             query.get(x.termination).reference(x.flow)
-                            self._check['terminated'].append(x)
+                            self._check['anchored'].append(x)
                         except NoReference:
-                            self._check['missing'].append(x)
-                    elif x.is_elementary:
-                        self._check['elementary'].append(x)
+                            # determine if broken flows are also ambiguous
+                            ng = len(list(t for t in query.targets(x.flow, direction=x.direction) if t != x.process))
+                            self._check['broken'].append(x)
+                            self._broken[x] = ng
                     elif x.type == 'context':
-                        tg = list(query.targets(x.flow, direction=x.direction))
-                        if len(tg) == 0:
-                            self._check['cutoff'].append(x)
-                        elif len(tg) > 1:
-                            self._check['ambiguous'].append(x)
-                        else:
-                            self._check['terminated'].append(x)
+                        if x.is_elementary:
+                            self._check['elementary'].append(x)
+                        else:  # unlinked intermediate flows with context specified
+                            tg = list(t for t in query.targets(x.flow, direction=x.direction) if t != x.process)
+                            if len(tg) == 0:
+                                self._check['cutoff'].append(x)
+                            elif len(tg) > 1:
+                                self._ambig[x] = len(tg)
+                                self._check['ambiguous'].append(x)
+                            else:
+                                self._check['anchored'].append(x)
                     else:
                         self._check[x.type].append(x)
         self.show()
 
+    @property
     def ambiguous_flows(self):
-        for t in set(k.flow for k in self._check['ambiguous']):
+        """
+        Generates a list of flows for which the target is ambiguous
+        :return:
+        """
+        flows = set()
+        for t in self._check['ambiguous']:
+            if t.flow not in flows:
+                flows.add(t.flow)
+                yield t.flow
+        for t in self._check['broken']:
+            if self._broken[t] > 1:
+                if t.flow not in flows:
+                    flows.add(t.flow)
+                    yield t.flow
+
+    @property
+    def broken_anchors(self):
+        """
+        Generates a list of exchanges with faulty anchors (the targeted dataset does not list the flow as a reference)
+        :return:
+        """
+        for t in sorted(self._check['broken'], key=lambda x: self._broken[x]):
             yield t
 
     def show(self):
-        print('%d processes\n%d reference exchanges\n%d dependent exchanges' % (self._p, self._rx, self._x))
+        print('%d processes\n%d reference exchanges\n%d dependent exchanges:' % (self._p, self._rx, self._x))
         ks = list(self._check.keys())
-        for k in ('terminated', 'cutoff', 'elementary', 'self'):
+        for k in ('anchored', 'cutoff', 'elementary', 'self'):
             if k in ks:
                 v = self._check[k]
                 ks.remove(k)
             else:
                 v = []
-            print('%s: %d exchanges' % (k, len(v)))
+            print('  %s: %d exchanges' % (k, len(v)))
         print('')
         for k in ks:
             v = self._check[k]
-            print('%s: %d exchanges' % (k, len(v)))
+            print('  %s: %d exchanges' % (k, len(v)))
+
+    def _show_bad(self, exchs, counter):
+        last = None
+        for t in sorted(exchs, key=lambda x: x.process.external_ref):
+            if t.process.external_ref != last:
+                if last is not None:
+                    print('')
+                last = t.process.external_ref
+                print('Process: %s' % t.process)
+            dirn = {'Input': '<--#',
+                    'Output': '==>#'}[t.direction]
+            count = counter[t]
+            if count > 1:
+                bad = '*'
+            else:
+                bad = ' '
+            if t.type == 'node':
+                tgt = self._q.get(t.termination).name
+            else:
+                tgt = '[%s]' % t.termination
+            print('%s %s (%d) %s ! %s' % (bad, t.flow.name, count, dirn, tgt))
+        if last is None:
+            print('No broken exchanges')
+
+    def show_broken(self):
+        """
+        Print broken links in human-readable form:
+
+        Process: process name:
+        ? flow name (valid targets) <---> # ! bad target
+        ...
+
+        '?' is either a blank (0 or 1 valid target) or a * (more than 1 valid target)
+        :return:
+        """
+        self._show_bad(self._check['broken'], self._broken)
+
+    def show_ambiguous(self):
+        """
+        Print ambiguous links in human-readable form:
+
+        Process: process name:
+        * flow name (valid targets) <---> # ! [flow context]
+        ...
+
+        :return:
+        """
+        self._show_bad(self._check['ambiguous'], self._ambig)
 
     def exchanges(self, key):
         return self._check[key]
