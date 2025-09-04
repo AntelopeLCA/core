@@ -260,7 +260,10 @@ class LcCatalog(StaticCatalog):
         """
         Opens an authenticated session with the designated blackbook server.  Credentials can either be provided to the
         method as arguments, or if omitted, they can be obtained through a form.  If a token is provided, it is
-        used in lieu of a password workflow
+        used in lieu of a password workflow.
+        The token, username, and password can all be stored as environment variables if desired: BLACKBOOK_TOKEN,
+        BLACKBOOK_USERNAME, and BLACKBOOK_PASSWORD respectively.
+
         :param blackbook_url:
         :param username:
         :param password:
@@ -276,11 +279,17 @@ class LcCatalog(StaticCatalog):
         elif blackbook_url is None:
             raise ValueError('Must provide a URL')
         if token is None:
+            token = os.getenv('BLACKBOOK_TOKEN')
+        if token is None:
             client = RestClient(blackbook_url, auth_route='auth/token', **kwargs)
             if username is None:
-                username = input('Enter username to access blackbook server at %s: ' % blackbook_url)
+                username = os.getenv('BLACKBOOK_USERNAME')
+                if username is None:
+                    username = input('Enter username to access blackbook server at %s: ' % blackbook_url)
             if password is None:
-                password = getpass.getpass('Enter password to access blackbook server at %s: ' % blackbook_url)
+                password = os.getenv('BLACKBOOK_PASSWORD')
+                if password is None:
+                    password = getpass.getpass('Enter password to access blackbook server at %s: ' % blackbook_url)
             try:
                 client.authenticate(username, password)
             except HTTPError:
