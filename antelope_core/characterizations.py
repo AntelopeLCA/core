@@ -255,6 +255,9 @@ class Characterization(object):
             else:
                 scs.append('%6.3g [%s]' % (v, k))
 
+        if len(scs) > 4:
+            scs = scs[:3] + ['%d more locations' % (len(scs) - 3)]
+
         return '%s [%s / %s] %s: %s (%s)' % ('\n'.join(scs),
                                              self.quantity.unit, self.ref_quantity.unit, self.flowable, self.context,
                                              self.quantity.name)

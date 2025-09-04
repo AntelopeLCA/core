@@ -626,6 +626,15 @@ class OpenLcaJsonLdArchive(LcArchive):
                 except AttributeError:
                     pass
             '''
+            if loc is not None:
+                try:
+                    loc = loc.get('@id')
+                except (TypeError, AttributeError):
+                    message = '%s: Botched location %s (%g)' % (q.uuid, loc, factor['value'])
+                    print(message)
+                    flow['Comment'] += '\n%s' % message
+                    # we can't add it because we'll overwrite the None location case
+                    continue
 
             ref_qty = self._create_quantity(factor['flowProperty']['@id'])
             assert flow.reference_entity == ref_qty
