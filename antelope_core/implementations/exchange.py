@@ -50,7 +50,7 @@ class ExchangeImplementation(BasicImplementation, ExchangeInterface):
             for x in p.inventory(scenario=scenario, observed=True, **kwargs):
                 yield x
 
-    def exchange_relation(self, process, ref_flow, exch_flow, direction, termination=None, **kwargs):
+    def exchange_relation(self, process, ref_flow, exch_flow, direction=None, termination=None, **kwargs):
         """
         This certainly should be tested for quantity-based and ecoinvent-style (exhaustive) allocation
 

@@ -193,6 +193,21 @@ class DetailedLciaResult(object):
     def serialize(self):
         return LciaDetail.from_detailed_lcia_result(self)
 
+    @property
+    def dataframe_row(self):
+        if self._dirn_adjust == -1:
+            dirn_mod = True
+        else:
+            dirn_mod = False
+
+        return {'Flow': self.flowable, 'Direction': self.direction, 'adj': dirn_mod, 'Context': self.context,
+                'Value': self._exchange_value, 'Factor': self._qr.value, 'Scale': self._lc.scale, 'Result': self.result,
+                'Indicator': self._qr.query['Indicator']}
+
+    @property
+    def series_row(self):
+        return (self.flowable, self.direction, self.context), self.result
+
 
 class SummaryLciaResult(object):
     """
@@ -425,6 +440,11 @@ class SummaryLciaResult(object):
         return SummaryLciaScore(component=self.name, result=self.cumulative_result,
                                 node_weight=self.node_weight, unit_score=self.unit_score,
                                 origin=self.origin, entity_id=self.id)
+
+    @property
+    def as_dataframe_row(self):
+        return {'Component': self.name, 'Scale': self._lc.scale, 'NodeWeight': self.node_weight,
+                'UnitScore': self.unit_score, 'Result': self.cumulative_result}
 
 
 class SummaryLciaMissing(SummaryLciaResult):
@@ -1329,3 +1349,60 @@ class LciaResult(object):
         rev = bool(self.total() > 0)  # we need to reverse the reverse-sort if results are negative
         return [c.serialize(detailed=detailed) for c in sorted(self.components(), key=lambda x: x.cumulative_result,
                                                                reverse=rev)]
+
+    @property
+    def as_dataframe(self):
+        """
+        If we are summary-based, provide each summary as a row
+        If we are agg-based, if there is only one component, provide component detail as dataframe row
+        If we are agg-based, multiple components, provide component as series, detail as series row
+
+        This should operate correctly when used as pandas.DataFrame(result.as_detailed_dataframe)
+        :return:
+        """
+        if self.has_summaries:
+            for c in self.components():
+                yield c.as_dataframe_row
+        else:
+            if len(self._LciaScores) == 1:
+                for c in self.components():
+                    for d in c.details():
+                        yield d.dataframe_row
+            else:
+                yield {c.name: (d.series_row for d in c.details()) for c in self.components()}
+
+    @property
+    def components_as_series(self):
+        """
+        generate a series with each component as a row.
+        Useful for compiling a DataFrame over several LciaResults of the same entity for different quantities.
+
+        sample code:
+        # f = fragment
+        # qs = list of LCIA quantities
+        df = pandas.DataFrame({(q['category], q['indicator']): pandas.Series(f.fragment_lcia(q)) for q in qs})
+        :return:
+        """
+        return {c.name: c.cumulative_result for c in self.components()}
+
+    @property
+    def details_as_series(self):
+        """
+        generate a series with each component as a row.
+        Useful for compiling a DataFrame over several LciaResults of the same entity for different quantities.
+
+        This can be used to make a *giant* sparse table of LCIA components (one row per emission; one column per q):
+        sample code:
+        # p = fragment
+        # qs = list of LCIA quantities
+        df = pandas.DataFrame({(q['category'], q['indicator']): pandas.Series(p.bg_lcia(q).details_as_series)
+            for q in qs})
+        :return:
+        """
+        if self.has_summaries:
+            return self.components_as_series
+        else:
+            if len(self._LciaScores) == 1:
+                return dict(d.series_row for d in self.details())
+            else:
+                return self.flatten().components_as_series

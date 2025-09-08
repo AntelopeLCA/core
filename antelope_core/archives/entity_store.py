@@ -579,7 +579,10 @@ class EntityStore(object):
             if entity.uuid in self._entities:
                 print('Warning: UUID %s already exists' % entity.uuid)
 
-    def _add(self, entity, key, quiet=False):
+    def add(self, entity):
+        return self._add(entity, entity.external_ref)
+
+    def _add(self, entity, key):
         if key is None:
             raise ValueError('Key not allowed to be None')
         if key in self._entities:
@@ -594,7 +597,7 @@ class EntityStore(object):
             if not entity.validate():
                 raise ValueError('Entity fails validation: %s' % repr(entity))
 
-        if not (self._quiet or quiet):
+        if not self._quiet:
             print('Adding %s entity with %s: %s' % (entity.entity_type, key, entity['Name']))
         if entity.origin is None:
             # TODO: uncomment / enforce this
