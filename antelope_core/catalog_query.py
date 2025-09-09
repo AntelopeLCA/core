@@ -77,10 +77,11 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         if self._dbg:
             print(self.__class__.__name__, *args)
 
-    def __init__(self, origin, catalog=None, debug=False):
+    def __init__(self, origin, catalog=None, debug=False, cached=True):
         self._origin = origin
         self._catalog = catalog
         self._dbg = debug
+        self.cached = cached
 
         self._iface_cache = dict()
 

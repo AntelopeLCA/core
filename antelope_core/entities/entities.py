@@ -108,9 +108,12 @@ class LcEntity(BaseEntity):
         return CatalogRef.from_query(self.external_ref, query, self.entity_type, **d)
 
     def make_ref(self, query):
-        if self._query_ref is None:
-            self._query_ref = self._make_ref(query)
-        return self._query_ref
+        if query.cached:
+            if self._query_ref is None:
+                self._query_ref = self._make_ref(query)
+            return self._query_ref
+        else:
+            return self._make_ref(query)  # no caching
 
     def apply_ref_properties(self):
         if self._query_ref is not None:

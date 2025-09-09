@@ -462,7 +462,7 @@ class StaticCatalog(object):
         if cache and origin in self._queries:
             return self._queries[origin]
 
-        query = self._query_type(origin, catalog=self, **kwargs)
+        query = self._query_type(origin, catalog=self, cached=cache, **kwargs)
         if query.validate():
             pass
         else:
