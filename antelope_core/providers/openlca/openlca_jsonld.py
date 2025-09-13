@@ -380,9 +380,10 @@ class OpenLcaJsonLdArchive(LcArchive):
             try:
                 value *= fp.convert(from_unit=v_unit)  # ConversionErrors caught in add_process
             except ConversionError:
-                cf_error = '\nExchange ID %d (%s): Conversion Error from unit %s to %s' % (ex['internalId'],
-                                                                                           flow.uuid,
-                                                                                           v_unit, fp.unit)
+                cf_error = '\nExchange ID %d (%s): Unit Conversion Error from %.3g %s to %s' % (ex['internalId'],
+                                                                                                flow.uuid,
+                                                                                                value,
+                                                                                                v_unit, fp.unit)
                 p['Comment'] += cf_error
                 value = 0
 
