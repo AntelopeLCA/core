@@ -53,10 +53,12 @@ class XdbTermManager(object):
                 parent = None
             else:
                 parent = self.get_context(context_model.parent)
-            c_actual = self._cm.new_entry(context_model.name, *args, parent=parent)
+            c_actual = self._cm.new_entry(context_model.name, parent=parent)
             if parent is not None and parent.sense is None and context_model.sense is not None:
                 c_actual.sense = context_model.sense
             c_actual.add_origin(self._requester.origin)  # here we are masquerading all origins back to the requester origin
+            for arg in args:
+                self._cm.add_synonym(context_model.name, arg)
         return c_actual
 
     def add_flow(self, flow, **kwargs):

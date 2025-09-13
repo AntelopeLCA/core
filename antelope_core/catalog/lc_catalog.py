@@ -192,6 +192,7 @@ class LcCatalog(StaticCatalog):
         - find all cached queries that could return the resource
         - check their cached ifaces to see if they use our archive
         - delete those entries from the cache
+        ?? shouldn't this also remove the query?
         :param resource:
         :return:
         """

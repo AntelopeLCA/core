@@ -13,6 +13,7 @@ from antelope.models import (OriginCount, Entity, FlowEntity, Exchange, Referenc
 from antelope_core.implementations import BasicImplementation, ConfigureImplementation
 from antelope_core.lcia_results import LciaResult
 from antelope_core.characterizations import QRResult
+from antelope_core.contexts import NullContext
 from .xdb_entities import XdbReferenceRequired
 
 
@@ -159,7 +160,10 @@ class XdbImplementation(BasicImplementation, IndexInterface, ExchangeInterface, 
 
     def get_context(self, term, **kwargs):
         if isinstance(term, list) or isinstance(term, tuple):
-            return self._archive.tm.get_context(term[-1])
+            # I THINK this is an optimization- try getting by just the most-specific name first
+            short = self._archive.tm.get_context(term[-1])
+            if short is not NullContext:
+                return short
         return self._archive.tm.get_context(term)
 
     def targets(self, flow, direction=None, **kwargs):

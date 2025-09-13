@@ -1,5 +1,8 @@
 from antelope import ExchangeInterface, EntityNotFound
 from .basic import BasicImplementation
+from ..entities.processes import MultipleReferencesFound
+
+from antelope.refs.exchange_ref import UnallocatedExchangeError
 
 
 class MixedDirections(Exception):
@@ -62,7 +65,10 @@ class ExchangeImplementation(BasicImplementation, ExchangeInterface):
         :return:
         """
         p = self._archive.retrieve_or_fetch_entity(process)
-        norm = p.reference(ref_flow)
+        try:
+            norm = p.reference(ref_flow)
+        except MultipleReferencesFound:
+            raise UnallocatedExchangeError(process, ref_flow)
         if termination is None:
             xs = [x for x in p.exchange_values(flow=exch_flow, direction=direction)]
             dtest = set(x.direction for x in xs)
