@@ -486,23 +486,32 @@ class BasicArchive(EntityStore):
                        for q in self.entities_by_type('quantity')],
                       key=lambda x: x['externalId'])
 
-    def serialize(self, characterizations=False, values=False, domesticate=False):
+    def serialize(self, apply_changes=True, characterizations=False, values=False, domesticate=False):
         """
         Serialize flows and quantities.  If characterizations==True, also save Term Manager content
         (characterizations, contexts, flowables)
 
+        :param apply_changes: [True] any properties assigned to catalog refs are applied to the entities prior to saving
         :param characterizations:
         :param values:
         :param domesticate: [False] if True, omit entities' origins so that they will appear to be from the new archive
          upon serialization
         :return:
         """
-        j = super(BasicArchive, self).serialize()
-        j['@context'] = LD_CONTEXT
-
-        j['flows'] = sorted([f.serialize(domesticate=domesticate, drop_fields=self._drop_fields['flow'])
+        if apply_changes:
+            for k in set(self._entities.values()):
+                if k.is_entity:
+                    k.apply_ref_properties()
+        j = {
+            '@context': LD_CONTEXT,
+            'dataSourceType': self.__class__.__name__,
+            'dataSource': self.source,
+            'catalogNames': {k: sorted(filter(None, s)) for k, s in self._catalog_names.items()},
+            'initArgs': self._serialize_dict,
+            'flows': sorted([f.serialize(domesticate=domesticate, drop_fields=self._drop_fields['flow'])
                              for f in self.entities_by_type('flow')],
-                            key=lambda x: x['externalId'])
+                            key=lambda x: x['externalId'])}
+
         if characterizations:
             j['termManager'], qqs, rqs = self.tm.serialize(self.ref, values=values)
             # we need to add all the quantities that are mentioned in our characterizations
