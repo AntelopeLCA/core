@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
-VERSION = '0.3.7'
+VERSION = '0.3.8'
 
 requires = [
-    "synonym_dict>=0.2.4",
-    "antelope_interface>=0.3.3",
+    "synonym_dict>=0.2.5",
+    "antelope_interface>=0.3.4",
     "xlstools>=0.1.6",
     "python-magic>=0.4.18",
     "requests>=2.25",
@@ -14,6 +14,7 @@ requires = [
 # optional: pylzma
 """
 Version History
+0.3.8 2026-03-30  - detect and handle cached vs uncached queries
 0.3.7 2025-09-08  - LCIA results output to pandas
 0.3.6 2025-08-15  - bump bg interface changes
 0.3.5 2025-06-18  - bug fix catch-up release for ISSST workshop
