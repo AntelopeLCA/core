@@ -16922,24 +16922,34 @@
     {
       "name": "arsenic",
       "synonyms": [
+        "Arsenic",
+	"Arsenic, elemental",
+        "e16fd15c-0ebc-55ba-8d3b-9704f13663cb",
+        "ecoinvent.3.10.cutoff/e16fd15c-0ebc-55ba-8d3b-9704f13663cb",
+        "7440-38-2"
+      ]
+    },
+    {
+      "name": "arsenic(iii)",
+      "synonyms": [
+        "Arsenic (3+)",
+        "Arsenic III",
+        "Arsenic ion",
+        "As+3",
+	"As(III)",
         "1e19d86e-968d-4428-984f-70bfd843a8f4",
         "1f607ae2-b42d-4411-90b8-e9bbac66a554",
         "4673a799-36a5-4359-ac6a-fa933281bc93",
         "7348af7c-e102-4a03-a0df-efce16469eed",
         "8c8ffaa5-84ed-4668-ba7d-80fd0f47013f",
-        "Arsenic (3+)",
-        "Arsenic (5+)",
-        "Arsenic III",
-        "Arsenic V",
-        "Arsenic ion",
-        "As+3",
-        "As+5",
         "d70b4182-d633-4178-84c0-8854f5f6594b",
         "dc6dbdaa-9f13-43a8-8af5-6603688c6ad0",
-        "e16fd15c-0ebc-55ba-8d3b-9704f13663cb",
         "e1bd008f-c3c2-47f1-ab60-35e1a842acc0",
         "e60edb16-3c74-415b-9aff-a22a6f49fecb",
         "ebc4c2a3-c004-4053-8048-f41fdd9324c8",
+        "ed751c30-a896-44f3-9a83-2a5328dde94d",
+        "f4d0a2c8-efef-4188-85da-5801097389a2",
+        "fc84887d-158e-4067-80dc-9743165bd70d",
         "ecoinvent.3.10.cutoff/1e19d86e-968d-4428-984f-70bfd843a8f4",
         "ecoinvent.3.10.cutoff/1f607ae2-b42d-4411-90b8-e9bbac66a554",
         "ecoinvent.3.10.cutoff/4673a799-36a5-4359-ac6a-fa933281bc93",
@@ -16947,26 +16957,24 @@
         "ecoinvent.3.10.cutoff/8c8ffaa5-84ed-4668-ba7d-80fd0f47013f",
         "ecoinvent.3.10.cutoff/d70b4182-d633-4178-84c0-8854f5f6594b",
         "ecoinvent.3.10.cutoff/dc6dbdaa-9f13-43a8-8af5-6603688c6ad0",
-        "ecoinvent.3.10.cutoff/e16fd15c-0ebc-55ba-8d3b-9704f13663cb",
         "ecoinvent.3.10.cutoff/e1bd008f-c3c2-47f1-ab60-35e1a842acc0",
         "ecoinvent.3.10.cutoff/e60edb16-3c74-415b-9aff-a22a6f49fecb",
         "ecoinvent.3.10.cutoff/ebc4c2a3-c004-4053-8048-f41fdd9324c8",
         "ecoinvent.3.10.cutoff/ed751c30-a896-44f3-9a83-2a5328dde94d",
         "ecoinvent.3.10.cutoff/f4d0a2c8-efef-4188-85da-5801097389a2",
         "ecoinvent.3.10.cutoff/fc84887d-158e-4067-80dc-9743165bd70d",
-        "ed751c30-a896-44f3-9a83-2a5328dde94d",
-        "f4d0a2c8-efef-4188-85da-5801097389a2",
-        "fc84887d-158e-4067-80dc-9743165bd70d",
-        "7440-38-2"
+	"22541-54-4"
       ]
     },
     {
-      "name": "arsenic(iii)",
-      "synonyms": []
-    },
-    {
       "name": "arsenic(v)",
-      "synonyms": []
+      "synonyms": [
+        "Arsenic (5+)",
+        "Arsenic V",
+        "As+5",
+	"As(V)",
+	"17428-41-0"
+      ]
     },
     {
       "name": "asulam",
