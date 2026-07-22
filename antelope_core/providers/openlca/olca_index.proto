@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package olca;
+
+message TechFlowRef {
+  string id       = 1;
+  string name     = 2;
+  string category = 3;
+  string type     = 4;
+  string unit     = 5;
+}
+
+message TechFlow {
+  int32       matrix_index = 1;
+  TechFlowRef process      = 2;
+  TechFlowRef flow         = 3;
+}
+
+message TechIndex {
+  repeated TechFlow tech_flows = 1;
+}
+
+message EnviFlowRef {
+  string id       = 1;
+  string name     = 2;
+  string category = 3;
+  string type     = 4;
+  string unit     = 5;
+}
+
+message EnviFlow {
+  int32       matrix_index = 1;
+  EnviFlowRef flow         = 2;
+}
+
+message EnviIndex {
+  repeated EnviFlow envi_flows = 1;
+}
