@@ -147,7 +147,16 @@ class OpenLcaJsonLdArchive(LcArchive):
                 self._cat_lookup[lookup_key] = cat_key  # reverse lookup of tuple -> key
                 self.tm.add_context(lookup_key, cat_key)
 
-    def __init__(self, source, prefix=None, skip_index=False, product_system=None, **kwargs):
+    def __init__(self, source, prefix=None, skip_index=False, product_system=None, libraries=None, **kwargs):
+        """
+
+        :param source:
+        :param prefix:
+        :param skip_index:
+        :param product_system:
+        :param libraries: a dict mapping library to queries
+        :param kwargs:
+        """
         super(OpenLcaJsonLdArchive, self).__init__(source, **kwargs)
 
         self._drop_fields['process'].extend(['processDocumentation', 'OlcaParameterEngine'])
@@ -155,9 +164,16 @@ class OpenLcaJsonLdArchive(LcArchive):
         self._archive = FileStore(source, internal_prefix=prefix)
 
         self._type_index = None
-        self._unit_dict = dict()
+        self._libraries = libraries or {}
+        self._library_refs = []
         if not skip_index:
             self._gen_index()
+            if self.schema_version == 2:
+                try:
+                    olca_json = json.loads(self._archive.readfile('openlca.json'))
+                    self._library_refs = olca_json.get('libraries', [])
+                except Exception:
+                    pass
 
         self._defined_ps = None
         if product_system:
@@ -260,11 +276,6 @@ class OpenLcaJsonLdArchive(LcArchive):
         for conv in u_j['units']:
             is_ref = conv.pop(self._get_v_field('Unit', 'referenceUnit'), False)
             name = conv.pop('name')
-            if conv['@id'] in self._unit_dict:
-                if self._unit_dict[conv['@id']] != name:
-                    raise ValueError('Unit ID collision! %s: %s X %s' % (conv['@id'], self._unit_dict[conv['@id']], name))
-            else:
-                self._unit_dict[conv['@id']] = name
             cf_i = conv.pop('conversionFactor')
             unitconv[name] = 1.0 / cf_i
 
@@ -365,7 +376,7 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         if 'unit' in ex:
             try:
-                v_unit = self._unit_dict[ex['unit']['@id']]
+                v_unit = ex['unit']['name']  # self._unit_dict[ex['unit']['@id']]
             except KeyError:
                 logging.warning('%s: %d: bad unit %s for flow property %s! using default' % (p.external_ref,
                                                                                              ex['internalId'],
@@ -391,16 +402,20 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         if fp != flow.reference_entity:
             try:
-                value /= fp.cf(flow)  # is this even right?  ### yes  # TODO: account for locale?
-            except (TypeError, ZeroDivisionError):
-                print('%s:%s:%s flow reference quantity does not match\n%s exchange f.p. Conversion Required' %
-                      (p.external_ref, dirn, flow.external_ref, flow.name))
-                print('From %s to %g %s' % (flow.unit, value, fp.unit))
-                val = parse_math(input('Enter conversion factor 1 %s = x %s [context %s]\nx: ' %
-                                       (flow.unit, fp.unit, flow.context)))
-                self.tm.add_characterization(flow.link, flow.reference_entity, fp, val, context=flow.context,
-                                             origin=self.ref)
-                value /= fp.cf(flow)
+                cf = next(self.tm.factors_for_flowable(flow.name, quantity=fp, context=flow.context))
+                value /= cf.value  # is this even right?  ### yes  # TODO: account for locale?
+            except (StopIteration, ZeroDivisionError):
+                try:
+                    cf = fp.cf(flow)
+                    value /= cf
+                except (StopIteration, ZeroDivisionError):
+                    logging.warning(
+                        '%s:%s:%s flow reference quantity does not match exchange flow property; '
+                        'conversion factor unavailable — using 1.0 as fallback. '
+                        '(From %s to %g %s [context %s])',
+                        p.external_ref, dirn, flow.external_ref,
+                        flow.unit, value, fp.unit, flow.context)
+                # Skip the conversion; keep value as-is (equivalent to factor = 1.0)
 
         if is_ref:
             term = None
@@ -487,12 +502,6 @@ class OpenLcaJsonLdArchive(LcArchive):
         _causal_msg = True
         stored_alloc = []
         for af in alloc:
-            try:
-                rx = self._get_rx(p, af['product']['@id'])
-            except _NotAnRx:
-                continue
-            if rx.value == 0:
-                continue  # can't allocate to a non-flow
             if af['allocationType'] == 'CAUSAL_ALLOCATION':
                 if af['value'] == 0:
                     # Keep 0-allocation factors for non-causal
@@ -512,6 +521,12 @@ class OpenLcaJsonLdArchive(LcArchive):
 
                 val = af['value']
                 stored_alloc.append(af)
+                try:
+                    rx = self._get_rx(p, af['product']['@id'])
+                except _NotAnRx:
+                    continue
+                if rx.value == 0:
+                    continue  # can't allocate to a non-flow
                 logging.warning('%s: Setting reference %s from CAUSAL alloc factor' % (p.uuid, rx.flow.uuid))
                 p.set_reference(rx.flow, rx.direction)
 
@@ -520,17 +535,25 @@ class OpenLcaJsonLdArchive(LcArchive):
                     logging.warning('%s: Warning: causal allocation has not been tested' % p.external_ref)
                     _causal_msg = False
             else:
-                q = self._create_allocation_quantity(p, af['allocationType'])
+                if af['value'] != 0:
+                    try:
+                        rx = self._get_rx(p, af['product']['@id'])
+                    except _NotAnRx:
+                        continue
+                    if rx.value == 0:
+                        continue  # can't allocate to a non-flow
 
-                v = af['value'] / rx.value
+                    v = af['value'] / rx.value
+                    if not rx.is_reference:
+                        logging.info('%s: Setting reference %s from allocation spec' % (p.uuid, rx.flow.uuid))
+                        p.set_reference(rx.flow, rx.direction)
+
+                    q = self._create_allocation_quantity(p, af['allocationType'])
+                    self.tm.add_characterization(rx.flow.link, rx.flow.reference_entity, q, v,
+                                                 context=rx.flow.context, origin=self.ref)
+
                 stored_alloc.append(af)
 
-                if not rx.is_reference:
-                    logging.info('%s: Setting reference %s from allocation spec' % (p.uuid, rx.flow.uuid))
-                    p.set_reference(rx.flow, rx.direction)
-
-                self.tm.add_characterization(rx.flow.link, rx.flow.reference_entity, q, v,
-                                             context=rx.flow.context, origin=self.ref)
                 # f.add_characterization(q, value=v)
 
         if dm != 'NO_ALLOCATION':
@@ -708,11 +731,26 @@ class OpenLcaJsonLdArchive(LcArchive):
                        ImpactCategories=qs)
         self.add(m)
 
+    def _try_libraries(self, key):
+        for lib_query in self._libraries.values():
+            try:
+                obj = lib_query.get(key)
+            except Exception:
+                continue
+            if obj:
+                self.add(obj)
+                return obj
+        raise KeyError(key)
+
     def _fetch(self, key, typ=None, **kwargs):
         if typ is None:
             if self._type_index is None:
                 self._gen_index()
-            typ = self._type_index[key]
+            try:
+                typ = self._type_index[key]
+            except KeyError:
+                return self._try_libraries(key)
+
         try:
             _ent_g = {'processes': self._create_process,
                       'flows': self._create_flow,
@@ -723,7 +761,13 @@ class OpenLcaJsonLdArchive(LcArchive):
             logging.warning('Warning: generating generic object for unrecognized type %s' % typ)
             _ent_g = lambda x: self._create_object(typ, x)
 
-        return _ent_g(key)
+        try:
+            return _ent_g(key)
+        except (KeyError, FileNotFoundError) as e:
+            try:
+                self._try_libraries(key)
+            except KeyError:
+                raise e  # re-raise original KeyError if all libraries miss
 
     def _load_all(self, **kwargs):
         self._print('Loading processes')

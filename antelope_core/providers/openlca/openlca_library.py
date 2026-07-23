@@ -39,6 +39,12 @@ Sign convention (matches A/B matrix):
 
 from .openlca_jsonld import OpenLcaJsonLdArchive
 from .olca_index_parser import parse_tech_index, parse_envi_index
+from ...archives.iarchive import AntelopeArchive
+from .openlca_library_exchange import OpenlcaLibraryExchangeImplementation
+
+from antelope import local_ref
+
+from typing import Optional
 
 import io
 import json
@@ -56,7 +62,7 @@ log = logging.getLogger(__name__)
 # Main class
 # ---------------------------------------------------------------------------
 
-class OpenLcaLibrary:
+class OpenLcaLibrary(AntelopeArchive):
     """Accessor for an OpenLCA 2.x library ZIP file.
 
     The library ZIP contains a pre-computed technosphere matrix (A.npz),
@@ -72,9 +78,30 @@ class OpenLcaLibrary:
             print(exch)
     """
 
-    def __init__(self, lib_path: str):
+    def make_interface(self, itype: str):
+        if itype in ('exchange', 'background'):
+            return OpenlcaLibraryExchangeImplementation(self)
+        return self._meta.make_interface(itype)
+
+    static = False
+
+    @property
+    def ref(self) -> str:
+        return self._ref
+
+    @property
+    def source(self) -> str:
+        return self._lib_path
+
+    @property
+    def force_lci(self) -> bool:
+        return bool(self._force_lci)
+
+    def __init__(self, lib_path: str, ref: Optional[str] = None, force_lci=True):
         self._lib_path = lib_path
         self._outer = zipfile.ZipFile(lib_path)
+        self._ref = ref or local_ref(lib_path)
+        self._force_lci = force_lci
 
         # --- library.json ---
         with self._outer.open('library.json') as f:
@@ -171,12 +198,31 @@ class OpenLcaLibrary:
         return self._M
 
     # ------------------------------------------------------------------
-    # Entity lookup
+    # Interface fall-through
     # ------------------------------------------------------------------
 
     def get(self, key: str):
         """Look up an entity by UUID.  Delegates to the meta.zip JSON-LD archive."""
         return self._meta.retrieve_or_fetch_entity(key)
+
+    def retrieve_or_fetch_entity(self, key, **kwargs):
+        return self._meta.retrieve_or_fetch_entity(key)
+
+    def __getitem__(self, key):
+        return self._meta.__getitem__(key)
+
+    def _fetch(self, key, **kwargs):
+        return self._meta.retrieve_or_fetch_entity(key, **kwargs)
+
+    def count_by_type(self, entity_type: str) -> int:
+        return self._meta.count_by_type(entity_type)
+
+    def entities_by_type(self, entity_type: str):
+        return self._meta.entities_by_type(entity_type)
+
+    @property
+    def tm(self):
+        return self._meta.tm
 
     # ------------------------------------------------------------------
     # Inventory
@@ -203,8 +249,6 @@ class OpenLcaLibrary:
         B = self.B
 
         for col in cols:
-            ref_entry = self._col_to_tech[col]
-
             # --- A matrix column (technosphere exchanges) ---
             col_data = A.getcol(col)
             cx = col_data.tocoo()
@@ -213,6 +257,10 @@ class OpenLcaLibrary:
                     continue
                 row_entry = self._col_to_tech.get(row, {})
                 is_ref = (row == col)
+                if is_ref:
+                    termination = None
+                else:
+                    termination = row_entry.get('process_id')
                 direction = 'Output' if val > 0 else 'Input'
                 yield {
                     'flow_id': row_entry.get('flow_id', ''),
@@ -222,8 +270,9 @@ class OpenLcaLibrary:
                     'flow_unit': row_entry.get('flow_unit', ''),
                     'direction': direction,
                     'value': abs(val),
-                    'termination': row_entry.get('process_id'),
+                    'termination': termination,
                     'is_reference': is_ref,
+                    'elementary': False
                 }
 
             # --- B matrix column (biosphere exchanges) ---
@@ -244,6 +293,33 @@ class OpenLcaLibrary:
                     'value': abs(val),
                     'termination': None,  # elementary flow — context set from category
                     'is_reference': False,
+                    'elementary': True
+                }
+
+    def lci(self, process_ref: str):
+        cols = self._process_cols.get(process_ref)
+        if cols is None:
+            raise KeyError('process %s not found in library tech index' % process_ref)
+
+        M = self.M
+
+        for col in cols:
+            for row, val in enumerate(M[:, col]):
+                if val == 0.0:
+                    continue
+                row_entry = self._envi_row_to_entry.get(row, {})
+                direction = 'Output' if val > 0 else 'Input'
+                yield {
+                    'flow_id': row_entry.get('flow_id', ''),
+                    'flow_name': row_entry.get('flow_name', ''),
+                    'flow_category': row_entry.get('flow_category', ''),
+                    'flow_type': row_entry.get('flow_type', ''),
+                    'flow_unit': row_entry.get('flow_unit', ''),
+                    'direction': direction,
+                    'value': abs(val),
+                    'termination': None,  # elementary flow — context set from category
+                    'is_reference': False,
+                    'elementary': True
                 }
 
     # ------------------------------------------------------------------
