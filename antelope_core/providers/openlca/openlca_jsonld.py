@@ -28,14 +28,14 @@ import logging
 
 from collections import defaultdict
 
-from antelope import ConversionError, NoReference
+from antelope import ConversionError, NoReference, EntityNotFound
 
 from ...exchanges import AmbiguousReferenceError
 
 from ...entities import LcQuantity, LcFlow, LcProcess, LcUnit, MetaQuantityUnit, ZeroAllocation
 from ...archives import LcArchive
 from ..file_store import FileStore
-from ..parse_math import parse_math
+# from ..parse_math import parse_math
 
 from .schema_mapping import OLCA_MAPPING
 from .olca_ps_interpreter import OlcaProductSystemInterpreter
@@ -43,16 +43,6 @@ from .parameters import OlcaParameterResolver
 
 
 geog_tail = re.compile(',\\s([A-Z]+[o-]?[A-Z]*)$')  # capture, e.g. 'ZA', 'GLO', 'RoW', 'US-CA' but not 'PET-g'
-
-
-def pull_geog(flowname):
-    raise NotImplementedError
-    '''
-    try:
-        return geog_tail.search(flowname).group(1)
-    except AttributeError:
-        return None
-    '''
 
 
 valid_types = {'processes', 'flows', 'flow_properties'}
@@ -165,19 +155,33 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         self._type_index = None
         self._libraries = libraries or {}
-        self._library_refs = []
+        for q in self.library_queries:
+            for f in q.flows():
+                self.add_entity_and_children(f)
         if not skip_index:
             self._gen_index()
-            if self.schema_version == 2:
-                try:
-                    olca_json = json.loads(self._archive.readfile('openlca.json'))
-                    self._library_refs = olca_json.get('libraries', [])
-                except Exception:
-                    pass
+        if self.schema_version == 2:
+            try:
+                olca_json = json.loads(self._archive.readfile('openlca.json'))
+                self._library_refs = olca_json.get('libraries', [])
+            except Exception:
+                pass
 
         self._defined_ps = None
         if product_system:
             self.select_product_system(product_system)
+
+    '''
+    def make_interface(self, iface):
+        if iface == 'basic':
+            return OpenLcaBasicImplemntation(self)
+        return super(OpenLcaJsonLdArchive, self).make_interface(iface)
+    '''
+
+    @property
+    def library_queries(self):
+        for lib in self._libraries.values():
+            yield lib
 
     def select_product_system(self, product_system):
         if self._loaded:
@@ -343,7 +347,7 @@ class OpenLcaJsonLdArchive(LcArchive):
                     qs.append(q)
                     facs.append(fac)
         if ref_q is None:
-            raise OpenLcaException('No reference flow property found: %s' % f_id)
+            raise OpenLcaException('%s: No reference flow property found: %s' % (self.ref, f_id))
         if not comp:
             logging.warning('Flow %s with Null context' % f_id)
 
@@ -421,6 +425,7 @@ class OpenLcaJsonLdArchive(LcArchive):
             term = None
         elif target:
             term = target
+            self._fetch(term, typ='processes')
         else:
             cx = self.tm[flow.context]
             if cx is not None and cx.elementary:
@@ -428,6 +433,7 @@ class OpenLcaJsonLdArchive(LcArchive):
             else:
                 if 'defaultProvider' in ex:
                     term = ex['defaultProvider']['@id']
+                    self._fetch(term, typ='processes')
                 else:
                     term = cx
 
@@ -732,10 +738,10 @@ class OpenLcaJsonLdArchive(LcArchive):
         self.add(m)
 
     def _try_libraries(self, key):
-        for lib_query in self._libraries.values():
+        for lib_query in self.library_queries:
             try:
                 obj = lib_query.get(key)
-            except Exception:
+            except EntityNotFound:
                 continue
             if obj:
                 self.add(obj)
@@ -765,7 +771,7 @@ class OpenLcaJsonLdArchive(LcArchive):
             return _ent_g(key)
         except (KeyError, FileNotFoundError) as e:
             try:
-                self._try_libraries(key)
+                return self._try_libraries(key)
             except KeyError:
                 raise e  # re-raise original KeyError if all libraries miss
 

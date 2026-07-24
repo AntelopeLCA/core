@@ -40,7 +40,7 @@ Sign convention (matches A/B matrix):
 from .openlca_jsonld import OpenLcaJsonLdArchive
 from .olca_index_parser import parse_tech_index, parse_envi_index
 from ...archives.iarchive import AntelopeArchive
-from .openlca_library_exchange import OpenlcaLibraryExchangeImplementation
+from .openlca_library_exchange import OpenlcaLibraryImplementation
 
 from antelope import local_ref
 
@@ -79,8 +79,8 @@ class OpenLcaLibrary(AntelopeArchive):
     """
 
     def make_interface(self, itype: str):
-        if itype in ('exchange', 'background'):
-            return OpenlcaLibraryExchangeImplementation(self)
+        if itype in ('exchange', 'background', 'index'):
+            return OpenlcaLibraryImplementation(self)
         return self._meta.make_interface(itype)
 
     static = False
@@ -116,7 +116,7 @@ class OpenLcaLibrary(AntelopeArchive):
             self._meta_tmp.write(f.read())
         self._meta_tmp.flush()
         # Import here to avoid circular imports at module load
-        self._meta = OpenLcaJsonLdArchive(self._meta_tmp.name, quiet=True)
+        self._meta = OpenLcaJsonLdArchive(self._meta_tmp.name, quiet=True, ref=self.ref)
 
         # --- index files ---
         with self._outer.open('index_A.bin') as f:
@@ -227,6 +227,24 @@ class OpenLcaLibrary(AntelopeArchive):
     # ------------------------------------------------------------------
     # Inventory
     # ------------------------------------------------------------------
+
+    @property
+    def products(self):
+        for t in self._tech_index:
+            yield self._meta.retrieve_or_fetch_entity(t['flow_id'], typ='flows')
+
+    @property
+    def emissions(self):
+        for e in self._envi_index:
+            yield self._meta.retrieve_or_fetch_entity(e['flow_id'], typ='flows')
+
+    @property
+    def all_flows(self):
+        if not self.force_lci:
+            for k in self.products:
+                yield k
+        for k in self.emissions:
+            yield k
 
     def inventory(self, process_ref: str):
         """Yield exchange dicts for the given process UUID.

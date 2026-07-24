@@ -137,9 +137,9 @@ class FormulaParser(_Param):
         try:
             self._ni.visit(ast.parse(self.formula, mode='eval'))
         except SyntaxError:
-            logging.error('(%s) %s - Unsupported formula\n%s' % (self._engine.process_ref,
-                                                                 self.name,
-                                                                 self.formula))
+            logging.warning('(%s) %s - Unsupported formula\n%s' % (self._engine.process_ref,
+                                                                   self.name,
+                                                                   self.formula))
             self._faulty = True
             self._mkr = 'XX'
 

@@ -1,10 +1,11 @@
 from antelope.interfaces.iexchange import ExchangeInterface
 from antelope.interfaces.ibackground import BackgroundInterface
+from antelope.interfaces.iindex import IndexInterface
 from ...implementations import BasicImplementation
 from ...exchanges import Exchange, ExchangeValue
 
 
-class OpenlcaLibraryExchangeImplementation(BasicImplementation, ExchangeInterface, BackgroundInterface):
+class OpenlcaLibraryImplementation(BasicImplementation, ExchangeInterface, BackgroundInterface, IndexInterface):
 
     def _exchange(self, process, exch, value=False):
         f = self._archive.get(exch['flow_id'])
@@ -16,6 +17,10 @@ class OpenlcaLibraryExchangeImplementation(BasicImplementation, ExchangeInterfac
             return ExchangeValue(process, f, exch['direction'], termination=termination, value=exch['value'])
         else:
             return Exchange(process, f, exch['direction'], termination=termination)
+
+    def flows(self, **kwargs):
+        for f in self._archive.all_flows:
+            yield f
 
     def lci(self, process, ref_flow=None, **kwargs):
         p = self._archive.get(process)

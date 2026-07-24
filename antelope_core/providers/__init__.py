@@ -18,11 +18,12 @@ except ImportError:
     _prov = []
 
 from .ecoinvent_lcia import EcoinventLcia
-from .openlca import OpenLcaRefData,OpenLcaJsonLdArchive
+from .openlca import OpenLcaRefData, OpenLcaJsonLdArchive, OpenLcaLibrary
 from .traci import Traci21Factors
 from .xdb_client import XdbClient
 
-PROVIDERS = _prov + ['EcoinventLcia', 'OpenLcaJsonLdArchive', 'Traci21Factors', 'XdbClient', 'OpenLcaRefData']
+PROVIDERS = _prov + ['EcoinventLcia', 'OpenLcaJsonLdArchive', 'Traci21Factors', 'XdbClient', 'OpenLcaRefData',
+                     'OpenLcaLibrary']
 
 ''' # this has all been folded into archive.__init__
 class ArchiveError(Exception):
