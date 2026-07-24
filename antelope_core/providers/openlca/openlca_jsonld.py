@@ -69,13 +69,20 @@ class OpenLcaJsonLdArchive(LcArchive):
             return self._cat_as_list(cat['category']['@id']) + [cat['name']]
         return [cat['name']]
 
+    def _read_meta(self):
+        try:
+            # version is stored in 'schemaVersion' key
+            return json.loads(self._archive.readfile('openlca.json'))
+        except FileNotFoundError:
+            try:
+                # version is stored in 'version' key
+                return json.loads(self._archive.readfile('olca-schema.json'))
+            except FileNotFoundError:
+                return {}
+
     @property
     def schema_version(self):
-        if self._type_index is None:
-            return 0
-        if 'openlca.json' in self._type_index:
-            return 2
-        return 1
+        return self._openlca.get('version', self._openlca.get('schemaVersion', 0))
 
     def _get_v_field(self, obj_type, fieldname):
         """
@@ -84,7 +91,7 @@ class OpenLcaJsonLdArchive(LcArchive):
         :param fieldname: field name according to the v1 schema
         :return:
         """
-        if self.schema_version == 2:
+        if self.schema_version >= 2:
             try:
                 return OLCA_MAPPING[obj_type][fieldname]
             except KeyError:
@@ -128,7 +135,7 @@ class OpenLcaJsonLdArchive(LcArchive):
             elif ff[0] == 'categories':
                 obj = self._create_object(ff[0], fg[0])
                 self._cat_index[fg[0]] = obj
-        if self.schema_version == 1:
+        if self.schema_version < 2:
             # old schema: build the category lists manually
             for cat_key in self._cat_index.keys():
                 cat = self._cat_as_list(cat_key)
@@ -158,14 +165,11 @@ class OpenLcaJsonLdArchive(LcArchive):
         for q in self.library_queries:
             for f in q.flows():
                 self.add_entity_and_children(f)
+        self._openlca = self._read_meta()
         if not skip_index:
             self._gen_index()
-        if self.schema_version == 2:
-            try:
-                olca_json = json.loads(self._archive.readfile('openlca.json'))
-                self._library_refs = olca_json.get('libraries', [])
-            except Exception:
-                pass
+        if self.schema_version >= 2:
+            self._library_refs = self._openlca.get('libraries', [])
 
         self._defined_ps = None
         if product_system:
@@ -229,7 +233,7 @@ class OpenLcaJsonLdArchive(LcArchive):
         return j, name, cat
 
     def _get_category_list(self, category):
-        if self.schema_version == 2:
+        if self.schema_version >= 2:
             return category.split('/')
         else:
             return self._recurse_category_list(category['@id'])
@@ -578,7 +582,7 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         p_j, name, cls = self._clean_object('processes', p_id)
 
-        param_engine = OlcaParameterResolver(p_j, v2=self.schema_version == 2, process_ref=p_id)
+        param_engine = OlcaParameterResolver(p_j, v2=self.schema_version >= 2, process_ref=p_id)
         if self.defined:
             try:
                 pv = self._defined_ps.get_param_values(p_id)
