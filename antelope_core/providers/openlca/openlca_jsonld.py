@@ -310,6 +310,16 @@ class OpenLcaJsonLdArchive(LcArchive):
         self.add(q)
         return q
 
+    def _barebones_quantity(self, q_id, name, unit, category=None, flow_type='PHYSICAL_QUANTITY'):
+        q = self[q_id]
+        if q is not None:
+            return q
+        if category is None:
+            category = ['Technical flow properties']
+        q = LcQuantity(q_id, Name=name, ReferenceUnit=LcUnit(unit), category=category, flowPropertyType=flow_type)
+        self.add(q)
+        return q
+
     def _create_allocation_quantity(self, process, alloc_type):
         key = '%s_%s' % (process.name, alloc_type)
         name = '%s (%s)' % (alloc_type, process.name.strip())
@@ -651,30 +661,32 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         self.add(q)
         for factor in l_obj.get('impactFactors', []):
-            flow = self._create_flow(factor['flow']['@id'])
-            loc = factor.get('location')
-            ''' # this does not work
-            if loc is None:
-                try:
-                    loc = geog_tail.search(flow.name).group()
-                except AttributeError:
-                    pass
-            '''
-            if loc is not None:
-                try:
-                    loc = loc.get('@id')
-                except (TypeError, AttributeError):
-                    message = '%s: Botched location %s (%g)' % (q.uuid, loc, factor['value'])
-                    print(message)
-                    flow['Comment'] += '\n%s' % message
-                    # we can't add it because we'll overwrite the None location case
-                    continue
+            value = factor['value']
+            flow_name = factor['flow']['name']
+            if 'location' in factor:
+                # this means there will have to be a location to @id lookup during characterization 8{
+                loc_id = factor['location']['@id']
+            else:
+                loc_id = None
 
-            ref_qty = self._create_quantity(factor['flowProperty']['@id'])
-            assert flow.reference_entity == ref_qty
-            # value = factor['value']
+            try:
+                ref_qty = self._create_quantity(factor['flowProperty']['@id'])
+            except FileNotFoundError:
+                ref_qty = self._barebones_quantity(factor['flowProperty']['@id'],
+                                                   name=factor['flowProperty']['name'],
+                                                   unit=factor['unit']['name'])
+            try:
+                value *= ref_qty.convert(to=factor['unit']['name'])
+            except ConversionError:
+                logging.warning('%s: Conversion Error on flow %s: [%s]->[%s]. skipping' % (q_id,
+                                                                                           factor['flow']['@id'],
+                                                                                           ref_qty.unit,
+                                                                                           factor['unit']['name']))
+                continue
 
-            self.tm.add_characterization(flow.name, ref_qty, q, factor['value'], context=flow.context, location=loc,
+            context = self._get_category_list(factor['flow']['category'])
+
+            self.tm.add_characterization(flow_name, ref_qty, q, factor['value'], context=context, location=loc_id,
                                          origin=self.ref)
         return q
 
