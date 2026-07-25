@@ -364,7 +364,7 @@ It is now a PROPERTY SETTING on a quantity.''')
             except FactorCollision:
                 rq = self._canonical_q(cf.ref_quantity)
                 ex_cf = self._find_exact_cf(qq, fb, cx, quantity.origin)
-                if rq != ex_cf.ref_quantity:
+                if rq.unit != ex_cf.ref_quantity.unit:
                     for loc in cf.locations:
                         cf = self._create_conversion_cf(ex_cf, rq, cx, qq.origin, loc, cf[loc], overwrite=False)
                         logging.warning('Created unit-conversion CF\n%s' % cf)
