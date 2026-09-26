@@ -26,6 +26,10 @@ FOUND_PROVIDERS = LowerDict()
 FOUND_PROVIDERS['_dev'] = AntelopeMeta
 
 
+class NoProviderFound(Exception):
+    pass
+
+
 def _find_providers():
     for ant in [__name__] + antelope_herd:
         found = []
@@ -71,7 +75,7 @@ def herd_factory(ds_type):
                 except (StopIteration, AttributeError):
                     raise ArchiveError('ds_type %s not found in %s' % (ds_type, prov.__name__))
     print('# LENGTH OF PROVIDERS: %d' % len(FOUND_PROVIDERS))
-    raise ImportError('Cannot find a package for loading %s' % ds_type)
+    raise NoProviderFound(ds_type)
 
 
 def add_antelope_providers(mod, provs=None):

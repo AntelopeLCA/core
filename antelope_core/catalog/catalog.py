@@ -28,6 +28,7 @@ from collections import defaultdict
 from ..archives import InterfaceError, EntityExists
 from ..lcia_engine import LciaDb
 
+from .. import NoProviderFound
 
 from antelope import UnknownOrigin, InvalidQuery  # , EntityNotFound
 from ..catalog_query import CatalogQuery, INTERFACE_TYPES, zap_inventory
@@ -411,7 +412,10 @@ class StaticCatalog(object):
         #    yield self._qdb.make_interface(itype)
 
         for res in self._sorted_resources(origin, itype, strict):
-            res.check(self)
+            try:
+                res.check(self)
+            except NoProviderFound:
+                continue
             try:
                 yield res.make_interface(itype)
             except InterfaceError:
