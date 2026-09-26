@@ -161,7 +161,7 @@ class OpenLcaJsonLdArchive(LcArchive):
                 ar = OpenLcaLibrary(local_path, ref=library_name)
                 q = BasicQuery(ar)
                 return q
-        finally:
+        except Exception:
             return None
 
     def __init__(self, source, prefix=None, skip_index=False, product_system=None, libraries=None, **kwargs):
@@ -181,7 +181,7 @@ class OpenLcaJsonLdArchive(LcArchive):
         self._archive = FileStore(source, internal_prefix=prefix)
 
         self._type_index = None
-        self._unit_dict = {}
+        self.unit_dict = {}
         self._openlca = self._read_meta()
 
         self._libraries = libraries or {}
@@ -198,6 +198,9 @@ class OpenLcaJsonLdArchive(LcArchive):
         for q in self.library_queries:
             for f in q.flows():
                 self.add_entity_and_children(f)
+
+            for k, v in q._archive.unit_dict.items():
+                self.unit_dict[k] = v
 
         if not skip_index:
             self._gen_index()
@@ -320,7 +323,7 @@ class OpenLcaJsonLdArchive(LcArchive):
             cf_i = conv.pop('conversionFactor')
             unitconv[name] = 1.0 / cf_i
 
-            self._unit_dict[conv['@id']] = name
+            self.unit_dict[conv['@id']] = name
 
             if is_ref:
                 assert cf_i == 1, 'non-unit reference unit found! %s' % unit_id
@@ -429,7 +432,7 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         if 'unit' in ex:
             try:
-                v_unit = self._unit_dict[ex['unit']['@id']]  # self._unit_dict[ex['unit']['@id']]
+                v_unit = self.unit_dict[ex['unit']['@id']]  # self._unit_dict[ex['unit']['@id']]
             except KeyError:
                 logging.warning('%s: %d: bad unit %s for flow property %s! using default' % (p.external_ref,
                                                                                              ex['internalId'],

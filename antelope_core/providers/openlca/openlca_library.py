@@ -224,6 +224,10 @@ class OpenLcaLibrary(AntelopeArchive):
     def tm(self):
         return self._meta.tm
 
+    @property
+    def unit_dict(self):
+        return self._meta.unit_dict
+
     # ------------------------------------------------------------------
     # Inventory
     # ------------------------------------------------------------------
