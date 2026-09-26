@@ -28,7 +28,7 @@ import logging
 
 from collections import defaultdict
 
-from antelope import ConversionError, NoReference, EntityNotFound
+from antelope import ConversionError, NoReference, EntityNotFound, BasicQuery
 
 from ...exchanges import AmbiguousReferenceError
 
@@ -144,6 +144,26 @@ class OpenLcaJsonLdArchive(LcArchive):
                 self._cat_lookup[lookup_key] = cat_key  # reverse lookup of tuple -> key
                 self.tm.add_context(lookup_key, cat_key)
 
+    def _try_load_library(self, library_name):
+        """
+        in the future we could conceivably try to download them from the URL
+
+        :param library_name:
+        :return:
+        """
+        if library_name is None:
+            return
+
+        local_path = os.path.join(os.path.dirname(self._source), 'libraries', library_name)
+        try:
+            if os.path.exists(local_path):
+                from .openlca_library import OpenLcaLibrary
+                ar = OpenLcaLibrary(local_path, ref=library_name)
+                q = BasicQuery(ar)
+                return q
+        finally:
+            return None
+
     def __init__(self, source, prefix=None, skip_index=False, product_system=None, libraries=None, **kwargs):
         """
 
@@ -162,11 +182,23 @@ class OpenLcaJsonLdArchive(LcArchive):
 
         self._type_index = None
         self._unit_dict = {}
+        self._openlca = self._read_meta()
+
         self._libraries = libraries or {}
+
+        for library in self._openlca.get('libraries', []):
+            try:
+                library_name = library['id']
+            except KeyError:
+                continue
+            q = self._try_load_library(library_name)
+            if q:
+                self._libraries[library_name] = q
+
         for q in self.library_queries:
             for f in q.flows():
                 self.add_entity_and_children(f)
-        self._openlca = self._read_meta()
+
         if not skip_index:
             self._gen_index()
         if self.schema_version >= 2:
