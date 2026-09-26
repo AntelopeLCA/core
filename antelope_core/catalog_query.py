@@ -495,10 +495,12 @@ class CatalogQuery(BasicInterface, IndexInterface, BackgroundInterface, Exchange
         else:
             if res.total() != res_m.total:
                 net = res_m.total - res.total()
-                try:
-                    res.add_summary('net result', 'net result', 1.0, net)
-                except MixedComponents:
-                    logging.warning('Inconsistent Agg LCIA result (net %g of %g)' % (net, res_m.total))
+                err = abs(net) / abs(res_m.total)
+                if err > 1e-10:
+                    try:
+                        res.add_summary('net result', 'net result', 1.0, net)
+                    except MixedComponents:
+                        logging.warning('Inconsistent Agg LCIA result (err %g of %g)' % (err, res_m.total))
         return res
 
     def _cycle_through_ress(self, ress, process, query_qty):

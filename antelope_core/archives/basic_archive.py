@@ -324,8 +324,8 @@ class BasicArchive(EntityStore):
         :param e:
         :return:
         """
-        if 'tags' in e:
-            raise OldJson('This file type is no longer supported.')
+        # if 'tags' in e:  # this is stale- we certainly allow entities to have fields named 'tags'
+        #     raise OldJson('This file type is no longer supported.')
         e['entity_uuid'] = e.pop('entityId', None)
         ext_ref = e.pop('externalId', None)
         if ext_ref is None:

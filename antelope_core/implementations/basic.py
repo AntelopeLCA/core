@@ -59,10 +59,7 @@ class BasicImplementation(object):
         :return:
         """
         if hasattr(external_ref, 'external_ref'):
-            eref = external_ref
-            external_ref = eref.external_ref
-        else:
-            eref = None
+            external_ref = external_ref.external_ref
         entity = self.get(external_ref)
         # if entity:
         if not entity.is_entity:
