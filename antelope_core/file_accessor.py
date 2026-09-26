@@ -3,6 +3,7 @@ FileAccessor, for standardizing access to antelope resources on a filesystem hav
 
 {DATA ROOT}/[origin]/[interface]/[ds_type]/[source_file]  - source
 {DATA ROOT}/[origin]/[interface]/[ds_type]/config.json    - configuration
+{DATA ROOT}/[origin]/[interface]/[ds_type]/libraries/     - provider-managed subsidiary archives (ignored by gen_sources)
 
 A filesystem having this structure will enable automatic registration of resources, taking origin, interface, and
 ds_type from the directory structure and the source+config files as-discovered by traversing the filesystem.
@@ -17,10 +18,17 @@ For now, generating the sources is probably fine.
 
 import os
 import json
+import jsonschema
 from .lc_resource import LcResource
 from antelope import BackgroundRequired
 from shutil import copy2
 
+_SCHEMA_FILE = os.path.join(os.path.dirname(__file__), 'file_accessor_config_schema.json')
+with open(_SCHEMA_FILE) as _fp:
+    _CONFIG_SCHEMA = json.load(_fp)
+
+
+_RESERVED_NAMES = {'config.json', 'libraries'}
 
 DEFAULT_PRIORITIES = {
     'exchange': 20,
@@ -55,6 +63,7 @@ class FileAccessor(object):
         if os.path.exists(cfg):
             with open(cfg) as fp:
                 config = json.load(fp)
+            jsonschema.validate(config, _CONFIG_SCHEMA)
         else:
             config = dict()
         return config
@@ -103,7 +112,7 @@ class FileAccessor(object):
             if not os.path.isdir(ds_path):
                 continue
             for fn in os.listdir(ds_path):
-                if fn == 'config.json':
+                if fn in _RESERVED_NAMES:
                     continue
                 # if we want to order sources, this is the place to do it
                 source = os.path.join(ds_path, fn)

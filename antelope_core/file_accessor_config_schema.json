@@ -1,0 +1,193 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "antelope-resource-config",
+  "title": "Antelope FileAccessor Resource Config",
+  "description": "Schema for config.json files placed alongside source files in the FileAccessor directory tree: {DATA_ROOT}/[origin]/[interface]/[ds_type]/config.json. All fields are optional. Unknown top-level keys are passed as kwargs to the archive constructor (ds_type-specific).",
+  "type": "object",
+  "properties": {
+    "priority": {
+      "type": "integer",
+      "description": "Load priority (nominally 0–100). Lower value = loaded first. Defaults: exchange=20, quantity=20, index=50, background=80.",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "add_interfaces": {
+      "type": "array",
+      "description": "Additional interfaces this resource satisfies beyond the one implied by its directory position.",
+      "items": {
+        "type": "string",
+        "enum": ["basic", "exchange", "quantity", "index", "background", "foreground", "configure"]
+      },
+      "uniqueItems": true
+    },
+    "static": {
+      "type": "boolean",
+      "description": "If true, load_all() is called on the archive immediately after initialization."
+    },
+    "prefix": {
+      "type": "string",
+      "description": "Path prefix used when accessing entries within a zipped/compound archive."
+    },
+    "download": {
+      "type": "object",
+      "description": "Specifies a remote source to download if the source file is not present locally.",
+      "properties": {
+        "url": {
+          "type": "string",
+          "description": "URL of the remote resource."
+        },
+        "md5sum": {
+          "type": "string",
+          "description": "Optional MD5 checksum for verifying the downloaded file."
+        }
+      },
+      "required": ["url"],
+      "additionalProperties": false
+    },
+    "token": {
+      "type": "string",
+      "description": "JWT for authenticating to an xdb remote archive."
+    },
+    "config": {
+      "type": "object",
+      "description": "ConfigureInterface specifications applied after the archive is loaded. Each key is a configuration method name; each value is a list of argument tuples (represented as arrays). All operations are idempotent. Only the options supported by the archive's ConfigureInterface implementation will be applied; unsupported options are silently skipped.",
+      "properties": {
+        "hints": {
+          "type": "array",
+          "description": "Synonym mappings applied to the LCIA engine. Each entry is [hint_type, local_name, canonical_name].",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "enum": ["context", "flowable", "quantity"],
+                "description": "The kind of entity being mapped."
+              },
+              {
+                "type": "string",
+                "description": "Local name as it appears in this archive."
+              },
+              {
+                "type": "string",
+                "description": "Canonical name in the LCIA engine."
+              }
+            ],
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "set_reference": {
+          "type": "array",
+          "description": "Mark a specific exchange as a reference flow. Each entry is [process_ref, flow_ref, direction]. direction may be null if unambiguous.",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {"type": "string", "description": "Process external_ref."},
+              {"type": "string", "description": "Flow external_ref."},
+              {
+                "oneOf": [
+                  {"type": "string", "enum": ["Input", "Output"]},
+                  {"type": "null"}
+                ],
+                "description": "Exchange direction; null if there is only one candidate."
+              }
+            ],
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "unset_reference": {
+          "type": "array",
+          "description": "Remove a reference-flow designation. Any of the three arguments may be null to act as a wildcard.",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "oneOf": [{"type": "string"}, {"type": "null"}],
+                "description": "Process external_ref, or null to match all processes."
+              },
+              {
+                "oneOf": [{"type": "string"}, {"type": "null"}],
+                "description": "Flow external_ref, or null to match all flows."
+              },
+              {
+                "oneOf": [
+                  {"type": "string", "enum": ["Input", "Output"]},
+                  {"type": "null"}
+                ],
+                "description": "Exchange direction, or null to match both directions."
+              }
+            ],
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "characterize_flow": {
+          "type": "array",
+          "description": "Add a quantity characterization for a flow. Each entry is [flow_ref, quantity_ref, value]. Applied by ConfigureImplementation and LcConfigureImplementation.",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {"type": "string", "description": "Flow external_ref."},
+              {"type": "string", "description": "Quantity external_ref."},
+              {"type": "number", "description": "Characterization factor value."}
+            ],
+            "minItems": 3,
+            "maxItems": 3
+          }
+        },
+        "allocate_by_quantity": {
+          "type": "array",
+          "description": "Apply quantity-based allocation to a multi-output process at load time. Each entry is [process_ref, quantity_ref]. Applied by LcConfigureImplementation only.",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {"type": "string", "description": "Process external_ref."},
+              {"type": "string", "description": "Quantity external_ref to allocate by."}
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
+        },
+        "prefer_provider": {
+          "type": "array",
+          "description": "Specify a preferred provider process for a given flow. Each entry is [flow_ref, process_ref]. process_ref may be null to clear a preference.",
+          "items": {
+            "type": "array",
+            "prefixItems": [
+              {"type": "string", "description": "Flow external_ref."},
+              {
+                "oneOf": [{"type": "string"}, {"type": "null"}],
+                "description": "Process external_ref, or null to remove preference."
+              }
+            ],
+            "minItems": 2,
+            "maxItems": 2
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true,
+  "examples": [
+    {
+      "add_interfaces": ["basic"],
+      "prefix": "datasets",
+      "config": {
+        "hints": [
+          ["context", "air", "to air"],
+          ["quantity", "EcoSpold Quantity kg", "Mass"]
+        ]
+      }
+    },
+    {
+      "priority": 20,
+      "static": true,
+      "config": {
+        "set_reference": [["some-process-uuid", "some-flow-uuid", "Output"]],
+        "characterize_flow": [["some-flow-uuid", "some-qty-uuid", 1.0]]
+      }
+    }
+  ]
+}
