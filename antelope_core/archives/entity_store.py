@@ -17,12 +17,14 @@ from __future__ import print_function, unicode_literals
 import uuid
 import re
 import os
+from abc import ABC
 from datetime import datetime
 
 from collections import defaultdict
 
 from antelope import local_ref
 from ..from_json import to_json
+from .iarchive import AntelopeArchive
 
 
 # CatalogRef = namedtuple('CatalogRef', ['archive', 'id'])
@@ -146,7 +148,7 @@ class EntityStoreInterface:
 '''
 
 
-class EntityStore(object):
+class EntityStore(AntelopeArchive, ABC):
     _entity_types = ()  # must be overridden
     '''
     _ns_uuid_required: specifies whether the archive must be supplied an ns_uuid (generally, archives that are
